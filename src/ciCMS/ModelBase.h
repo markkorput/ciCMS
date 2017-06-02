@@ -7,6 +7,7 @@ using namespace std;
 namespace cms {
     class ModelBase {
 
+    public:
         typedef void* CidType;
 
         typedef function<void(const string&, const string&)> AttrIterateFunc;
