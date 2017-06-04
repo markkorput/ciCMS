@@ -18,3 +18,13 @@ bool cms::CollectionJsonLoader<cms::Model>::loadItem(ci::JsonTree& jsonTree, sha
     }
     return true;
 }
+
+template<>
+ci::JsonTree cms::CollectionJsonWriter<cms::Model>::getItemJsonTree(shared_ptr<cms::Model> itemRef){
+    ci::JsonTree tree;
+    itemRef->each([&](const string& attr, const string& value){
+        tree.addChild(ci::JsonTree(attr, value));
+    });
+
+    return tree;
+}

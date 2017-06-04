@@ -7,6 +7,7 @@
 #include "CollectionFilter.h"
 #include "CollectionTransformer.h"
 #include "CollectionJsonLoader.h"
+#include "CollectionJsonWriter.h"
 
 namespace cms {
     template<class ItemType>
@@ -58,6 +59,18 @@ namespace cms {
                 CollectionJsonLoader<ItemType> loader;
                 loader.setup(*this, path);
                 return loader.load();
+            }
+
+            std::string toJsonString(){
+                CollectionJsonWriter<ItemType> writer;
+                writer.setup(*this);
+                return writer.toJsonString();
+            }
+
+            void writeJson(const ci::fs::path& path){
+                CollectionJsonWriter<ItemType> writer;
+                writer.setup(*this);
+                writer.writeJson(path);
             }
 
         private:

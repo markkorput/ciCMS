@@ -461,7 +461,7 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(targetCol.size() == 2);
     }
 
-    SECTION("loadJsonFile"){
+    SECTION("loadJsonFromFile"){
         ModelCollection col;
         auto p = ci::app::getAssetPath("collection.json");
         REQUIRE(col.loadJsonFromFile(p));
@@ -472,5 +472,22 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(col.at(0)->get("age") == "31");
         REQUIRE(col.at(1)->get("age") == "33");
         REQUIRE(col.at(2)->get("age") == "13");
+    }
+
+    SECTION("saveJsonToFile"){
+        ModelCollection col;
+        col.create()->set("value", "v1");
+        col.create()->set("value", "v2");
+        col.create()->set("falue", "f3");
+        // col.writeJson(ci::app::getAssetPath("collectionWriteTarget.json"));
+
+        auto path = ci::app::getAssetPath("collection2.json");
+        auto dataSourceRef = ci::loadFile(path);
+
+        string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
+        if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
+            fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
+
+        REQUIRE(col.toJsonString() == fileContentString);
     }
 }
