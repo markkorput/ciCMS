@@ -126,37 +126,36 @@ TEST_CASE("cms::Collection", ""){
             string value;
     };
 
-
-    auto collectionRef = make_shared<Collection<FooKlass>>();
-
     SECTION("create"){
-        int count=0;
+        Collection<FooKlass> col;
 
-        auto connection = collectionRef->addSignal.connect([&count](FooKlass& model){
+        int count=0;
+        auto connection = col.addSignal.connect([&count](FooKlass& model){
             count++;
         });
 
-        REQUIRE(collectionRef->size() == 0);
+        REQUIRE(col.size() == 0);
         REQUIRE(count == 0);
 
         // create first model
-        auto instanceRef = collectionRef->create();
+        auto instanceRef = col.create();
         REQUIRE(instanceRef.use_count() == 2);
-        REQUIRE(collectionRef->size() == 1);
+        REQUIRE(col.size() == 1);
         REQUIRE(count == 1);
 
         connection.disconnect();
-        instanceRef = collectionRef->create();
+        instanceRef = col.create();
 
-        REQUIRE(collectionRef->size() == 2);
+        REQUIRE(col.size() == 2);
         REQUIRE(count == 1);
     }
 
     SECTION("add"){
-        int startCount = collectionRef->size();
+        Collection<FooKlass> col;
         auto m = make_shared<FooKlass>();
-        collectionRef->add(m);
-        REQUIRE(collectionRef->size() == startCount+1);
+        col.add(m);
+        REQUIRE(col.size() == 1);
+        REQUIRE(col.at(0) == m);
     }
 
     SECTION("find and remove"){
@@ -175,10 +174,12 @@ TEST_CASE("cms::Collection", ""){
     }
 
     SECTION("remove with invalid index"){
-        int curCount = collectionRef->size();
-        auto instanceRef = collectionRef->removeByIndex(collectionRef->size()+1);
-        REQUIRE(instanceRef == nullptr);
-        REQUIRE(collectionRef->size() == curCount);
+        Collection<FooKlass> col;
+        col.create();
+        REQUIRE(col.size() == 1);
+        REQUIRE(col.removeByIndex(1) == nullptr);
+        REQUIRE(col.removeByIndex(100) == nullptr);
+        REQUIRE(col.size() == 1);
     }
 
     SECTION("remove by index"){
@@ -200,22 +201,28 @@ TEST_CASE("cms::Collection", ""){
     }
 
     SECTION("destroy"){
-        collectionRef->destroy();
-        REQUIRE(collectionRef->size() == 0);
+        Collection<FooKlass> col;
+        col.create(); col.create(); col.create();
+        REQUIRE(col.size() == 3);
+        col.destroy();
+        REQUIRE(col.size() == 0);
     }
 
     SECTION("each"){
-        int curCount = collectionRef->size();
-        collectionRef->create();
-        REQUIRE(collectionRef->size() == curCount+1);
+        Collection<FooKlass> col;
+        col.create()->value = "#1";
+        col.create()->value = "#2";
+        col.create()->value = "#3";
 
-        int eachCount=0;
+        REQUIRE(col.size() == 3);
 
-        collectionRef->each([&eachCount](shared_ptr<FooKlass> modelRef){
-            eachCount++;
+        string merged = "";
+
+        col.each([&merged](shared_ptr<FooKlass> itemRef){
+            merged += itemRef->value;
         });
 
-        REQUIRE(eachCount == curCount+1);
+        REQUIRE(merged == "#1#2#3");
     }
 
     SECTION("add while iterating"){
@@ -237,8 +244,6 @@ TEST_CASE("cms::Collection", ""){
     SECTION("random"){
         CI_LOG_W("TODO");
     }
-
-
 
     // SECTION("limit"){
     //     CI_LOG_W("TODO");
