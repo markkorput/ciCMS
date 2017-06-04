@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cinder/Log.h"
+#include "cinder/Signals.h"
 #include "CollectionBase.h"
 
 namespace cms {

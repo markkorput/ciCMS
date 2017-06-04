@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
+#include "cinder/Signals.h"
 #include "CollectionBase.h"
-
 
 namespace cms {
     template<class ItemType>

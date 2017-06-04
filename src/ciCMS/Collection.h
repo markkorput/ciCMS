@@ -5,6 +5,7 @@
 #include "CollectionLimit.h"
 #include "CollectionSync.h"
 #include "CollectionFilter.h"
+#include "CollectionTransformer.h"
 
 namespace cms {
     template<class ItemType>
@@ -27,10 +28,36 @@ namespace cms {
             void filter(FilterFunctor func, bool active=true);
             void reject(FilterFunctor func, bool active=true);
 
+            template<class SourceType>
+            void transform(CollectionBase<SourceType> &sourceCollection, function<shared_ptr<ItemType>(SourceType&)> func/*, bool active=true*/){
+                // create
+                auto transformerRef = make_shared<CollectionTransformer<SourceType, ItemType>>();
+                // configure
+                transformerRef->setup(sourceCollection, *this, func);
+                // store
+                collectionTransformers.push_back(transformerRef);
+            }
+
+            template<class SourceType>
+            void stopTransform(CollectionBase<SourceType> &sourceCollection){
+                // search
+                for(auto it = collectionTransformers.begin(); it != collectionTransformers.end(); it++){
+                    // find
+                    if((*it)->getSource() == (void*)&sourceCollection){
+                        // remove/destroy
+                        collectionTransformers.erase(it);
+                        return;
+                    }
+                }
+
+                CI_LOG_W("Could not find source collection to stop transforming from");
+            }
+
         private:
             CollectionLimit<ItemType> collectionLimit;
             std::vector<shared_ptr<CollectionSync<ItemType>>> collectionSyncs;
             std::vector<shared_ptr<CollectionFilter<ItemType>>> collectionFilters;
+            std::vector<shared_ptr<CollectionTransformerBase>> collectionTransformers;
     };
 }
 

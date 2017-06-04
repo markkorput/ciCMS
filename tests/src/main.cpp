@@ -416,48 +416,48 @@ TEST_CASE("cms::Collection", ""){
         CI_LOG_W("TODO");
     }
 
-    // SECTION("transform"){
-    //     class TransformedClass {
-    //     public:
-    //         string pointerString;
-    //     };
-    //
-    //     Collection<TransformedClass> targetCol;
-    //     Collection<FooKlass> sourceCol;
-    //
-    //     sourceCol.create();
-    //     sourceCol.create();
-    //     REQUIRE(sourceCol.size() == 2);
-    //     REQUIRE(targetCol.size() == 0);
-    //
-    //     targetCol.template transform<FooKlass>(sourceCol, [](FooKlass& source) -> shared_ptr<TransformedClass>{
-    //         auto instanceRef = make_shared<TransformedClass>();
-    //         instanceRef->pointerString = std::to_string((int)&source);
-    //         return instanceRef;
-    //     });
-    //
-    //     REQUIRE(targetCol.size() == 2);
-    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
-    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
-    //
-    //     sourceCol.create();
-    //     REQUIRE(targetCol.size() == 3);
-    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
-    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
-    //     REQUIRE(targetCol.at(2)->pointerString == std::to_string(sourceCol.at(2).get()));
-    //
-    //     sourceCol.removeByIndex(1);
-    //     REQUIRE(targetCol.size() == 2);
-    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
-    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
-    //
-    //     targetCol.stopTransform(sourceCol);
-    //     sourceCol.removeByIndex(0);
-    //     REQUIRE(sourceCol.size() == 1);
-    //     REQUIRE(targetCol.size() == 2);
-    //     sourceCol.create();
-    //     sourceCol.create();
-    //     REQUIRE(sourceCol.size() == 3);
-    //     REQUIRE(targetCol.size() == 2);
-    // }
+    SECTION("transform"){
+        class TransformedClass {
+        public:
+            string pointerString;
+        };
+
+        Collection<TransformedClass> targetCol;
+        Collection<FooKlass> sourceCol;
+
+        sourceCol.create();
+        sourceCol.create();
+        REQUIRE(sourceCol.size() == 2);
+        REQUIRE(targetCol.size() == 0);
+
+        targetCol.template transform<FooKlass>(sourceCol, [](FooKlass& source) -> shared_ptr<TransformedClass>{
+            auto instanceRef = make_shared<TransformedClass>();
+            instanceRef->pointerString = std::to_string((long)&source);
+            return instanceRef;
+        });
+
+        REQUIRE(targetCol.size() == 2);
+        REQUIRE(targetCol.at(0)->pointerString == std::to_string((long)sourceCol.at(0).get()));
+        REQUIRE(targetCol.at(1)->pointerString == std::to_string((long)sourceCol.at(1).get()));
+
+        sourceCol.create();
+        REQUIRE(targetCol.size() == 3);
+        REQUIRE(targetCol.at(0)->pointerString == std::to_string((long)sourceCol.at(0).get()));
+        REQUIRE(targetCol.at(1)->pointerString == std::to_string((long)sourceCol.at(1).get()));
+        REQUIRE(targetCol.at(2)->pointerString == std::to_string((long)sourceCol.at(2).get()));
+
+        sourceCol.removeByIndex(1);
+        REQUIRE(targetCol.size() == 2);
+        REQUIRE(targetCol.at(0)->pointerString == std::to_string((long)sourceCol.at(0).get()));
+        REQUIRE(targetCol.at(1)->pointerString == std::to_string((long)sourceCol.at(1).get()));
+
+        targetCol.stopTransform(sourceCol);
+        sourceCol.removeByIndex(0);
+        REQUIRE(sourceCol.size() == 1);
+        REQUIRE(targetCol.size() == 2);
+        sourceCol.create();
+        sourceCol.create();
+        REQUIRE(sourceCol.size() == 3);
+        REQUIRE(targetCol.size() == 2);
+    }
 }
