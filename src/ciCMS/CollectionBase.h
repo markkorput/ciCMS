@@ -120,7 +120,7 @@ void cms::CollectionBase<ItemType>::add(shared_ptr<ItemType> instanceRef, bool n
         return;
     }
 
-    if(!beforeAddSignal.emit(*instanceRef.get()))
+    if(beforeAddSignal.getNumSlots() > 0 && !beforeAddSignal.emit(*instanceRef.get()))
         return;
 
     // add to our collection

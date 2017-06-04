@@ -142,7 +142,6 @@ TEST_CASE("cms::Collection", ""){
         // create first model
         auto instanceRef = collectionRef->create();
         REQUIRE(instanceRef.use_count() == 2);
-
         REQUIRE(collectionRef->size() == 1);
         REQUIRE(count == 1);
 
@@ -161,16 +160,18 @@ TEST_CASE("cms::Collection", ""){
     }
 
     SECTION("find and remove"){
-        int curCount = collectionRef->size();
+        Collection<FooKlass> col;
+        auto itemRef = col.create();
+        REQUIRE(col.size() == 1);
 
         // find
-        auto instanceRef = collectionRef->at(curCount-1);
-        REQUIRE(instanceRef.use_count() == 2);
+        REQUIRE(col.at(0) == itemRef);
+        REQUIRE(itemRef.use_count() == 2);
 
         // remove by reference
-        collectionRef->remove(instanceRef);
-        REQUIRE(instanceRef.use_count() == 1); // local reference is last reference
-        REQUIRE(collectionRef->size() == curCount-1);
+        col.remove(itemRef);
+        REQUIRE(itemRef.use_count() == 1); // local reference is last reference
+        REQUIRE(col.size() == 0);
     }
 
     SECTION("remove with invalid index"){
@@ -181,12 +182,17 @@ TEST_CASE("cms::Collection", ""){
     }
 
     SECTION("remove by index"){
-        int curCount = collectionRef->size();
-        auto instanceRef = collectionRef->at(curCount-1);
-        REQUIRE(instanceRef.use_count() == 2);
-        instanceRef = collectionRef->removeByIndex(curCount-1);
-        REQUIRE(collectionRef->size() == curCount-1);
-        REQUIRE(instanceRef.use_count() == 1); // last reference
+        Collection<FooKlass> col;
+        auto item1Ref = col.create();
+        auto item2Ref = col.create();
+
+        REQUIRE(col.size() == 2);
+        REQUIRE(item2Ref.use_count() == 2);
+        auto removeResultRef = col.removeByIndex(1);
+        REQUIRE(removeResultRef == item2Ref);
+        removeResultRef = nullptr;
+        REQUIRE(col.size() == 1);
+        REQUIRE(item2Ref.use_count() == 1); // last reference
     }
 
     SECTION("remove by pointer"){
