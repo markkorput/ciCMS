@@ -6,6 +6,7 @@
 #include "CollectionSync.h"
 #include "CollectionFilter.h"
 #include "CollectionTransformer.h"
+#include "CollectionJsonLoader.h"
 
 namespace cms {
     template<class ItemType>
@@ -51,6 +52,12 @@ namespace cms {
                 }
 
                 CI_LOG_W("Could not find source collection to stop transforming from");
+            }
+
+            bool loadJsonFromFile(const ci::fs::path& path){
+                CollectionJsonLoader<ItemType> loader;
+                loader.setup(*this, path);
+                return loader.load();
             }
 
         private:

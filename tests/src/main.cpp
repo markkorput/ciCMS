@@ -460,4 +460,17 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(sourceCol.size() == 3);
         REQUIRE(targetCol.size() == 2);
     }
+
+    SECTION("loadJsonFile"){
+        ModelCollection col;
+        auto p = ci::app::getAssetPath("collection.json");
+        REQUIRE(col.loadJsonFromFile(p));
+        REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0)->get("name") == "John Doe");
+        REQUIRE(col.at(1)->get("name") == "Jane Doe");
+        REQUIRE(col.at(2)->get("name") == "Billy Doe");
+        REQUIRE(col.at(0)->get("age") == "31");
+        REQUIRE(col.at(1)->get("age") == "33");
+        REQUIRE(col.at(2)->get("age") == "13");
+    }
 }
