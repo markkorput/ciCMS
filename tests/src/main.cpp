@@ -466,6 +466,21 @@ TEST_CASE("cms::Collection", ""){
         auto p = ci::app::getAssetPath("collection.json");
         REQUIRE(col.loadJsonFromFile(p));
         REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0)->get("id") == "1");
+        REQUIRE(col.at(1)->get("id") == "2");
+        REQUIRE(col.at(2)->get("id") == "3");
+        REQUIRE(col.at(0)->get("name") == "John Doe");
+        REQUIRE(col.at(1)->get("name") == "Jane Doe");
+        REQUIRE(col.at(2)->get("name") == "Billy Doe");
+        REQUIRE(col.at(0)->get("age") == "31");
+        REQUIRE(col.at(1)->get("age") == "33");
+        REQUIRE(col.at(2)->get("age") == "13");
+        REQUIRE(col.loadJsonFromFile(p));
+        // by default matches on ID
+        REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0)->get("id") == "1");
+        REQUIRE(col.at(1)->get("id") == "2");
+        REQUIRE(col.at(2)->get("id") == "3");
         REQUIRE(col.at(0)->get("name") == "John Doe");
         REQUIRE(col.at(1)->get("name") == "Jane Doe");
         REQUIRE(col.at(2)->get("name") == "Billy Doe");
@@ -474,7 +489,7 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(col.at(2)->get("age") == "13");
     }
 
-    SECTION("saveJsonToFile"){
+    SECTION("toJsonString"){
         ModelCollection col;
         col.create()->set("value", "v1");
         col.create()->set("value", "v2");

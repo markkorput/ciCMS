@@ -16,6 +16,7 @@ namespace cms {
             typedef void* CidType;
             typedef function<void(void)> LockFunctor;
             typedef function<void(shared_ptr<ItemType>)> IterateRefFunc;
+            typedef function<bool(shared_ptr<ItemType>)> FindFunc;
 
             class Modification {
                 public:
@@ -44,6 +45,15 @@ namespace cms {
             shared_ptr<ItemType> find(ItemType* cid);
             //! Convenience method that convert the void* CidType to a ItemType* value
             shared_ptr<ItemType> find(CidType cid){ return this->find((ItemType*)cid); }
+            shared_ptr<ItemType> first(FindFunc func){
+                for(int idx=0; idx<size(); idx++){
+                    auto itemRef = this->at(idx);
+                    if(func(itemRef))
+                        return itemRef;
+                }
+
+                return nullptr;
+            }
 
             unsigned int size(){ return instanceRefs.size(); }
             bool has(shared_ptr<ItemType> instanceRef){ return indexOf(instanceRef.get()) != CICMS_INVALID_INDEX; }

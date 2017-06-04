@@ -31,15 +31,20 @@ namespace cms {
                 bool allSuccess = true;
 
                 for(int idx=0; idx<jsonTree.getNumChildren(); idx++){
-                    auto itemRef = collection->at(idx);
-                    if(!itemRef)
-                        itemRef = collection->create();
-                    allSuccess &= loadItem(jsonTree.getChild(idx), itemRef);
+                    auto subTree = jsonTree.getChild(idx);
+                    auto existingItemRef = findMatch(subTree, *this->collection);
+                    auto itemRef = existingItemRef ? existingItemRef : this->collection->create();
+                    allSuccess &= loadItem(subTree, itemRef);
+                    // auto itemRef = collection->at(idx);
+                    // if(!itemRef)
+                    //     itemRef = collection->create();
+                    // allSuccess &= loadItem(jsonTree.getChild(idx), itemRef);
                 }
 
                 return allSuccess;
             }
 
+            virtual shared_ptr<ItemType> findMatch(ci::JsonTree& jsonTree, CollectionBase<ItemType>& collection){ return nullptr; }
             virtual bool loadItem(ci::JsonTree& jsonTree, shared_ptr<ItemType> itemRef){ return false; }
 
         private:
