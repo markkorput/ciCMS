@@ -352,70 +352,70 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(colRefA->size() == 1);
     }
 
-    // SECTION("filter actively using custom lambda"){
-    //     Collection<FooKlass> col;
-    //     col.create();
-    //     col.create();
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //
-    //     int filterCounter=0;
-    //
-    //     col.filter([&filterCounter](FooKlass& instance) -> bool {
-    //         // accept every other instance
-    //         bool accept = ((filterCounter & 1) == 0);
-    //         filterCounter++;
-    //         return accept;
-    //     });
-    //
-    //     REQUIRE(filterCounter == 3);
-    //     REQUIRE(col.size() == 2);
-    //
-    //     col.create();
-    //     REQUIRE(col.size() == 2);
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //     col.create();
-    //     REQUIRE(col.size() == 4);
-    //     REQUIRE(filterCounter == 7);
-    // }
-    //
-    // SECTION("reject actively using custom lambda"){
-    //     Collection<FooKlass> col;
-    //     col.create();
-    //     col.create();
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //
-    //     int filterCounter=0;
-    //
-    //     col.reject([&filterCounter](FooKlass& instance) -> bool {
-    //         // accept every other instance
-    //         bool accept = ((filterCounter & 1) == 0);
-    //         filterCounter++;
-    //         return accept;
-    //     });
-    //
-    //     REQUIRE(filterCounter == 3);
-    //     REQUIRE(col.size() == 1);
-    //
-    //     col.create();
-    //     REQUIRE(col.size() == 2);
-    //     col.create();
-    //     REQUIRE(col.size() == 2);
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //     col.create();
-    //     REQUIRE(col.size() == 3);
-    //     REQUIRE(filterCounter == 7);
-    // }
-    //
-    // SECTION("combine filter sync and limit"){
-    //     CI_LOG_W("TODO");
-    // }
-    //
+    SECTION("filter actively using custom lambda"){
+        Collection<FooKlass> col;
+        col.create();
+        col.create();
+        col.create();
+        REQUIRE(col.size() == 3);
+
+        int filterCounter=0;
+
+        col.filter([&filterCounter](FooKlass& instance) -> bool {
+            // accept every other instance
+            bool accept = ((filterCounter & 1) == 0);
+            filterCounter++;
+            return accept;
+        });
+
+        REQUIRE(filterCounter == 3);
+        REQUIRE(col.size() == 2);
+
+        col.create();
+        REQUIRE(col.size() == 2);
+        col.create();
+        REQUIRE(col.size() == 3);
+        col.create();
+        REQUIRE(col.size() == 3);
+        col.create();
+        REQUIRE(col.size() == 4);
+        REQUIRE(filterCounter == 7);
+    }
+
+    SECTION("reject actively using custom lambda"){
+        Collection<FooKlass> col;
+        col.create();
+        col.create();
+        col.create();
+        REQUIRE(col.size() == 3);
+
+        int filterCounter=0;
+
+        col.reject([&filterCounter](FooKlass& instance) -> bool {
+            // accept every other instance
+            bool accept = ((filterCounter & 1) == 0);
+            filterCounter++;
+            return accept;
+        });
+
+        REQUIRE(filterCounter == 3);
+        REQUIRE(col.size() == 1);
+
+        col.create();
+        REQUIRE(col.size() == 2);
+        col.create();
+        REQUIRE(col.size() == 2);
+        col.create();
+        REQUIRE(col.size() == 3);
+        col.create();
+        REQUIRE(col.size() == 3);
+        REQUIRE(filterCounter == 7);
+    }
+
+    SECTION("combine filter sync and limit"){
+        CI_LOG_W("TODO");
+    }
+
     // SECTION("transform"){
     //     class TransformedClass {
     //     public:
