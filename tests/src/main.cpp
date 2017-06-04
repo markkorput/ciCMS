@@ -460,4 +460,49 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(sourceCol.size() == 3);
         REQUIRE(targetCol.size() == 2);
     }
+
+    SECTION("loadJsonFromFile"){
+        ModelCollection col;
+        auto p = ci::app::getAssetPath("collection.json");
+        REQUIRE(col.loadJsonFromFile(p));
+        REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0)->get("id") == "1");
+        REQUIRE(col.at(1)->get("id") == "2");
+        REQUIRE(col.at(2)->get("id") == "3");
+        REQUIRE(col.at(0)->get("name") == "John Doe");
+        REQUIRE(col.at(1)->get("name") == "Jane Doe");
+        REQUIRE(col.at(2)->get("name") == "Billy Doe");
+        REQUIRE(col.at(0)->get("age") == "31");
+        REQUIRE(col.at(1)->get("age") == "33");
+        REQUIRE(col.at(2)->get("age") == "13");
+        REQUIRE(col.loadJsonFromFile(p));
+        // by default matches on ID
+        REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0)->get("id") == "1");
+        REQUIRE(col.at(1)->get("id") == "2");
+        REQUIRE(col.at(2)->get("id") == "3");
+        REQUIRE(col.at(0)->get("name") == "John Doe");
+        REQUIRE(col.at(1)->get("name") == "Jane Doe");
+        REQUIRE(col.at(2)->get("name") == "Billy Doe");
+        REQUIRE(col.at(0)->get("age") == "31");
+        REQUIRE(col.at(1)->get("age") == "33");
+        REQUIRE(col.at(2)->get("age") == "13");
+    }
+
+    SECTION("toJsonString"){
+        ModelCollection col;
+        col.create()->set("value", "v1");
+        col.create()->set("value", "v2");
+        col.create()->set("falue", "f3");
+        // col.writeJson(ci::app::getAssetPath("collectionWriteTarget.json"));
+
+        auto path = ci::app::getAssetPath("collection2.json");
+        auto dataSourceRef = ci::loadFile(path);
+
+        string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
+        if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
+            fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
+
+        REQUIRE(col.toJsonString() == fileContentString);
+    }
 }
