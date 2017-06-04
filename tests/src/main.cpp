@@ -11,17 +11,7 @@ using namespace std;
 using namespace cms;
 
 
-TEST_CASE("cms::Model", "")
-{
-    SECTION("get and set"){
-    }
-
-    SECTION("transform"){
-    }
-
-    SECTION("transformAttribute"){
-    }
-
+TEST_CASE("cms::Model", ""){
     SECTION("each"){
         Model model;
         std::vector<string> result;
@@ -131,7 +121,334 @@ TEST_CASE("cms::Model", "")
 }
 
 TEST_CASE("cms::Collection", ""){
-    SECTION("each"){
+    class FooKlass {
+        public:
+            string value;
+    };
+
+
+    auto collectionRef = make_shared<Collection<FooKlass>>();
+
+    SECTION("create"){
+        int count=0;
+
+        auto connection = collectionRef->addSignal.connect([&count](FooKlass& model){
+            count++;
+        });
+
+        REQUIRE(collectionRef->size() == 0);
+        REQUIRE(count == 0);
+
+        // create first model
+        auto instanceRef = collectionRef->create();
+        REQUIRE(instanceRef.use_count() == 2);
+
+        REQUIRE(collectionRef->size() == 1);
+        REQUIRE(count == 1);
+
+        connection.disconnect();
+        instanceRef = collectionRef->create();
+
+        REQUIRE(collectionRef->size() == 2);
+        REQUIRE(count == 1);
+    }
+
+    SECTION("add"){
+        int startCount = collectionRef->size();
+        auto m = make_shared<FooKlass>();
+        collectionRef->add(m);
+        REQUIRE(collectionRef->size() == startCount+1);
+    }
+
+    SECTION("find and remove"){
+        int curCount = collectionRef->size();
+
+        // find
+        auto instanceRef = collectionRef->at(curCount-1);
+        REQUIRE(instanceRef.use_count() == 2);
+
+        // remove by reference
+        collectionRef->remove(instanceRef);
+        REQUIRE(instanceRef.use_count() == 1); // local reference is last reference
+        REQUIRE(collectionRef->size() == curCount-1);
+    }
+
+    SECTION("remove with invalid index"){
+        int curCount = collectionRef->size();
+        auto instanceRef = collectionRef->removeByIndex(collectionRef->size()+1);
+        REQUIRE(instanceRef == nullptr);
+        REQUIRE(collectionRef->size() == curCount);
+    }
+
+    SECTION("remove by index"){
+        int curCount = collectionRef->size();
+        auto instanceRef = collectionRef->at(curCount-1);
+        REQUIRE(instanceRef.use_count() == 2);
+        instanceRef = collectionRef->removeByIndex(curCount-1);
+        REQUIRE(collectionRef->size() == curCount-1);
+        REQUIRE(instanceRef.use_count() == 1); // last reference
+    }
+
+    SECTION("remove by pointer"){
         CI_LOG_W("TODO");
     }
+
+    SECTION("destroy"){
+        collectionRef->destroy();
+        REQUIRE(collectionRef->size() == 0);
+    }
+
+    SECTION("each"){
+        int curCount = collectionRef->size();
+        collectionRef->create();
+        REQUIRE(collectionRef->size() == curCount+1);
+
+        int eachCount=0;
+
+        collectionRef->each([&eachCount](shared_ptr<FooKlass> modelRef){
+            eachCount++;
+        });
+
+        REQUIRE(eachCount == curCount+1);
+    }
+
+    SECTION("add while iterating"){
+        CI_LOG_W("TODO");
+    }
+
+    SECTION("remove while iterating"){
+        CI_LOG_W("TODO");
+    }
+
+    SECTION("previous"){
+        CI_LOG_W("TODO");
+    }
+
+    SECTION("next"){
+        CI_LOG_W("TODO");
+    }
+
+    SECTION("random"){
+        CI_LOG_W("TODO");
+    }
+
+
+
+    // SECTION("limit"){
+    //     CI_LOG_W("TODO");
+    //     return;
+    //     auto colRef = make_shared<Collection<FooKlass>>();
+    //     // create five instance
+    //     colRef->create();
+    //     colRef->create();
+    //     colRef->create();
+    //     colRef->create();
+    //     colRef->create();
+    //
+    //     string removed = "";
+    //
+    //     auto connection = colRef->removeSignal.connect([&removed](FooKlass& model){
+    //         removed += "#"+std::to_string((long)&model);
+    //     });
+    //
+    //     string expected = "#"+std::to_string((long)colRef->at(4).get())+"#"+std::to_string((long)colRef->at(3).get());
+    //     colRef->limit(3);
+    //     REQUIRE(colRef->size() == 3); // two models removed
+    //     REQUIRE(removed == expected); // remove callback invoked; last two models removed
+    //
+    //     FooKlass* cid = colRef->at(2).get();
+    //     colRef->create();
+    //     REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
+    //     REQUIRE(colRef->at(2).get() == cid);
+    //
+    //     colRef->setFifo(true);
+    //     auto newModelRef = colRef->create();
+    //     REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
+    //     REQUIRE(colRef->at(2).get() == newModelRef.get());
+    //
+    //     connection.disconnect();
+    //
+    //     CI_LOG_W("TODO: also feature one-time (non-active) limit");
+    // }
+    //
+    // SECTION("sync once"){
+    //     auto colRefA = make_shared<Collection<FooKlass>>();
+    //     auto colRefB = make_shared<Collection<FooKlass>>();
+    //
+    //     // initialize B with one model
+    //     colRefB->create();
+    //     REQUIRE(colRefB->size() == 1);
+    //     REQUIRE(colRefA->size() == 0);
+    //
+    //     // sync operation transfers model to A
+    //     colRefA->sync(colRefB, false /* sync once, don't monitor for changes */);
+    //     REQUIRE(colRefB->size() == 1);
+    //     REQUIRE(colRefA->size() == 1);
+    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+    //
+    //     // sync is not active; A won't receive new models from B
+    //     colRefB->create();
+    //     REQUIRE(colRefB->size() == 2);
+    //     REQUIRE(colRefA->size() == 1);
+    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+    //
+    //     // sync is not active; A won't drop models along with B
+    //     colRefB->removeByIndex(0);
+    //     REQUIRE(colRefB->size() == 1);
+    //     REQUIRE(colRefA->size() == 1);
+    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get() == false);
+    // }
+    //
+    // SECTION("sync active"){
+    //     auto colRefA = make_shared<Collection<FooKlass>>();
+    //     auto colRefB = make_shared<Collection<FooKlass>>();
+    //
+    //     // initialize B with one model
+    //     colRefB->create();
+    //     REQUIRE(colRefB->size() == 1);
+    //     REQUIRE(colRefA->size() == 0);
+    //
+    //     // sync operation transfers model to A
+    //     colRefA->sync(colRefB);
+    //     REQUIRE(colRefB->size() == 1);
+    //     REQUIRE(colRefA->size() == 1);
+    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+    //
+    //     // active sync; A receives new models from B
+    //     colRefB->create();
+    //     REQUIRE(colRefB->size() == 2);
+    //     REQUIRE(colRefA->size() == 2);
+    //     REQUIRE(colRefA->at(1).get() == colRefB->at(1).get());
+    //
+    //     // second sync source
+    //     auto colRefC = make_shared<Collection<FooKlass>>();
+    //     colRefC->create();
+    //     colRefC->create();
+    //     REQUIRE(colRefC->size() == 2);
+    //     colRefA->sync(colRefC);
+    //     REQUIRE(colRefA->size() == 4);
+    //
+    //     colRefC->create();
+    //     REQUIRE(colRefA->size() == 5);
+    //
+    //     // active sync; A drops models along with B
+    //     colRefB->removeByIndex(0);
+    //     colRefB->removeByIndex(0);
+    //     REQUIRE(colRefB->size() == 0);
+    //     REQUIRE(colRefA->size() == 3);
+    //
+    //     colRefC->removeByIndex(0);
+    //     colRefC->removeByIndex(0);
+    //     REQUIRE(colRefC->size() == 1);
+    //     REQUIRE(colRefA->size() == 1);
+    // }
+    //
+    // SECTION("filter actively using custom lambda"){
+    //     Collection<FooKlass> col;
+    //     col.create();
+    //     col.create();
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //
+    //     int filterCounter=0;
+    //
+    //     col.filter([&filterCounter](FooKlass& instance) -> bool {
+    //         // accept every other instance
+    //         bool accept = ((filterCounter & 1) == 0);
+    //         filterCounter++;
+    //         return accept;
+    //     });
+    //
+    //     REQUIRE(filterCounter == 3);
+    //     REQUIRE(col.size() == 2);
+    //
+    //     col.create();
+    //     REQUIRE(col.size() == 2);
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //     col.create();
+    //     REQUIRE(col.size() == 4);
+    //     REQUIRE(filterCounter == 7);
+    // }
+    //
+    // SECTION("reject actively using custom lambda"){
+    //     Collection<FooKlass> col;
+    //     col.create();
+    //     col.create();
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //
+    //     int filterCounter=0;
+    //
+    //     col.reject([&filterCounter](FooKlass& instance) -> bool {
+    //         // accept every other instance
+    //         bool accept = ((filterCounter & 1) == 0);
+    //         filterCounter++;
+    //         return accept;
+    //     });
+    //
+    //     REQUIRE(filterCounter == 3);
+    //     REQUIRE(col.size() == 1);
+    //
+    //     col.create();
+    //     REQUIRE(col.size() == 2);
+    //     col.create();
+    //     REQUIRE(col.size() == 2);
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //     col.create();
+    //     REQUIRE(col.size() == 3);
+    //     REQUIRE(filterCounter == 7);
+    // }
+    //
+    // SECTION("combine filter sync and limit"){
+    //     CI_LOG_W("TODO");
+    // }
+    //
+    // SECTION("transform"){
+    //     class TransformedClass {
+    //     public:
+    //         string pointerString;
+    //     };
+    //
+    //     Collection<TransformedClass> targetCol;
+    //     Collection<FooKlass> sourceCol;
+    //
+    //     sourceCol.create();
+    //     sourceCol.create();
+    //     REQUIRE(sourceCol.size() == 2);
+    //     REQUIRE(targetCol.size() == 0);
+    //
+    //     targetCol.template transform<FooKlass>(sourceCol, [](FooKlass& source) -> shared_ptr<TransformedClass>{
+    //         auto instanceRef = make_shared<TransformedClass>();
+    //         instanceRef->pointerString = std::to_string((int)&source);
+    //         return instanceRef;
+    //     });
+    //
+    //     REQUIRE(targetCol.size() == 2);
+    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
+    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
+    //
+    //     sourceCol.create();
+    //     REQUIRE(targetCol.size() == 3);
+    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
+    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
+    //     REQUIRE(targetCol.at(2)->pointerString == std::to_string(sourceCol.at(2).get()));
+    //
+    //     sourceCol.removeByIndex(1);
+    //     REQUIRE(targetCol.size() == 2);
+    //     REQUIRE(targetCol.at(0)->pointerString == std::to_string(sourceCol.at(0).get()));
+    //     REQUIRE(targetCol.at(1)->pointerString == std::to_string(sourceCol.at(1).get()));
+    //
+    //     targetCol.stopTransform(sourceCol);
+    //     sourceCol.removeByIndex(0);
+    //     REQUIRE(sourceCol.size() == 1);
+    //     REQUIRE(targetCol.size() == 2);
+    //     sourceCol.create();
+    //     sourceCol.create();
+    //     REQUIRE(sourceCol.size() == 3);
+    //     REQUIRE(targetCol.size() == 2);
+    // }
 }
