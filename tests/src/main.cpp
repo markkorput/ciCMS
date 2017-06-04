@@ -1,15 +1,14 @@
 #define CATCH_CONFIG_MAIN
 
-#include "cinder/Log.h"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp> // for is_any_of
+#include "cinder/Log.h"
 #include "catch.hpp"
 #include "ciCMS/ciCMS.h"
 
 using namespace std;
 using namespace cms;
-
 
 TEST_CASE("cms::Model", ""){
     SECTION("each"){
@@ -245,43 +244,42 @@ TEST_CASE("cms::Collection", ""){
         CI_LOG_W("TODO");
     }
 
-    // SECTION("limit"){
-    //     CI_LOG_W("TODO");
-    //     return;
-    //     auto colRef = make_shared<Collection<FooKlass>>();
-    //     // create five instance
-    //     colRef->create();
-    //     colRef->create();
-    //     colRef->create();
-    //     colRef->create();
-    //     colRef->create();
-    //
-    //     string removed = "";
-    //
-    //     auto connection = colRef->removeSignal.connect([&removed](FooKlass& model){
-    //         removed += "#"+std::to_string((long)&model);
-    //     });
-    //
-    //     string expected = "#"+std::to_string((long)colRef->at(4).get())+"#"+std::to_string((long)colRef->at(3).get());
-    //     colRef->limit(3);
-    //     REQUIRE(colRef->size() == 3); // two models removed
-    //     REQUIRE(removed == expected); // remove callback invoked; last two models removed
-    //
-    //     FooKlass* cid = colRef->at(2).get();
-    //     colRef->create();
-    //     REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
-    //     REQUIRE(colRef->at(2).get() == cid);
-    //
-    //     colRef->setFifo(true);
-    //     auto newModelRef = colRef->create();
-    //     REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
-    //     REQUIRE(colRef->at(2).get() == newModelRef.get());
-    //
-    //     connection.disconnect();
-    //
-    //     CI_LOG_W("TODO: also feature one-time (non-active) limit");
-    // }
-    //
+    SECTION("limit"){
+        auto colRef = make_shared<Collection<FooKlass>>();
+
+        // create five instance
+        colRef->create();
+        colRef->create();
+        colRef->create();
+        colRef->create();
+        colRef->create();
+
+        string removed = "";
+
+        auto connection = colRef->removeSignal.connect([&removed](FooKlass& model){
+            removed += "#"+std::to_string((long)&model);
+        });
+
+        string expected = "#"+std::to_string((long)colRef->at(4).get())+"#"+std::to_string((long)colRef->at(3).get());
+        colRef->limit(3);
+        REQUIRE(colRef->size() == 3); // two models removed
+        REQUIRE(removed == expected); // remove callback invoked; last two models removed
+
+        FooKlass* cid = colRef->at(2).get();
+        colRef->create();
+        REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
+        REQUIRE(colRef->at(2).get() == cid);
+
+        colRef->setFifo(true);
+        auto newModelRef = colRef->create();
+        REQUIRE(colRef->size() == 3); // nothing added (fifo is false by default)
+        REQUIRE(colRef->at(2).get() == newModelRef.get());
+
+        connection.disconnect();
+
+        CI_LOG_W("TODO: also feature one-time (non-active) limit");
+    }
+
     // SECTION("sync once"){
     //     auto colRefA = make_shared<Collection<FooKlass>>();
     //     auto colRefB = make_shared<Collection<FooKlass>>();
