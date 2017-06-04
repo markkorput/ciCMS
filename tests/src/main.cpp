@@ -280,78 +280,78 @@ TEST_CASE("cms::Collection", ""){
         CI_LOG_W("TODO: also feature one-time (non-active) limit");
     }
 
-    // SECTION("sync once"){
-    //     auto colRefA = make_shared<Collection<FooKlass>>();
-    //     auto colRefB = make_shared<Collection<FooKlass>>();
-    //
-    //     // initialize B with one model
-    //     colRefB->create();
-    //     REQUIRE(colRefB->size() == 1);
-    //     REQUIRE(colRefA->size() == 0);
-    //
-    //     // sync operation transfers model to A
-    //     colRefA->sync(colRefB, false /* sync once, don't monitor for changes */);
-    //     REQUIRE(colRefB->size() == 1);
-    //     REQUIRE(colRefA->size() == 1);
-    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
-    //
-    //     // sync is not active; A won't receive new models from B
-    //     colRefB->create();
-    //     REQUIRE(colRefB->size() == 2);
-    //     REQUIRE(colRefA->size() == 1);
-    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
-    //
-    //     // sync is not active; A won't drop models along with B
-    //     colRefB->removeByIndex(0);
-    //     REQUIRE(colRefB->size() == 1);
-    //     REQUIRE(colRefA->size() == 1);
-    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get() == false);
-    // }
-    //
-    // SECTION("sync active"){
-    //     auto colRefA = make_shared<Collection<FooKlass>>();
-    //     auto colRefB = make_shared<Collection<FooKlass>>();
-    //
-    //     // initialize B with one model
-    //     colRefB->create();
-    //     REQUIRE(colRefB->size() == 1);
-    //     REQUIRE(colRefA->size() == 0);
-    //
-    //     // sync operation transfers model to A
-    //     colRefA->sync(colRefB);
-    //     REQUIRE(colRefB->size() == 1);
-    //     REQUIRE(colRefA->size() == 1);
-    //     REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
-    //
-    //     // active sync; A receives new models from B
-    //     colRefB->create();
-    //     REQUIRE(colRefB->size() == 2);
-    //     REQUIRE(colRefA->size() == 2);
-    //     REQUIRE(colRefA->at(1).get() == colRefB->at(1).get());
-    //
-    //     // second sync source
-    //     auto colRefC = make_shared<Collection<FooKlass>>();
-    //     colRefC->create();
-    //     colRefC->create();
-    //     REQUIRE(colRefC->size() == 2);
-    //     colRefA->sync(colRefC);
-    //     REQUIRE(colRefA->size() == 4);
-    //
-    //     colRefC->create();
-    //     REQUIRE(colRefA->size() == 5);
-    //
-    //     // active sync; A drops models along with B
-    //     colRefB->removeByIndex(0);
-    //     colRefB->removeByIndex(0);
-    //     REQUIRE(colRefB->size() == 0);
-    //     REQUIRE(colRefA->size() == 3);
-    //
-    //     colRefC->removeByIndex(0);
-    //     colRefC->removeByIndex(0);
-    //     REQUIRE(colRefC->size() == 1);
-    //     REQUIRE(colRefA->size() == 1);
-    // }
-    //
+    SECTION("sync once"){
+        auto colRefA = make_shared<Collection<FooKlass>>();
+        auto colRefB = make_shared<Collection<FooKlass>>();
+
+        // initialize B with one model
+        colRefB->create();
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 0);
+
+        // sync operation transfers model to A
+        colRefA->sync(colRefB, false /* sync once, don't monitor for changes */);
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+        REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+
+        // sync is not active; A won't receive new models from B
+        colRefB->create();
+        REQUIRE(colRefB->size() == 2);
+        REQUIRE(colRefA->size() == 1);
+        REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+
+        // sync is not active; A won't drop models along with B
+        colRefB->removeByIndex(0);
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+        REQUIRE(colRefA->at(0).get() != colRefB->at(0).get());
+    }
+
+    SECTION("sync active"){
+        auto colRefA = make_shared<Collection<FooKlass>>();
+        auto colRefB = make_shared<Collection<FooKlass>>();
+
+        // initialize B with one model
+        colRefB->create();
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 0);
+
+        // sync operation transfers model to A
+        colRefA->sync(colRefB);
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+        REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+
+        // active sync; A receives new models from B
+        colRefB->create();
+        REQUIRE(colRefB->size() == 2);
+        REQUIRE(colRefA->size() == 2);
+        REQUIRE(colRefA->at(1).get() == colRefB->at(1).get());
+
+        // second sync source
+        auto colRefC = make_shared<Collection<FooKlass>>();
+        colRefC->create();
+        colRefC->create();
+        REQUIRE(colRefC->size() == 2);
+        colRefA->sync(colRefC);
+        REQUIRE(colRefA->size() == 4);
+
+        colRefC->create();
+        REQUIRE(colRefA->size() == 5);
+
+        // active sync; A drops models along with B
+        colRefB->removeByIndex(0);
+        colRefB->removeByIndex(0);
+        REQUIRE(colRefB->size() == 0);
+        REQUIRE(colRefA->size() == 3);
+
+        colRefC->removeByIndex(0);
+        colRefC->removeByIndex(0);
+        REQUIRE(colRefC->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+    }
+
     // SECTION("filter actively using custom lambda"){
     //     Collection<FooKlass> col;
     //     col.create();
