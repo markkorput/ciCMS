@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+	<block
+		name="ciCMS"
+		id="com.shortnotion.cms"
+		git="git://github.com/markkorput/ciCMS"
+		author="ShortNotion"
+		summary="Content Management System; classes for managing the M part of MVC"
+		license="MIT"
+		version="1.0"
+		url="http://github.com/markkorput/ciCMS">
+
+		<supports os="macosx" />
+		<supports os="msw" /><!-- ??? -->
+
+		<headerPattern>src/ciCMS/*.h</headerPattern>
+		<sourcePattern>src/ciCMS/*.cpp</sourcePattern>
+
+		<platform os="macosx">
+			<includePath>src/ciCMS</includePath>
+		</platform>
+
+		<platform os="msw">
+			<includePath>src/ciCMS</includePath>
+		</platform>
+
+	</block>
+
+	<!-- <template>templates/templateName/template.xml</template> -->
+</cinder>
