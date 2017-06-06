@@ -61,7 +61,7 @@ namespace cms {
             //! Convenience method that convert the void* CidType to a ItemType* value
             bool has(CidType cid){ return has((ItemType*)cid); }
 
-            int randomIndex(){ return size() == 0 ? CICMS_INVALID_INDEX : floor(ofRandom(size())); }
+            int randomIndex(){ return size() == 0 ? CICMS_INVALID_INDEX : rand()%size(); }
             shared_ptr<ItemType> random(){ return at(randomIndex()); }
             shared_ptr<ItemType> previous(shared_ptr<ItemType> instanceRef, bool wrap=false);
             shared_ptr<ItemType> next(shared_ptr<ItemType> instanceRef, bool wrap=false);
