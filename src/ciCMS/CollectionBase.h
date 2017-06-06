@@ -3,6 +3,7 @@
 #include <memory>
 #include <functional>
 #include "cinder/app/App.h"
+#include "cinder/Log.h"
 
 #define CICMS_INVALID_INDEX (-1)
 #define CICMS_INVALID_CID (NULL)
