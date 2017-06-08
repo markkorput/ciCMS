@@ -85,6 +85,12 @@ namespace cms {
 
 template<class ItemType>
 void cms::Collection<ItemType>::sync(Collection<ItemType>& other, bool active){
+    auto sync = make_shared<CollectionSync<ItemType>>();
+    sync->setup(this, other);
+
+    // if active safe pointer so it doesn't auto-destruct
+    if(active)
+        collectionSyncs.push_back(sync);
 }
 
 template<class ItemType>
