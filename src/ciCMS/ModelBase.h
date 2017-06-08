@@ -67,6 +67,8 @@ namespace cms {
     public: // conversion getters
 
         int getInt(const string& attr, int defaultValue = 0);
+        float getFloat(const string& attr, float defaultValue = 0.0f);
+        bool getBool(const string& attr, bool defaultValue = false);
 
     public: // events
 

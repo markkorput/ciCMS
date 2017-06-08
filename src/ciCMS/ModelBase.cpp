@@ -1,5 +1,6 @@
 #include "ModelBase.h"
 #include "cinder/Log.h"
+#include "boost/lexical_cast.hpp"
 
 using namespace cms;
 
@@ -97,6 +98,29 @@ int ModelBase::getInt(const string& attr, int defaultValue){
     try {
         return std::stoi(get(attr));
     } catch(std::invalid_argument){
+    }
+
+    return defaultValue;
+}
+
+float ModelBase::getFloat(const string& attr, float defaultValue){
+    try {
+        return std::stof(get(attr));
+    } catch(std::invalid_argument){
+    }
+
+    return defaultValue;
+}
+
+bool ModelBase::getBool(const string& attr, bool defaultValue){
+    string s = get(attr);
+
+    if(s == "true")
+        return true;
+
+    try {
+        return boost::lexical_cast<bool>(s);
+    } catch(boost::bad_lexical_cast){
     }
 
     return defaultValue;
