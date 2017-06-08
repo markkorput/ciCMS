@@ -6,7 +6,12 @@
 
 namespace cms {
     class ModelCollection : public Collection<Model> {
-
+    public:
+        void filter(const string& attr, const string& value){
+            Collection<Model>::filter([&attr, &value](Model& model) -> bool {
+                return model.get(attr) == value;
+            });
+        }
     };
 }
 

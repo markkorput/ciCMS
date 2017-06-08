@@ -542,3 +542,21 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(col.toJsonString() == fileContentString);
     }
 }
+
+TEST_CASE("cms::ModelCollection", ""){
+    SECTION("filter"){
+        cms::ModelCollection col;
+        shared_ptr<cms::Model> modelRef;
+        modelRef = make_shared<cms::Model>();
+        col.add(modelRef);
+        REQUIRE(col.size() == 1);
+        col.filter("name", "Doe");
+        REQUIRE(col.size() == 0);
+        modelRef = make_shared<cms::Model>();
+        col.add(modelRef);
+        REQUIRE(col.size() == 0);
+        modelRef->set("name", "Doe");
+        col.add(modelRef);
+        REQUIRE(col.size() == 1);
+    }
+}
