@@ -92,3 +92,12 @@ void ModelBase::lock(LockFunctor func){
 
     modQueueRefs.clear();
 }
+
+int ModelBase::getInt(const string& attr, int defaultValue){
+    try {
+        return std::stoi(get(attr));
+    } catch(std::invalid_argument){
+    }
+
+    return defaultValue;
+}

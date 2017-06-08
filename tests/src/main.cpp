@@ -117,6 +117,19 @@ TEST_CASE("cms::Model", ""){
         model.set("attrC", "4"); // new value does get transformed
         REQUIRE(result == 106);
     }
+
+    SECTION("getInt"){
+        Model model;
+        REQUIRE(model.getInt("x") == 0);
+        REQUIRE(model.getInt("x", 101) == 101);
+        model.set("x", "5");
+        REQUIRE(model.getInt("x") == 5);
+        REQUIRE(model.getInt("x", 101) == 5);
+        model.set("x", "Not-A-Number");
+        REQUIRE(model.getInt("x") == 0);
+        REQUIRE(model.getInt("x", 101) == 101);
+
+    }
 }
 
 TEST_CASE("cms::Collection", ""){
