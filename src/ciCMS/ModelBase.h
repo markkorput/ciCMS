@@ -64,6 +64,12 @@ namespace cms {
         //! this virtual method is called whenever an attribute is changed (using this->set()) and can be overwritten be inheriting classes
         virtual void onAttributeChanged(const string &attr, const string &value, const string &old_value){}
 
+    public: // conversion getters
+
+        int getInt(const string& attr, int defaultValue = 0);
+        float getFloat(const string& attr, float defaultValue = 0.0f);
+        bool getBool(const string& attr, bool defaultValue = false);
+
     public: // events
 
         //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller a reference to this model

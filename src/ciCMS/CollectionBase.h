@@ -61,6 +61,7 @@ namespace cms {
             bool has(ItemType* cid){ return indexOf(cid) != CICMS_INVALID_INDEX; }
             //! Convenience method that convert the void* CidType to a ItemType* value
             bool has(CidType cid){ return has((ItemType*)cid); }
+            int indexOf(shared_ptr<ItemType> ref){ return indexOf(ref.get()); }
 
             int randomIndex(){ return size() == 0 ? CICMS_INVALID_INDEX : rand()%size(); }
             shared_ptr<ItemType> random(){ return at(randomIndex()); }
@@ -180,7 +181,7 @@ shared_ptr<ItemType> cms::CollectionBase<ItemType>::next(shared_ptr<ItemType> in
 template <class ItemType>
 shared_ptr<ItemType> cms::CollectionBase<ItemType>::at(unsigned int idx){
     if(idx < 0 || idx >= size()){
-        CI_LOG_W("invalid index");
+        CI_LOG_W("invalid index: " << idx);
         return nullptr;
     }
 

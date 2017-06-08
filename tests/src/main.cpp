@@ -117,6 +117,42 @@ TEST_CASE("cms::Model", ""){
         model.set("attrC", "4"); // new value does get transformed
         REQUIRE(result == 106);
     }
+
+    SECTION("getInt"){
+        Model model;
+        REQUIRE(model.getInt("x") == 0);
+        REQUIRE(model.getInt("x", 101) == 101);
+        model.set("x", "5");
+        REQUIRE(model.getInt("x") == 5);
+        REQUIRE(model.getInt("x", 101) == 5);
+        model.set("x", "Not-A-Number");
+        REQUIRE(model.getInt("x") == 0);
+        REQUIRE(model.getInt("x", 101) == 101);
+    }
+
+    SECTION("getFloat"){
+        Model model;
+        REQUIRE(model.getFloat("x") == 0.f);
+        REQUIRE(model.getFloat("x", 101.0f) == 101.f);
+        model.set("x", "5.5");
+        REQUIRE(model.getFloat("x") == 5.5f);
+        REQUIRE(model.getFloat("x", 101.f) == 5.5f);
+        model.set("x", "Not-A-Number");
+        REQUIRE(model.getFloat("x") == 0.f);
+        REQUIRE(model.getFloat("x", 101.f) == 101.f);
+    }
+
+    SECTION("getBool"){
+        Model model;
+        REQUIRE(model.getBool("x") == false);
+        REQUIRE(model.getBool("x", true) == true);
+        model.set("x", "true");
+        REQUIRE(model.getBool("x") == true);
+        REQUIRE(model.getBool("x", false) == true);
+        model.set("x", "Not-A-Bool");
+        REQUIRE(model.getBool("x") == false);
+        REQUIRE(model.getBool("x", true) == true);
+    }
 }
 
 TEST_CASE("cms::Collection", ""){
