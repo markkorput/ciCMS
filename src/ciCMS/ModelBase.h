@@ -73,7 +73,7 @@ namespace cms {
     public: // events
 
         //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller a reference to this model
-        ci::signals::Signal<void(const ModelBase&)> changeSignal;
+        ci::signals::Signal<void(ModelBase&)> changeSignal;
         //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller an object with a pointer to the model and information about which attribute changed
         ci::signals::Signal<void(const AttrChangeArgs&)> attributeChangeSignal;
 
