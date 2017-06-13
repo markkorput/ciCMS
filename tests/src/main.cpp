@@ -153,6 +153,33 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getBool("x") == false);
         REQUIRE(model.getBool("x", true) == true);
     }
+
+    SECTION(".transform"){
+        // setup
+        Model m;
+        m.set("name", "john");
+        string result;
+
+        // transform
+        m.transform([&result](ModelBase& model){
+            result = model.get("name");
+        }, &result);
+
+        // called with current value
+        REQUIRE(result == "john");
+
+        // registers change listener
+        m.set("name", "bob");
+        REQUIRE(result == "bob");
+
+        // stop transform
+        m.stopTransform(&result
+        );
+
+        // unregisters change listener
+        m.set("name", "henk");
+        REQUIRE(result == "bob");
+    }
 }
 
 TEST_CASE("cms::Collection", ""){

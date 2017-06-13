@@ -6,6 +6,8 @@ namespace cms{
     class Model : public ModelBase {
         public: // types
             typedef function<void(const string&)> AttributeTransformFunctor;
+            typedef function<void(ModelBase& model)> ModelTransformFunctor;
+
 
             //! registers an attribute transformer
             ci::signals::Connection& transformAttribute(const string& attr, AttributeTransformFunctor func, bool active=true){
@@ -62,8 +64,35 @@ namespace cms{
                 return signalConnections;
             }
 
+
+            ci::signals::Connection& transform(ModelTransformFunctor func, void* owner = NULL, bool active=true){
+                // register change listener to invoke the functor
+                auto connection = this->changeSignal.connect(func);
+
+                // invoke the functor now
+                func(*this);
+
+                if(active)
+                    modelTransformerSignalConnections[owner].push_back(connection);
+                else
+                    connection.disable();
+
+                return modelTransformerSignalConnections[owner].back();
+            }
+
+            std::vector<ci::signals::Connection>& stopTransform(void* owner){
+                auto& signalConnections = modelTransformerSignalConnections[owner];
+
+                for(auto& signalConnection : signalConnections)
+                    signalConnection.disable();
+
+                modelTransformerSignalConnections[owner].clear();
+                return signalConnections;
+            }
+
         private:
             //! internal list of active value transformers, grouped by owner see .transform methods
             std::map<void*, std::vector<ci::signals::Connection>> attributeTransformerSignalConnections;
+            std::map<void*, std::vector<ci::signals::Connection>> modelTransformerSignalConnections;
     };
 }
