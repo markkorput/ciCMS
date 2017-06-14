@@ -125,3 +125,28 @@ bool ModelBase::getBool(const string& attr, bool defaultValue){
 
     return defaultValue;
 }
+
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
+    std::vector<std::string> strings;
+    string src = get(attr);
+    boost::split(strings, src, boost::is_any_of(","));
+
+    if(strings.size() == 1){
+        if(strings[0] == "")
+            return defaultValue;
+
+        float val = std::stof(strings[0]);
+        return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
+    }
+
+    if(strings.size() == 3)
+        return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, 1.0f);
+
+    if(strings.size() == 4)
+        return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, std::stof(strings[3])/255.0f);
+
+    // unsupported/unrecognised format
+    return defaultValue;
+}

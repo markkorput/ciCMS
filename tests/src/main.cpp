@@ -154,6 +154,21 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getBool("x", true) == true);
     }
 
+    SECTION("getColor"){
+        Model m;
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 0.0f, 0.0f, 1.0f));
+        m.set("someColor", "0,100,0,100");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(0.0f, 100.0f/255.0f, 0.0f, 100.0f/255.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getColor("someColor", ci::ColorAf(0.0f, 0.0f, 1.0f, 1.0f)) == ci::ColorAf(0.0f, 0.0f, 1.0f, 1.0f));
+        m.set("someColor", "10");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(10.0f/255.0f, 10.0f/255.0f, 10.0f/255.0f, 1.0f));
+    }
+
     SECTION(".transform"){
         // setup
         Model m;

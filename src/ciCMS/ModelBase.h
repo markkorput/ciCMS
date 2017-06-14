@@ -69,6 +69,7 @@ namespace cms {
         int getInt(const string& attr, int defaultValue = 0);
         float getFloat(const string& attr, float defaultValue = 0.0f);
         bool getBool(const string& attr, bool defaultValue = false);
+        ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue = ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
 
     public: // events
 
@@ -76,6 +77,7 @@ namespace cms {
         ci::signals::Signal<void(ModelBase&)> changeSignal;
         //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller an object with a pointer to the model and information about which attribute changed
         ci::signals::Signal<void(const AttrChangeArgs&)> attributeChangeSignal;
+
 
     private: // attributes
 
