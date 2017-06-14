@@ -153,6 +153,33 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getBool("x") == false);
         REQUIRE(model.getBool("x", true) == true);
     }
+
+    SECTION(".transform"){
+        // setup
+        Model m;
+        m.set("name", "john");
+        string result;
+
+        // transform
+        m.transform([&result](ModelBase& model){
+            result = model.get("name");
+        }, &result);
+
+        // called with current value
+        REQUIRE(result == "john");
+
+        // registers change listener
+        m.set("name", "bob");
+        REQUIRE(result == "bob");
+
+        // stop transform
+        m.stopTransform(&result
+        );
+
+        // unregisters change listener
+        m.set("name", "henk");
+        REQUIRE(result == "bob");
+    }
 }
 
 TEST_CASE("cms::Collection", ""){
@@ -388,6 +415,50 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(colRefA->size() == 1);
     }
 
+    SECTION("sync active with non shared_ptr source collection"){
+        auto colRefA = make_shared<Collection<FooKlass>>();
+        auto colRefB = make_shared<Collection<FooKlass>>();
+
+        // initialize B with one model
+        colRefB->create();
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 0);
+
+        // sync operation transfers model to A
+        colRefA->sync(*colRefB.get());
+        REQUIRE(colRefB->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+        REQUIRE(colRefA->at(0).get() == colRefB->at(0).get());
+
+        // active sync; A receives new models from B
+        colRefB->create();
+        REQUIRE(colRefB->size() == 2);
+        REQUIRE(colRefA->size() == 2);
+        REQUIRE(colRefA->at(1).get() == colRefB->at(1).get());
+
+        // second sync source
+        auto colRefC = make_shared<Collection<FooKlass>>();
+        colRefC->create();
+        colRefC->create();
+        REQUIRE(colRefC->size() == 2);
+        colRefA->sync(*colRefC.get());
+        REQUIRE(colRefA->size() == 4);
+
+        colRefC->create();
+        REQUIRE(colRefA->size() == 5);
+
+        // active sync; A drops models along with B
+        colRefB->removeByIndex(0);
+        colRefB->removeByIndex(0);
+        REQUIRE(colRefB->size() == 0);
+        REQUIRE(colRefA->size() == 3);
+
+        colRefC->removeByIndex(0);
+        colRefC->removeByIndex(0);
+        REQUIRE(colRefC->size() == 1);
+        REQUIRE(colRefA->size() == 1);
+    }
+
     SECTION("filter actively using custom lambda"){
         Collection<FooKlass> col;
         col.create();
@@ -540,5 +611,23 @@ TEST_CASE("cms::Collection", ""){
             fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
 
         REQUIRE(col.toJsonString() == fileContentString);
+    }
+}
+
+TEST_CASE("cms::ModelCollection", ""){
+    SECTION("filter"){
+        cms::ModelCollection col;
+        shared_ptr<cms::Model> modelRef;
+        modelRef = make_shared<cms::Model>();
+        col.add(modelRef);
+        REQUIRE(col.size() == 1);
+        col.filter("name", "Doe");
+        REQUIRE(col.size() == 0);
+        modelRef = make_shared<cms::Model>();
+        col.add(modelRef);
+        REQUIRE(col.size() == 0);
+        modelRef->set("name", "Doe");
+        col.add(modelRef);
+        REQUIRE(col.size() == 1);
     }
 }

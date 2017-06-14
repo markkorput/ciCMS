@@ -24,7 +24,9 @@ namespace cms {
                 collectionLimit.setFifo(newFifo);
             }
 
+            void sync(Collection<ItemType>& other, bool active=true);
             void sync(shared_ptr<Collection<ItemType>> other, bool active=true);
+            void stopSync(Collection<ItemType>& other);
             void stopSync(shared_ptr<Collection<ItemType>> other);
 
             void filter(FilterFunctor func, bool active=true);
@@ -82,6 +84,16 @@ namespace cms {
 }
 
 template<class ItemType>
+void cms::Collection<ItemType>::sync(Collection<ItemType>& other, bool active){
+    auto sync = make_shared<CollectionSync<ItemType>>();
+    sync->setup(this, other);
+
+    // if active safe pointer so it doesn't auto-destruct
+    if(active)
+        collectionSyncs.push_back(sync);
+}
+
+template<class ItemType>
 void cms::Collection<ItemType>::sync(shared_ptr<Collection<ItemType>> other, bool active){
     auto sync = make_shared<CollectionSync<ItemType>>();
     sync->setup(this, other);
@@ -92,15 +104,20 @@ void cms::Collection<ItemType>::sync(shared_ptr<Collection<ItemType>> other, boo
 }
 
 template<class ItemType>
-void cms::Collection<ItemType>::stopSync(shared_ptr<Collection<ItemType>> other){
+void cms::Collection<ItemType>::stopSync(Collection<ItemType>& other){
     for(auto it = collectionSyncs.begin(); it != collectionSyncs.end(); it++){
-        if(it->getSource() == other){
+        if(&it->getSource() == &other){
             collectionSyncs.erase(it);
             return;
         }
     }
 
     CI_LOG_W("Could not source to stop syncing from");
+}
+
+template<class ItemType>
+void cms::Collection<ItemType>::stopSync(shared_ptr<Collection<ItemType>> other){
+    this->stopSync(*other.get());
 }
 
 template<class ItemType>

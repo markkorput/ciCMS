@@ -1,5 +1,20 @@
 #include "ModelCollection.h"
 
+
+shared_ptr<cms::Model> cms::ModelCollection::findById(const std::string& value, bool createIfNotExist){
+    auto model = this->first([&value](shared_ptr<cms::Model> iterModel){
+        return iterModel->get("id") == value;
+    });
+
+    if(!model && createIfNotExist){
+        model = make_shared<cms::Model>();
+        model->set("id", value);
+        this->add(model);
+    }
+
+    return model;
+}
+
 template<>
 shared_ptr<cms::Model> cms::CollectionJsonLoader<cms::Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection){
     if(!jsonTree.hasChild("id"))

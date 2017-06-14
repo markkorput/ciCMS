@@ -6,7 +6,14 @@
 
 namespace cms {
     class ModelCollection : public Collection<Model> {
+    public:
+        shared_ptr<Model> findById(const std::string& value, bool createIfNotExist = false);
 
+        void filter(const string& attr, const string& value){
+            Collection<Model>::filter([&attr, &value](Model& model) -> bool {
+                return model.get(attr) == value;
+            });
+        }
     };
 }
 
