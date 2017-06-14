@@ -69,6 +69,8 @@ namespace cms {
         int getInt(const string& attr, int defaultValue = 0);
         float getFloat(const string& attr, float defaultValue = 0.0f);
         bool getBool(const string& attr, bool defaultValue = false);
+        glm::vec2 getVec2(const string& attr, const glm::vec2& defaultValue = glm::vec2(0.0f, 0.0f));
+        glm::vec3 getVec3(const string& attr, const glm::vec3& defaultValue = glm::vec3(0.0f, 0.0f, 0.0f));
         ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue = ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
 
     public: // events

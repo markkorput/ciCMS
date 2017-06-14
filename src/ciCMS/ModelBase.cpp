@@ -127,25 +127,54 @@ bool ModelBase::getBool(const string& attr, bool defaultValue){
 }
 
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
+
+glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
     std::vector<std::string> strings;
     string src = get(attr);
     boost::split(strings, src, boost::is_any_of(","));
 
-    if(strings.size() == 1){
-        if(strings[0] == "")
-            return defaultValue;
+    if(strings.size() == 2)
+        return glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
 
+    if(strings.size() == 1 && strings[0] != ""){
         float val = std::stof(strings[0]);
-        return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
+        return glm::vec2(val, val);
     }
+
+    return defaultValue;
+}
+
+glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
+    std::vector<std::string> strings;
+    string src = get(attr);
+    boost::split(strings, src, boost::is_any_of(","));
+
+    if(strings.size() == 3)
+        return glm::vec3(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]));
+
+    if(strings.size() == 1 && strings[0] != ""){
+        float val = std::stof(strings[0]);
+        return glm::vec3(val, val, val);
+    }
+
+    return defaultValue;
+}
+
+ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
+    std::vector<std::string> strings;
+    string src = get(attr);
+    boost::split(strings, src, boost::is_any_of(","));
 
     if(strings.size() == 3)
         return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, 1.0f);
 
     if(strings.size() == 4)
         return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, std::stof(strings[3])/255.0f);
+
+    if(strings.size() == 1 && strings[0] != ""){
+        float val = std::stof(strings[0]);
+        return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
+    }
 
     // unsupported/unrecognised format
     return defaultValue;
