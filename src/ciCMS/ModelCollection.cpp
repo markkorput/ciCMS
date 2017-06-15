@@ -1,18 +1,22 @@
 #include "ModelCollection.h"
 
 
-shared_ptr<cms::Model> cms::ModelCollection::findById(const std::string& value, bool createIfNotExist){
-    auto model = this->first([&value](shared_ptr<cms::Model> iterModel){
-        return iterModel->get("id") == value;
+shared_ptr<cms::Model> cms::ModelCollection::findByAttr(const std::string& attr, const std::string& value, bool createIfNotExist){
+    auto model = this->first([&attr, &value](shared_ptr<cms::Model> iterModel){
+        return iterModel->get(attr) == value;
     });
 
     if(!model && createIfNotExist){
         model = make_shared<cms::Model>();
-        model->set("id", value);
+        model->set(attr, value);
         this->add(model);
     }
 
     return model;
+}
+
+shared_ptr<cms::Model> cms::ModelCollection::findById(const std::string& value, bool createIfNotExist){
+    return findByAttr(mIdAttributeName, value, createIfNotExist);
 }
 
 template<>

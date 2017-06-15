@@ -154,6 +154,45 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getBool("x", true) == true);
     }
 
+    SECTION("getVec2"){
+        Model m;
+        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 0.0f));
+        m.set("someColor", "23");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(23.0f,23.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 100.0f));
+    }
+
+    SECTION("getVec3"){
+        Model m;
+        REQUIRE(m.getVec3("attr") == glm::vec3(0.0f, 0.0f, 0.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(255.0f, 0.0f, 0.0f));
+        m.set("someColor", "23");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(23.0f,23.0f,23.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(0.0f, 0.0f, 0.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec3("someColor", glm::vec3(0.0f, 0.0f, 1.0f)) == glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+
+    SECTION("getColor"){
+        Model m;
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 0.0f, 0.0f, 1.0f));
+        m.set("someColor", "0,100,0,100");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(0.0f, 100.0f/255.0f, 0.0f, 100.0f/255.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getColor("someColor", ci::ColorAf(0.0f, 0.0f, 1.0f, 1.0f)) == ci::ColorAf(0.0f, 0.0f, 1.0f, 1.0f));
+        m.set("someColor", "10");
+        REQUIRE(m.getColor("someColor") == ci::ColorAf(10.0f/255.0f, 10.0f/255.0f, 10.0f/255.0f, 1.0f));
+    }
+
     SECTION(".transform"){
         // setup
         Model m;
@@ -629,5 +668,69 @@ TEST_CASE("cms::ModelCollection", ""){
         modelRef->set("name", "Doe");
         col.add(modelRef);
         REQUIRE(col.size() == 1);
+    }
+
+    SECTION("findByAttr"){
+        ModelCollection col;
+        auto m1 = col.create();
+        m1->set("value", "10");
+        auto m2 = col.create();
+        m2->set("value", "20");
+        auto m3 = col.create();
+        m3->set("value", "30");
+        REQUIRE(col.findByAttr("value", "20") == m2);
+        REQUIRE(col.findByAttr("value", "40") == nullptr);
+        REQUIRE(col.findByAttr("value", "50", true /* create */) != nullptr);
+        REQUIRE(col.at(3)->get("value") == "50");
+    }
+
+    SECTION("findById"){
+        ModelCollection col;
+        auto m1 = col.create();
+        m1->set("id", "10");
+        auto m2 = col.create();
+        m2->set("id", "20");
+        auto m3 = col.create();
+        m3->set("id", "30");
+        REQUIRE(col.findById("20") == m2);
+        REQUIRE(col.findById("40") == nullptr);
+        REQUIRE(col.findById("50", true /* create */) != nullptr);
+        REQUIRE(col.at(3)->get("id") == "50");
+    }
+}
+
+TEST_CASE("cms::CollectionManager", ""){
+    SECTION("operator[], .add and .size"){
+        CollectionManager man;
+        REQUIRE(man.size() == 0);
+        REQUIRE(man["foo"] == nullptr);
+        auto colRef = make_shared<ModelCollection>();
+        man["foo"] = colRef;
+        REQUIRE(man.size() == 1);
+        REQUIRE(man["foo"] == colRef);
+    }
+
+    SECTION("get()"){
+        CollectionManager man;
+        REQUIRE(man.get("foo", true /* create if not exist */) != nullptr);
+        REQUIRE(man.size() == 1);
+    }
+
+    SECTION("loadJsonFromFile()"){
+        CollectionManager man;
+        auto p = ci::app::getAssetPath("CollectionManagerTest.json");
+        REQUIRE(man.loadJsonFromFile(p));
+        REQUIRE(man.size() == 2);
+
+        REQUIRE(man["col1"]->size() == 3);
+        REQUIRE(man["col1"]->findById("one") != nullptr);
+        REQUIRE(man["col1"]->findById("two") != nullptr);
+        REQUIRE(man["col1"]->findById("three") != nullptr);
+        REQUIRE(man["col1"]->findById("four") == nullptr);
+
+        REQUIRE(man["col2"]->size() == 3);
+        REQUIRE(man["col2"]->at(0)->get("name") == "john");
+        REQUIRE(man["col2"]->at(1)->get("name") == "bob");
+        REQUIRE(man["col2"]->at(2)->get("name") == "henk");
     }
 }

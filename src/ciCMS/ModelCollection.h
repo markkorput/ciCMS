@@ -5,8 +5,14 @@
 #include "Collection.h"
 
 namespace cms {
+    class ModelCollection;
+    typedef shared_ptr<ModelCollection> ModelCollectionRef;
+
     class ModelCollection : public Collection<Model> {
     public:
+        ModelCollection() : mIdAttributeName("id"){}
+
+        shared_ptr<Model> findByAttr(const std::string& attr, const std::string& value, bool createIfNotExist = false);
         shared_ptr<Model> findById(const std::string& value, bool createIfNotExist = false);
 
         void filter(const string& attr, const string& value){
@@ -14,6 +20,8 @@ namespace cms {
                 return model.get(attr) == value;
             });
         }
+    private:
+        std::string mIdAttributeName;
     };
 }
 
