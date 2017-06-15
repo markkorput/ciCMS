@@ -24,7 +24,8 @@ namespace cms {
         std::string mIdAttributeName;
     };
 }
-// specializations
+// specializations in head for windows (Visual Studio), in .cpp file for non windows
+#ifdef CINDER_MSW
 namespace cms {
 	template<>
 	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection) {
@@ -56,5 +57,5 @@ namespace cms {
 
 		return tree;
 	}
-
 }
+#endif
