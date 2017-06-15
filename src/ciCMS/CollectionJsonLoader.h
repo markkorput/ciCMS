@@ -10,6 +10,10 @@ namespace cms {
         public:
             CollectionJsonLoader() : collection(NULL){}
 
+            void setup(CollectionBase<ItemType>& collection){
+                this->collection = &collection;
+            }
+
             void setup(CollectionBase<ItemType>& collection, const ci::fs::path& filePath){
                 this->collection = &collection;
                 this->filePath = filePath;
@@ -27,7 +31,7 @@ namespace cms {
                 return load(jsonTree);
             }
 
-            bool load(ci::JsonTree jsonTree){
+            bool load(const ci::JsonTree& jsonTree){
                 bool allSuccess = true;
 
                 for(int idx=0; idx<jsonTree.getNumChildren(); idx++){

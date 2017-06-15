@@ -698,3 +698,39 @@ TEST_CASE("cms::ModelCollection", ""){
         REQUIRE(col.at(3)->get("id") == "50");
     }
 }
+
+TEST_CASE("cms::CollectionManager", ""){
+    SECTION("operator[], .add and .size"){
+        CollectionManager man;
+        REQUIRE(man.size() == 0);
+        REQUIRE(man["foo"] == nullptr);
+        auto colRef = make_shared<ModelCollection>();
+        man["foo"] = colRef;
+        REQUIRE(man.size() == 1);
+        REQUIRE(man["foo"] == colRef);
+    }
+
+    SECTION("get()"){
+        CollectionManager man;
+        REQUIRE(man.get("foo", true /* create if not exist */) != nullptr);
+        REQUIRE(man.size() == 1);
+    }
+
+    SECTION("loadJsonFromFile()"){
+        CollectionManager man;
+        auto p = ci::app::getAssetPath("CollectionManagerTest.json");
+        REQUIRE(man.loadJsonFromFile(p));
+        REQUIRE(man.size() == 2);
+
+        REQUIRE(man["col1"]->size() == 3);
+        REQUIRE(man["col1"]->findById("one") != nullptr);
+        REQUIRE(man["col1"]->findById("two") != nullptr);
+        REQUIRE(man["col1"]->findById("three") != nullptr);
+        REQUIRE(man["col1"]->findById("four") == nullptr);
+
+        REQUIRE(man["col2"]->size() == 3);
+        REQUIRE(man["col2"]->at(0)->get("name") == "john");
+        REQUIRE(man["col2"]->at(1)->get("name") == "bob");
+        REQUIRE(man["col2"]->at(2)->get("name") == "henk");
+    }
+}

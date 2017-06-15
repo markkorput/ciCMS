@@ -5,6 +5,9 @@
 #include "Collection.h"
 
 namespace cms {
+    class ModelCollection;
+    typedef shared_ptr<ModelCollection> ModelCollectionRef;
+
     class ModelCollection : public Collection<Model> {
     public:
         ModelCollection() : mIdAttributeName("id"){}
