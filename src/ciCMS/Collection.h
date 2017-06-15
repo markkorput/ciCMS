@@ -63,6 +63,12 @@ namespace cms {
                 return loader.load();
             }
 
+            bool loadJson(const ci::JsonTree& jsonTree){
+                CollectionJsonLoader<ItemType> loader;
+                loader.setup(*this);
+                return loader.load(jsonTree);
+            }
+
             std::string toJsonString(){
                 CollectionJsonWriter<ItemType> writer;
                 writer.setup(*this);

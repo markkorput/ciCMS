@@ -1,0 +1,13 @@
+{
+    "col1" : [
+        {"id": "one"},
+        {"id": "two"},
+        {"id": "three"}
+    ],
+
+    "col2" : [
+        {"name" : "john"},
+        {"name" : "bob"},
+        {"name" : "henk"}
+    ]
+}

@@ -23,5 +23,7 @@ namespace cms {
     public:
         ModelCollectionRef get(const std::string& name, bool createIfNotExist=false);
 
+        bool loadJsonFromFile(const ci::fs::path& path);
+        bool loadJson(const ci::JsonTree& json);
     };
 }
