@@ -698,3 +698,23 @@ TEST_CASE("cms::ModelCollection", ""){
         REQUIRE(col.at(3)->get("id") == "50");
     }
 }
+
+TEST_CASE("cms::CollectionManager", ""){
+    SECTION("operator[], .add and .size"){
+        CollectionManager man;
+        REQUIRE(man.size() == 0);
+        REQUIRE(man["foo"] == nullptr);
+        auto colRef = make_shared<ModelCollection>();
+        man["foo"] = colRef;
+        REQUIRE(man.size() == 1);
+        REQUIRE(man["foo"] == colRef);
+    }
+
+    SECTION("get()"){
+        CollectionManager man;
+        REQUIRE(man.get("foo", true /* create if not exist */) != nullptr);
+        REQUIRE(man.size() == 1);
+    }
+
+    SECTION("")
+}
