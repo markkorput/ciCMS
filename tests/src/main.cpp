@@ -788,10 +788,11 @@ TEST_CASE("cms::QueryCollection", ""){
 
         private:
 
-            void execute(shared_ptr<TestQuery> queryRef, FinalizerFunc finalize){
+            void execute(ExecutionRef execRef){
+                auto queryRef = execRef->getQuery();
 
                 // "query" our "database"
-                database.each([this, queryRef](shared_ptr<TestItem> itemRef){
+                database.each([this, queryRef, execRef](shared_ptr<TestItem> itemRef){
                     // name condition
                     if(queryRef->isNameFilterEnabled() && itemRef->name != queryRef->getNameFilter())
                         return;
@@ -800,11 +801,11 @@ TEST_CASE("cms::QueryCollection", ""){
                     if(queryRef->isValueFilterEnabled() && itemRef->value < queryRef->getMinValue())
                         return;
 
-                    // all conditions met, add to our collection
-                    this->add(itemRef);
+                    // all conditions met, add this item to our collection
+                    execRef->add(itemRef);
                 });
 
-                finalize(true);
+                execRef->finalize(true);
             }
     };
 
@@ -812,17 +813,27 @@ TEST_CASE("cms::QueryCollection", ""){
         TestQueryCollection col;
         shared_ptr<TestQueryCollection::Execution> executionRef;
 
+        vector<TestQuery*> doneQueries;
+
+        col.queryDoneSignal.connect([&doneQueries](shared_ptr<TestQuery> queryRef){
+            doneQueries.push_back(queryRef.get());
+        });
+
         {   // start query with call to .query
             auto queryRef = make_shared<TestQuery>();
             queryRef->setNameFilter("no.3");
 
             executionRef = col.query(queryRef);
             REQUIRE(executionRef != nullptr);
-            REQUIRE(executionRef->getCollection() == &col);
             REQUIRE(executionRef->getQuery() == queryRef);
             REQUIRE(executionRef->isDone()); // this one happens to be extremely fast and, well, non-async
             REQUIRE(executionRef->isSuccess());
             REQUIRE(!executionRef->isFailure()); // this one happens to be extremely fast and, well, non-async
+            // execution specific results
+            REQUIRE(executionRef->result.size() == 1);
+            REQUIRE(executionRef->result.at(0)->name == "no.3");
+            REQUIRE(executionRef->result.at(0) == col.database.at(2));
+
         } // end of queryRef instance scope
 
         // check if the query was correctly performed;
@@ -830,21 +841,31 @@ TEST_CASE("cms::QueryCollection", ""){
         REQUIRE(col.size() == 1);
         REQUIRE(col.at(0)->name == "no.3");
         REQUIRE(col.at(0) == col.database.at(2));
+        REQUIRE(doneQueries.size() == 1);
+        REQUIRE(doneQueries[0] == executionRef->getQuery().get());
 
         {   // do another query; with a value-filter this time
             auto queryRef = make_shared<TestQuery>();
             queryRef->setMinValue(20);
-            col.query(queryRef);
+            executionRef = col.query(queryRef);
 
             REQUIRE(executionRef->isDone()); // another fast one
             REQUIRE(executionRef->isSuccess());
+            // execution specific results
+            REQUIRE(executionRef->result.size() == 2);
+            REQUIRE(executionRef->result.at(0)->name == "no.2");
+            REQUIRE(executionRef->result.at(0) == col.database.at(1));
+            REQUIRE(executionRef->result.at(1)->name == "no.3");
+            REQUIRE(executionRef->result.at(1) == col.database.at(2));
         }
 
         // the results of this query are added to the collection;
-        // preventing duplicats is not part of the QueryCollection template
-        REQUIRE(col.size() == 3);
+        // our collection by default performs model based duplicate filtering
+        REQUIRE(col.size() == 2);
         REQUIRE(col.at(0) == col.database.at(2));
         REQUIRE(col.at(1) == col.database.at(1));
-        REQUIRE(col.at(2) == col.database.at(2));
+        // REQUIRE(col.at(2) == col.database.at(2));
+        REQUIRE(doneQueries.size() == 2);
+        REQUIRE(doneQueries[1] == executionRef->getQuery().get());
     }
 }
