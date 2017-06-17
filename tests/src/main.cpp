@@ -928,13 +928,16 @@ TEST_CASE("cms::QueryCollection", ""){
 
             // finalize the execRef so the actual "remote" query doesn't happen
             if(!execRef->result.isEmpty())
-                execRef->finalize();
+                execRef->abort();
         });
 
         // now let's do that a third time, this time no new item should appear
         execRef = col.nameQuery("Some Name");
         REQUIRE(execRef->isDone()); // this one happens to be extremely fast and, well, non-async
-        REQUIRE(execRef->isSuccess());
+        REQUIRE(execRef->isAborted());
+        REQUIRE(!execRef->isExecuted());
+        REQUIRE(!execRef->isSuccess());
+        REQUIRE(!execRef->isFailure());
         REQUIRE(execRef->result.size() == 2); // matched with two (both) of the cached items
         REQUIRE(col.size() == 2);
         REQUIRE(col.at(0) == execRef->result.at(0));

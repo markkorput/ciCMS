@@ -19,11 +19,13 @@ namespace cms {
 
                 public:
                     Execution(shared_ptr<QueryType> query)
-                        : queryRef(query), bDone(false), bSuccess(false){}
+                        : queryRef(query), bDone(false), bSuccess(false), bExecuted(false){}
 
                     bool isDone() const { return bDone; }
                     bool isSuccess() const { return bSuccess; }
-                    bool isFailure() const { return bDone && !bSuccess; }
+                    bool isFailure() const { return bExecuted && !bSuccess; }
+                    bool isExecuted() const { return bExecuted; }
+                    bool isAborted() const { return bDone && !bExecuted; }
 
                     const shared_ptr<QueryType> getQuery() const {
                         return queryRef;
@@ -31,6 +33,12 @@ namespace cms {
 
                     void add(shared_ptr<ItemType> itemRef){
                         result.add(itemRef);
+                    }
+
+                    void abort(){
+                        bDone=true;
+                        bExecuted=false;
+                        doneSignal.emit(*this);
                     }
 
                     void finalize(bool success=true){
@@ -47,7 +55,7 @@ namespace cms {
                 private:
                     shared_ptr<QueryType> queryRef;
                     // these can only be modified by friend class QueryCollection
-                    bool bDone, bSuccess;
+                    bool bDone, bSuccess, bExecuted;
             };
 
             typedef function<void(ExecutionRef)> ExecuteFunctor;
