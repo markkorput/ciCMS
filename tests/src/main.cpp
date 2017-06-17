@@ -751,7 +751,6 @@ TEST_CASE("cms::QueryCollection", ""){
             string name;
             bool bValueFilterEnabled, bNameFilterEnabled;
             float minValue;
-            float maxValue;
 
         public:
             TestQuery() : bValueFilterEnabled(false), bNameFilterEnabled(false){}
@@ -759,17 +758,15 @@ TEST_CASE("cms::QueryCollection", ""){
             bool isValueFilterEnabled() const { return bValueFilterEnabled; }
 
             float getMinValue() const { return minValue; }
-            float getMaxValue() const { return maxValue; }
 
-            void setValueFilter(float min, float max){
+            void setMinValue(float min){
                 minValue = min;
-                maxValue = max;
                 bValueFilterEnabled = true;
             }
 
             void setNameFilter(const string& newName){
                 name = newName;
-                bNameFilterEnabled;
+                bNameFilterEnabled = true;
             }
 
             const string& getNameFilter() const { return name; }
@@ -791,15 +788,23 @@ TEST_CASE("cms::QueryCollection", ""){
 
         private:
 
-            void execute(shared_ptr<TestQuery> queryRef, FinalizerFunc finalizer){
+            void execute(shared_ptr<TestQuery> queryRef, FinalizerFunc finalize){
 
                 // "query" our "database"
                 database.each([this, queryRef](shared_ptr<TestItem> itemRef){
-                    if(itemRef->name == queryRef->getNameFilter())
-                        this->add(itemRef);
+                    // name condition
+                    if(queryRef->isNameFilterEnabled() && itemRef->name != queryRef->getNameFilter())
+                        return;
+
+                    // value condition
+                    if(queryRef->isValueFilterEnabled() && itemRef->value < queryRef->getMinValue())
+                        return;
+
+                    // all conditions met, add to our collection
+                    this->add(itemRef);
                 });
 
-                finalizer(true);
+                finalize(true);
             }
     };
 
@@ -825,5 +830,21 @@ TEST_CASE("cms::QueryCollection", ""){
         REQUIRE(col.size() == 1);
         REQUIRE(col.at(0)->name == "no.3");
         REQUIRE(col.at(0) == col.database.at(2));
+
+        {   // do another query; with a value-filter this time
+            auto queryRef = make_shared<TestQuery>();
+            queryRef->setMinValue(20);
+            col.query(queryRef);
+
+            REQUIRE(executionRef->isDone()); // another fast one
+            REQUIRE(executionRef->isSuccess());
+        }
+
+        // the results of this query are added to the collection;
+        // preventing duplicats is not part of the QueryCollection template
+        REQUIRE(col.size() == 3);
+        REQUIRE(col.at(0) == col.database.at(2));
+        REQUIRE(col.at(1) == col.database.at(1));
+        REQUIRE(col.at(2) == col.database.at(2));
     }
 }
