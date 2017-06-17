@@ -786,6 +786,12 @@ TEST_CASE("cms::QueryCollection", ""){
                 database.create()->set("no.3", 30);
             }
 
+            ExecutionRef nameQuery(string name){
+                auto queryRef = make_shared<TestQuery>();
+                queryRef->setNameFilter(name);
+                return query(queryRef);
+            }
+
         private:
 
             void execute(ExecutionRef execRef){
@@ -867,5 +873,22 @@ TEST_CASE("cms::QueryCollection", ""){
         // REQUIRE(col.at(2) == col.database.at(2));
         REQUIRE(doneQueries.size() == 2);
         REQUIRE(doneQueries[1] == executionRef->getQuery().get());
+    }
+
+    SECTION(".executeFn()"){
+        TestQueryCollection col;
+
+        // register custom execution logic ("overwrites" any existing execution method)
+        col.executeFn([&col](TestQueryCollection::ExecutionRef execRef){
+            // simply create a new item in the results model and give it the name of the query's name filter
+            execRef->result.create()->name = execRef->getQuery()->getNameFilter();
+        });
+
+        REQUIRE(col.size() == 0);
+        auto execRef = col.nameQuery("Some Name");
+        REQUIRE(execRef->result.size() == 1);
+        REQUIRE(execRef->result.at(0)->name == "Some Name");
+        REQUIRE(col.size() == 1);
+        REQUIRE(col.at(0) == execRef->result.at(0));
     }
 }
