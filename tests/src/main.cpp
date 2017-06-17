@@ -788,9 +788,22 @@ TEST_CASE("cms::QueryCollection", ""){
                 database.create()->set("no.2", 20);
                 database.create()->set("no.3", 30);
             }
+
+        private:
+
+            void execute(shared_ptr<TestQuery> queryRef, FinalizerFunc finalizer){
+
+                // "query" our "database"
+                database.each([this, queryRef](shared_ptr<TestItem> itemRef){
+                    if(itemRef->name == queryRef->getNameFilter())
+                        this->add(itemRef);
+                });
+
+                finalizer(true);
+            }
     };
 
-    SECTION(".query() .queryDoneEvent"){
+    SECTION(".query()"){
         TestQueryCollection col;
         shared_ptr<TestQueryCollection::Execution> executionRef;
 
@@ -806,5 +819,11 @@ TEST_CASE("cms::QueryCollection", ""){
             REQUIRE(executionRef->isSuccess());
             REQUIRE(!executionRef->isFailure()); // this one happens to be extremely fast and, well, non-async
         } // end of queryRef instance scope
+
+        // check if the query was correctly performed;
+        // it should've gotten us just the database item "no.3"
+        REQUIRE(col.size() == 1);
+        REQUIRE(col.at(0)->name == "no.3");
+        REQUIRE(col.at(0) == col.database.at(2));
     }
 }

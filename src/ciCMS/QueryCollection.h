@@ -1,13 +1,16 @@
 #pragma once
 
+#include <functional>
 #include "cinder/Signals.h"
 #include "Collection.h"
 
 namespace cms {
     template<class ItemType, class QueryType>
-    class QueryCollection : Collection<ItemType> {
+    class QueryCollection : public Collection<ItemType> {
 
     public:
+        typedef function<void(bool)> FinalizerFunc;
+
         class Execution;
         typedef shared_ptr<Execution> ExecutionRef;
 
@@ -45,17 +48,24 @@ namespace cms {
         // start query execution and return shared pointer to execution object
         ExecutionRef query(const shared_ptr<QueryType> queryRef){
             auto execRef = make_shared<Execution>(*this, queryRef);
-            execute(execRef);
+
+            // execute query using (virtual) executer
+            execute(execRef->getQuery(), [this, execRef](bool success){
+                this->finalize(execRef, success);
+            });
+
             return execRef;
         };
 
     private:
 
-        virtual void execute(ExecutionRef execRef){
+        virtual void execute(shared_ptr<QueryType> queryRef, FinalizerFunc finalizer){
             // This is a semi-virtual method; does nothing but declare the
             // query execution to be a success. Should be overwritten.
-            finalize(execRef, true /* success */);
+            finalizer(true /* success */);
         }
+
+    protected:
 
         void finalize(ExecutionRef execRef, bool success){
             execRef->bDone = true;
