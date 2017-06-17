@@ -8,7 +8,12 @@ namespace cms {
     class QueryCollection : Collection<ItemType> {
 
     public:
+        class Execution;
+        typedef shared_ptr<Execution> ExecutionRef;
+
         class Execution {
+            friend QueryCollection;
+
             public:
                 Execution(QueryCollection<ItemType, QueryType>& collection, shared_ptr<QueryType> query)
                     : collectionPointer(&collection), queryRef(query), bDone(false), bSuccess(false){}
@@ -25,21 +30,16 @@ namespace cms {
                     return queryRef;
                 }
 
-                void setResult(bool success){
-                    bSuccess = success;
-                    bDone = true;
-                }
-
             public:
-                ci::signals::Signal<void(shared_ptr<QueryType>)> doneSignal;
+                ci::signals::Signal<void(ExecutionRef)> doneSignal;
 
             private:
                 QueryCollection<ItemType, QueryType>* collectionPointer;
                 shared_ptr<QueryType> queryRef;
+
+                // these can only be modified by friend class QueryCollection
                 bool bDone, bSuccess;
         };
-
-        typedef shared_ptr<Execution> ExecutionRef;
 
     public:
         // start query execution and return shared pointer to execution object
@@ -51,9 +51,16 @@ namespace cms {
 
     private:
 
-        void execute(ExecutionRef execRef){
-            // virtual method; should be implemented by inheriting class
-            execRef->setResult(true);
+        virtual void execute(ExecutionRef execRef){
+            // This is a semi-virtual method; does nothing but declare the
+            // query execution to be a success. Should be overwritten.
+            finalize(execRef, true /* success */);
+        }
+
+        void finalize(ExecutionRef execRef, bool success){
+            execRef->bDone = true;
+            execRef->bSuccess = success;
+            execRef->doneSignal.emit(execRef);
         }
 
     public:

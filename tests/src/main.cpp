@@ -756,9 +756,11 @@ TEST_CASE("cms::QueryCollection", ""){
         public:
             TestQuery() : bValueFilterEnabled(false), bNameFilterEnabled(false){}
 
-            bool valueFilterEnabled() const { return bValueFilterEnabled; }
+            bool isValueFilterEnabled() const { return bValueFilterEnabled; }
+
             float getMinValue() const { return minValue; }
             float getMaxValue() const { return maxValue; }
+
             void setValueFilter(float min, float max){
                 minValue = min;
                 maxValue = max;
@@ -771,6 +773,8 @@ TEST_CASE("cms::QueryCollection", ""){
             }
 
             const string& getNameFilter() const { return name; }
+
+            bool isNameFilterEnabled() const { return bNameFilterEnabled; }
     };
 
     class TestQueryCollection : public QueryCollection<TestItem, TestQuery> {
