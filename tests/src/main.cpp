@@ -734,3 +734,73 @@ TEST_CASE("cms::CollectionManager", ""){
         REQUIRE(man["col2"]->at(2)->get("name") == "henk");
     }
 }
+
+TEST_CASE("cms::QueryCollection", ""){
+    class TestItem {
+        public:
+            string name;
+            float value;
+            void set(const string& newName, float val){
+                name = newName;
+                value = val;
+            }
+    };
+
+    class TestQuery {
+        private:
+            string name;
+            bool bValueFilterEnabled, bNameFilterEnabled;
+            float minValue;
+            float maxValue;
+
+        public:
+            TestQuery() : bValueFilterEnabled(false), bNameFilterEnabled(false){}
+
+            bool valueFilterEnabled() const { return bValueFilterEnabled; }
+            float getMinValue() const { return minValue; }
+            float getMaxValue() const { return maxValue; }
+            void setValueFilter(float min, float max){
+                minValue = min;
+                maxValue = max;
+                bValueFilterEnabled = true;
+            }
+
+            void setNameFilter(const string& newName){
+                name = newName;
+                bNameFilterEnabled;
+            }
+
+            const string& getNameFilter() const { return name; }
+    };
+
+    class TestQueryCollection : public QueryCollection<TestItem, TestQuery> {
+        public:
+            // database is our in-memory dummy backend
+            Collection<TestItem> database;
+
+            TestQueryCollection(){
+                // populate with some content
+                database.create()->set("no.1", 10);
+                database.create()->set("no.2", 20);
+                database.create()->set("no.3", 30);
+            }
+    };
+
+    SECTION(".query() .queryDoneEvent"){
+        TestQueryCollection col;
+        shared_ptr<TestQueryCollection::Execution> executionRef;
+
+        {   // start query with call to .query
+            auto queryRef = make_shared<TestQuery>();
+            queryRef->setNameFilter("no.3");
+
+            executionRef = col.query(queryRef);
+            REQUIRE(executionRef != nullptr);
+            REQUIRE(executionRef->getCollection() == &col);
+            REQUIRE(executionRef->getQuery() == queryRef);
+            REQUIRE(executionRef->isDone()); // this one happens to be extremely fast and, well, non-async
+            REQUIRE(executionRef->isSuccess());
+            REQUIRE(!executionRef->isFailure()); // this one happens to be extremely fast and, well, non-async
+        } // end of queryRef instance scope
+    }
+}

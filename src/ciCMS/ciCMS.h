@@ -4,3 +4,4 @@
 #include "Collection.h"
 #include "ModelCollection.h"
 #include "CollectionManager.h"
+#include "QueryCollection.h"
