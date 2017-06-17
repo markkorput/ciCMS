@@ -901,10 +901,6 @@ TEST_CASE("cms::QueryCollection", ""){
             execRef->result.create()->name = execRef->getQuery()->getNameFilter();
         });
 
-        col.removeSignal.connect([](TestItem& imte){
-            CI_LOG_W("-REMOVE-");
-        });
-
         REQUIRE(col.size() == 0);
         auto execRef = col.nameQuery("Some Name");
         REQUIRE(execRef->result.size() == 1);
@@ -942,5 +938,56 @@ TEST_CASE("cms::QueryCollection", ""){
         REQUIRE(col.size() == 2);
         REQUIRE(col.at(0) == execRef->result.at(0));
         REQUIRE(col.at(1) == execRef->result.at(1));
+    }
+
+    SECTION(".whenDone() .onSuccess .onFailure .whenAborted .whenExecuted"){
+        TestQueryCollection col;
+
+        string result="";
+
+        auto execRef = col.nameQuery("no.1")
+            ->whenDone([&result](TestQueryCollection::Execution& exec){
+                result+="/done:"+exec.getQuery()->getNameFilter();
+            })
+            ->onSuccess([&result](TestQueryCollection::Execution& exec){
+                result+="/success:"+exec.getQuery()->getNameFilter();
+            })
+            ->onFailure([&result](TestQueryCollection::Execution& exec){
+                result+="/failure:"+exec.getQuery()->getNameFilter();
+            })
+            ->whenAborted([&result](TestQueryCollection::Execution& exec){
+                result+="/aborted:"+exec.getQuery()->getNameFilter();
+            })
+            ->whenExecuted([&result](TestQueryCollection::Execution& exec){
+                result+="/executed:"+exec.getQuery()->getNameFilter();
+            });
+
+        REQUIRE(result == "/done:no.1/success:no.1/executed:no.1");
+
+        // register aborter
+        col.cacheCheckFn([](Collection<TestItem>& col, TestQueryCollection::ExecutionRef execRef){
+            execRef->abort();
+        });
+
+        // run again
+        result = "";
+        execRef = col.nameQuery("foobar")
+            ->whenDone([&result](TestQueryCollection::Execution& exec){
+                result+="/done:"+exec.getQuery()->getNameFilter();
+            })
+            ->onSuccess([&result](TestQueryCollection::Execution& exec){
+                result+="/success:"+exec.getQuery()->getNameFilter();
+            })
+            ->onFailure([&result](TestQueryCollection::Execution& exec){
+                result+="/failure:"+exec.getQuery()->getNameFilter();
+            })
+            ->whenAborted([&result](TestQueryCollection::Execution& exec){
+                result+="/aborted:"+exec.getQuery()->getNameFilter();
+            })
+            ->whenExecuted([&result](TestQueryCollection::Execution& exec){
+                result+="/executed:"+exec.getQuery()->getNameFilter();
+            });
+
+        REQUIRE(result == "/done:foobar/aborted:foobar");
     }
 }

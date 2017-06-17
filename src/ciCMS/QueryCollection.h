@@ -18,14 +18,30 @@ namespace cms {
                 friend QueryCollection;
 
                 public:
+
+                    typedef function<void(Execution&)> CallbackFunctor;
+
+                public:
                     Execution(shared_ptr<QueryType> query)
-                        : queryRef(query), bDone(false), bSuccess(false), bExecuted(false){}
+                        :   queryRef(query),
+                            bDone(false),
+                            bSuccess(false),
+                            bExecuted(false),
+                            doneFunc(nullptr),
+                            successFunc(nullptr), failureFunc(nullptr),
+                            abortFunc(nullptr), executionFunc(nullptr){}
 
                     bool isDone() const { return bDone; }
                     bool isSuccess() const { return bSuccess; }
                     bool isFailure() const { return bExecuted && !bSuccess; }
                     bool isExecuted() const { return bExecuted; }
                     bool isAborted() const { return bDone && !bExecuted; }
+
+                    Execution* whenDone(CallbackFunctor func){ doneFunc = func; if(isDone()) func(*this); return this;}
+                    Execution* onSuccess(CallbackFunctor func){ successFunc = func; if(isSuccess()) func(*this); return this; }
+                    Execution* onFailure(CallbackFunctor func){ failureFunc = func; if(isFailure()) func(*this); return this; }
+                    Execution* whenAborted(CallbackFunctor func){ abortFunc = func; if(isAborted()) func(*this); return this; }
+                    Execution* whenExecuted(CallbackFunctor func){ executionFunc = func; if(isExecuted()) func(*this); return this; }
 
                     const shared_ptr<QueryType> getQuery() const {
                         return queryRef;
@@ -36,14 +52,31 @@ namespace cms {
                     }
 
                     void abort(){
-                        bDone=true;
-                        bExecuted=false;
+                        bDone = true;
+                        bExecuted = false;
+
+                        if(abortFunc)
+                            abortFunc(*this);
+                        if(doneFunc)
+                            doneFunc(*this);
+
                         doneSignal.emit(*this);
                     }
 
                     void finalize(bool success=true){
                         bDone = true;
+                        bExecuted = true;
                         bSuccess = success;
+
+                        if(executionFunc)
+                            executionFunc(*this);
+                        if(success && successFunc)
+                            successFunc(*this);
+                        if(failureFunc && !success)
+                            failureFunc(*this);
+                        if(doneFunc)
+                            doneFunc(*this);
+
                         doneSignal.emit(*this);
                     }
 
@@ -56,6 +89,7 @@ namespace cms {
                     shared_ptr<QueryType> queryRef;
                     // these can only be modified by friend class QueryCollection
                     bool bDone, bSuccess, bExecuted;
+                    CallbackFunctor doneFunc, successFunc, failureFunc, abortFunc, executionFunc;
             };
 
             typedef function<void(ExecutionRef)> ExecuteFunctor;
