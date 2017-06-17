@@ -112,7 +112,7 @@ void cms::Collection<ItemType>::sync(shared_ptr<Collection<ItemType>> other, boo
 template<class ItemType>
 void cms::Collection<ItemType>::stopSync(Collection<ItemType>& other){
     for(auto it = collectionSyncs.begin(); it != collectionSyncs.end(); it++){
-        if(&it->getSource() == &other){
+        if(&(*it)->getSource() == &other){
             collectionSyncs.erase(it);
             return;
         }
