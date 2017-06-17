@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "cinder/Signals.h"
+#include "cinder/Log.h"
 #include "Collection.h"
 
 namespace cms {
@@ -50,24 +51,41 @@ namespace cms {
             };
 
             typedef function<void(ExecutionRef)> ExecuteFunctor;
+            typedef function<void(Collection<ItemType>&, ExecutionRef)> CacheCheckFunctor;
 
         public: // methods
 
-            QueryCollection() : executeFunc(nullptr){}
+            QueryCollection() : executeFunc(nullptr), cacheCheckFunc(nullptr){}
 
             // start query execution and return shared pointer to execution object to caller
             ExecutionRef query(const shared_ptr<QueryType> queryRef){
                 // create execution instance
                 auto execRef = make_shared<Execution>(queryRef);
 
-                // copy all items added to the execution's result collection to our collection
-                this->sync(execRef->result);
-
                 // when execution emits doneSignal, we also emit our queryDoneSignal and stop syncing
                 execRef->doneSignal.connect([this](Execution& exec){
-                    this->stopSync(exec.result);
                     this->queryDoneSignal.emit(exec.getQuery());
                 });
+
+                // first our cacheCheckFunctor if any is registered,
+                // before calling our executor
+                if(cacheCheckFunc){
+                    cacheCheckFunc(*this, execRef);
+
+                    if(execRef->isDone()){
+                        // "abort"
+                        return execRef;
+                    }
+                }
+
+                {   // copy all items added to the execution's result collection to our collection
+                    // this->sync(execRef->result);
+                    Collection<ItemType>* pResult = &execRef->result;
+                    execRef->result.addSignal.connect([this, pResult](ItemType& item){
+                        if(!this->has(&item))
+                            this->add(pResult->find(&item));
+                    });
+                }
 
                 // execute query using (virtual) executer
                 if(this->executeFunc)
@@ -81,6 +99,10 @@ namespace cms {
 
             void executeFn(ExecuteFunctor func){
                 executeFunc = func;
+            }
+
+            void cacheCheckFn(CacheCheckFunctor func){
+                cacheCheckFunc = func;
             }
 
         private: // methods
@@ -98,6 +120,7 @@ namespace cms {
         private: // attributes
 
             ExecuteFunctor executeFunc;
+            CacheCheckFunctor cacheCheckFunc;
     };
 
     template<typename ItemType, typename QueryType>

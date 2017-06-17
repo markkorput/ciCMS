@@ -891,4 +891,53 @@ TEST_CASE("cms::QueryCollection", ""){
         REQUIRE(col.size() == 1);
         REQUIRE(col.at(0) == execRef->result.at(0));
     }
+
+    SECTION(".cacheCheckFn()"){
+        TestQueryCollection col;
+
+        // register custom execution logic ("overwrites" any existing execution method)
+        col.executeFn([&col](TestQueryCollection::ExecutionRef execRef){
+            // simply create a new item in the results model and give it the name of the query's name filter
+            execRef->result.create()->name = execRef->getQuery()->getNameFilter();
+        });
+
+        col.removeSignal.connect([](TestItem& imte){
+            CI_LOG_W("-REMOVE-");
+        });
+
+        REQUIRE(col.size() == 0);
+        auto execRef = col.nameQuery("Some Name");
+        REQUIRE(execRef->result.size() == 1);
+        REQUIRE(execRef->result.at(0)->name == "Some Name");
+        REQUIRE(col.size() == 1);
+        REQUIRE(col.at(0) == execRef->result.at(0));
+        // let's do that again
+        execRef = col.nameQuery("Some Name");
+        REQUIRE(execRef->result.size() == 1);
+        REQUIRE(execRef->result.at(0)->name == "Some Name");
+        REQUIRE(col.size() == 2);
+        REQUIRE(col.at(1) == execRef->result.at(0));
+
+        // now let's register a cache checkers which first checks which of the existing items
+        // matches the query. If any, it aborts the query by finalizing it
+        col.cacheCheckFn([](Collection<TestItem>& col, TestQueryCollection::ExecutionRef execRef){
+            col.each([&execRef](shared_ptr<TestItem> itemRef){
+                if(itemRef->name == execRef->getQuery()->getNameFilter())
+                    execRef->result.add(itemRef);
+            });
+
+            // finalize the execRef so the actual "remote" query doesn't happen
+            if(!execRef->result.isEmpty())
+                execRef->finalize();
+        });
+
+        // now let's do that a third time, this time no new item should appear
+        execRef = col.nameQuery("Some Name");
+        REQUIRE(execRef->isDone()); // this one happens to be extremely fast and, well, non-async
+        REQUIRE(execRef->isSuccess());
+        REQUIRE(execRef->result.size() == 2); // matched with two (both) of the cached items
+        REQUIRE(col.size() == 2);
+        REQUIRE(col.at(0) == execRef->result.at(0));
+        REQUIRE(col.at(1) == execRef->result.at(1));
+    }
 }

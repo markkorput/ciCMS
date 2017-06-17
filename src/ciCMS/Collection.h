@@ -118,7 +118,7 @@ void cms::Collection<ItemType>::stopSync(Collection<ItemType>& other){
         }
     }
 
-    CI_LOG_W("Could not source to stop syncing from");
+    CI_LOG_W("Could not find source to stop syncing from");
 }
 
 template<class ItemType>
