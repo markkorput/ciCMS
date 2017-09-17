@@ -875,6 +875,20 @@ TEST_CASE("cms::QueryCollection", ""){
         REQUIRE(doneQueries[1] == executionRef->getQuery().get());
     }
 
+    SECTION(".query() with pass-by-reference argument"){
+        // QueryType = int
+        QueryCollection<TestItem, int> col;
+
+        int result=0;
+
+        // execRef->getQuery() returns a shared_ptr<int> == 5
+        col.query(5)->whenDone([&result](QueryCollection<TestItem, int>::Execution& exec){
+            result = *exec.getQuery();
+        });
+
+        REQUIRE(result == 5);
+    }
+
     SECTION(".executeFn()"){
         TestQueryCollection col;
 

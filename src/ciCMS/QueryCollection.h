@@ -99,6 +99,13 @@ namespace cms {
 
             QueryCollection() : executeFunc(nullptr), cacheCheckFunc(nullptr){}
 
+            ExecutionRef query(const QueryType& queryValue){
+                // convert passed-by-reference value argument into a shared_ptr first
+                auto queryRef = make_shared<QueryType>();
+                (*queryRef) = queryValue;
+                return this->query(queryRef);
+            }
+
             // start query execution and return shared pointer to execution object to caller
             ExecutionRef query(const shared_ptr<QueryType> queryRef){
                 // create execution instance
