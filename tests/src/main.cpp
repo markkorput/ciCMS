@@ -11,18 +11,22 @@ using namespace std;
 using namespace cms;
 
 TEST_CASE("cms::State"){
-    SECTION("isInitialized(), push(), stopPushes()"){
+    SECTION("isInitialized(), val(), push(), stopPushes()"){
         State<float> value;
         float target = 0.0f;
         REQUIRE(value.isInitialized() == false);
+        REQUIRE(value.val() == 0.0f);
         value.push([&target](const float &val){ target = val; }, &target);
         REQUIRE(target == 0.0f);
         value = 5.0f;
+        REQUIRE(value.val() == 5.0f);
         REQUIRE(target == 5.0f);
         value = 6.0f;
+        REQUIRE(value.val() == 6.0f);
         REQUIRE(target == 6.0f);
         value.stopPushes(&target);
         value = 7.0f;
+        REQUIRE(value.val() == 7.0f);
         REQUIRE(target == 6.0f);
     }
 }
