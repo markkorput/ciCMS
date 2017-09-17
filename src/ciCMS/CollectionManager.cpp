@@ -18,6 +18,12 @@ ModelCollectionRef CollectionManager::get(const std::string& name, bool createIf
 
 bool CollectionManager::loadJsonFromFile(const ci::fs::path& path){
     auto dataSourceRef = ci::loadFile(path);
+
+    if(dataSourceRef == nullptr || dataSourceRef->getBuffer() == nullptr){
+        CI_LOG_W("could not load json file: " << path);
+        return false;
+    }
+
     string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
 
     if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
@@ -26,7 +32,7 @@ bool CollectionManager::loadJsonFromFile(const ci::fs::path& path){
     try{
       ci::JsonTree jsonTree(fileContentString);
       return loadJson(jsonTree);
-    } catch(cinder::JsonTree::ExcJsonParserError err){
+    } catch(const cinder::JsonTree::ExcJsonParserError &err){
         CI_LOG_E("Malformed json: " << err.what());
     }
 
