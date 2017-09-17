@@ -17,15 +17,16 @@ namespace cms {
 
         typedef function<void(const StateType&)> PushFunc;
 
+    private: // extensions
+
+        typedef enum {
+            UNKNOWN,
+            PUSHER
+        } ExtType;
+
         class StateExt {
 
             public:
-
-                typedef enum {
-                    UNKNOWN,
-                    PUSHER
-                } ExtType;
-
                 StateExt(State<StateType>& _state, void* _owner = NULL)
                     : state(&_state)
                     , owner(_owner)
@@ -67,16 +68,12 @@ namespace cms {
 
         class StatePusher : public StateExt {
 
-            public: // types & constants
-
-                typedef function<void(const StateType&)> PushFunc;
-
             public:
 
                 StatePusher(State<StateType>& _state, PushFunc _func, void* _owner = NULL)
                     : StateExt(_state, _owner)
                     , func(_func){
-                    this->extType = StateExt::ExtType::PUSHER;
+                    this->extType = ExtType::PUSHER;
                 }
 
             protected:
@@ -96,7 +93,6 @@ namespace cms {
                 PushFunc func;
                 ci::signals::Connection connection;
         };
-
 
     public: // lifecycle methods
 
@@ -139,7 +135,7 @@ namespace cms {
         void stopPushes(void* owner){
             auto it = extensions.begin();
             while(it != extensions.end()){
-                if((*it)->owner == owner && (*it)->extType == StateExt::ExtType::PUSHER){
+                if((*it)->owner == owner && (*it)->extType == ExtType::PUSHER){
                     (*it)->disable();
                     it = extensions.erase(it);
                 } else {
