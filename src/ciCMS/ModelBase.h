@@ -73,6 +73,10 @@ namespace cms {
         glm::vec3 getVec3(const string& attr, const glm::vec3& defaultValue = glm::vec3(0.0f, 0.0f, 0.0f));
         ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue = ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
 
+        bool with(const string& attr, function<void(const string&)> func);
+        bool with(const string& attr, function<void(const bool&)> func);
+        bool with(const string& attr, function<void(const glm::vec3&)> func);
+
     public: // events
 
         //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller a reference to this model

@@ -154,6 +154,24 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getBool("x", true) == true);
     }
 
+    SECTION("with(bool)"){
+        Model model;
+        bool target = true;
+
+        model.with("foo", [&target](const bool& val){ target = val; });
+        REQUIRE(target == true);
+
+        model.set("foo", "false");
+        REQUIRE(target == true);
+        model.with("foo", [&target](const bool& val){ target = val; });
+        REQUIRE(target == false);
+
+        model.set("foo", "true");
+        REQUIRE(target == false);
+        model.with("foo", [&target](const bool& val){ target = val; });
+        REQUIRE(target == true);
+    }
+
     SECTION("getVec2"){
         Model m;
         REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
@@ -176,6 +194,18 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(m.getVec3("someColor") == glm::vec3(0.0f, 0.0f, 0.0f));
         m.set("someColor", "0,100");
         REQUIRE(m.getVec3("someColor", glm::vec3(0.0f, 0.0f, 1.0f)) == glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+
+    SECTION("with(vec3)"){
+        Model model;
+        glm::vec3 target = glm::vec3(0.0f);
+
+        model.with("foo", [&target](const glm::vec3& val){ target = val; });
+        REQUIRE(target == glm::vec3(0.0f));
+
+        model.set("foo", "10,20,30");
+        model.with("foo", [&target](const glm::vec3& val){ target = val; });
+        REQUIRE(target == glm::vec3(10.0f,20.0f,30.0f));
     }
 
     SECTION("getColor"){

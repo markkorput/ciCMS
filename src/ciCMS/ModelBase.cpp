@@ -179,3 +179,27 @@ ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultVa
     // unsupported/unrecognised format
     return defaultValue;
 }
+
+
+bool ModelBase::with(const string& attr, function<void(const string&)> func){
+    if(!this->has(attr))
+        return false;
+    func(this->get(attr));
+    return true;
+}
+
+bool ModelBase::with(const string& attr, function<void(const bool&)> func){
+    if(!this->has(attr))
+        return false;
+
+    func(this->getBool(attr));
+    return true;
+}
+
+bool ModelBase::with(const string& attr, function<void(const glm::vec3&)> func){
+    if(!this->has(attr))
+        return false;
+
+    func(this->getVec3(attr));
+    return true;
+}
