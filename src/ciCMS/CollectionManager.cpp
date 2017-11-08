@@ -1,5 +1,6 @@
 #include "CollectionManager.h"
 
+#include "cinder/Log.h"
 #include "cinder/Json.h"
 
 using namespace cms;
@@ -22,8 +23,14 @@ bool CollectionManager::loadJsonFromFile(const ci::fs::path& path){
     if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
         fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
 
-    ci::JsonTree jsonTree(fileContentString);
-    return loadJson(jsonTree);
+    try{
+      ci::JsonTree jsonTree(fileContentString);
+      return loadJson(jsonTree);
+    } catch(cinder::JsonTree::ExcJsonParserError err){
+        CI_LOG_E("Malformed json: " << err.what());
+    }
+
+    return false;
 }
 
 bool CollectionManager::loadJson(const ci::JsonTree& jsonTree){
