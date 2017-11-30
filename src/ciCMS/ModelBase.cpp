@@ -97,16 +97,19 @@ void ModelBase::lock(LockFunctor func){
 int ModelBase::getInt(const string& attr, int defaultValue){
     try {
         return std::stoi(get(attr));
-    } catch(std::invalid_argument){
+    } catch(std::invalid_argument exc){
+        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
 
     return defaultValue;
 }
 
 float ModelBase::getFloat(const string& attr, float defaultValue){
+    
     try {
         return std::stof(get(attr));
-    } catch(std::invalid_argument){
+    } catch(std::invalid_argument exc){
+        // CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
 
     return defaultValue;
@@ -120,7 +123,8 @@ bool ModelBase::getBool(const string& attr, bool defaultValue){
 
     try {
         return boost::lexical_cast<bool>(s);
-    } catch(boost::bad_lexical_cast){
+    } catch(boost::bad_lexical_cast exc){
+        // CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
 
     return defaultValue;
@@ -133,12 +137,16 @@ glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
     string src = get(attr);
     boost::split(strings, src, boost::is_any_of(","));
 
-    if(strings.size() == 2)
-        return glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
+    try {
+        if(strings.size() == 2)
+            return glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
 
-    if(strings.size() == 1 && strings[0] != ""){
-        float val = std::stof(strings[0]);
-        return glm::vec2(val, val);
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            return glm::vec2(val, val);
+        }
+    } catch(std::invalid_argument exc){
+        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
 
     return defaultValue;
@@ -149,12 +157,16 @@ glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
     string src = get(attr);
     boost::split(strings, src, boost::is_any_of(","));
 
-    if(strings.size() == 3)
-        return glm::vec3(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]));
+    try{
+        if(strings.size() == 3)
+            return glm::vec3(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]));
 
-    if(strings.size() == 1 && strings[0] != ""){
-        float val = std::stof(strings[0]);
-        return glm::vec3(val, val, val);
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            return glm::vec3(val, val, val);
+        }
+    } catch(std::invalid_argument exc){
+        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
 
     return defaultValue;
@@ -165,17 +177,20 @@ ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultVa
     string src = get(attr);
     boost::split(strings, src, boost::is_any_of(","));
 
-    if(strings.size() == 3)
-        return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, 1.0f);
+    try{
+        if(strings.size() == 3)
+            return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, 1.0f);
 
-    if(strings.size() == 4)
-        return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, std::stof(strings[3])/255.0f);
+        if(strings.size() == 4)
+            return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, std::stof(strings[3])/255.0f);
 
-    if(strings.size() == 1 && strings[0] != ""){
-        float val = std::stof(strings[0]);
-        return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
+        }
+    } catch(std::invalid_argument exc){
+        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
     }
-
     // unsupported/unrecognised format
     return defaultValue;
 }
@@ -193,6 +208,14 @@ bool ModelBase::with(const string& attr, function<void(const bool&)> func){
         return false;
 
     func(this->getBool(attr));
+    return true;
+}
+
+bool ModelBase::with(const string& attr, function<void(const glm::vec2&)> func){
+    if(!this->has(attr))
+        return false;
+
+    func(this->getVec2(attr));
     return true;
 }
 

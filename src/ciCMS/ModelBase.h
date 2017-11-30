@@ -75,6 +75,7 @@ namespace cms {
 
         bool with(const string& attr, function<void(const string&)> func);
         bool with(const string& attr, function<void(const bool&)> func);
+        bool with(const string& attr, function<void(const glm::vec2&)> func);
         bool with(const string& attr, function<void(const glm::vec3&)> func);
 
     public: // events
