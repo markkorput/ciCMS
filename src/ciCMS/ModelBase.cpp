@@ -203,7 +203,14 @@ bool ModelBase::with(const string& attr, function<void(const string&)> func){
     return true;
 }
 
-bool ModelBase::with(const string& attr, function<void(const bool&)> func){
+bool ModelBase::withInt(const string& attr, function<void(const int&)> func){
+    if(!this->has(attr))
+        return false;
+    func(this->getInt(attr));
+    return true;
+}
+
+bool ModelBase::withBool(const string& attr, function<void(const bool&)> func){
     if(!this->has(attr))
         return false;
 
@@ -211,7 +218,7 @@ bool ModelBase::with(const string& attr, function<void(const bool&)> func){
     return true;
 }
 
-bool ModelBase::with(const string& attr, function<void(const glm::vec2&)> func){
+bool ModelBase::withVec2(const string& attr, function<void(const glm::vec2&)> func){
     if(!this->has(attr))
         return false;
 
@@ -219,7 +226,7 @@ bool ModelBase::with(const string& attr, function<void(const glm::vec2&)> func){
     return true;
 }
 
-bool ModelBase::with(const string& attr, function<void(const glm::vec3&)> func){
+bool ModelBase::withVec3(const string& attr, function<void(const glm::vec3&)> func){
     if(!this->has(attr))
         return false;
 

@@ -74,9 +74,13 @@ namespace cms {
         ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue = ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
 
         bool with(const string& attr, function<void(const string&)> func);
-        bool with(const string& attr, function<void(const bool&)> func);
-        bool with(const string& attr, function<void(const glm::vec2&)> func);
-        bool with(const string& attr, function<void(const glm::vec3&)> func);
+        bool withInt(const string& attr, function<void(const int&)> func);
+        bool with(const string& attr, function<void(const bool&)> func){ return this->withBool(attr, func); }
+        bool withBool(const string& attr, function<void(const bool&)> func);
+        bool with(const string& attr, function<void(const glm::vec2&)> func){ return this->withVec2(attr, func); }
+        bool withVec2(const string& attr, function<void(const glm::vec2&)> func);
+        bool with(const string& attr, function<void(const glm::vec3&)> func){ return this->withVec3(attr, func); }
+        bool withVec3(const string& attr, function<void(const glm::vec3&)> func);
 
     public: // events
 
