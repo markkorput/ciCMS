@@ -35,8 +35,8 @@ ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
 }
 
 
-ModelBase* ModelBase::set(map<string, string> &attrs, bool notify){
-    for(map<string, string>::iterator it=attrs.begin(); it != attrs.end(); it++){
+ModelBase* ModelBase::set(const map<string, string> &attrs, bool notify){
+    for(auto it=attrs.begin(); it != attrs.end(); it++){
         this->set(it->first, it->second, notify);
     }
 
@@ -105,7 +105,7 @@ int ModelBase::getInt(const string& attr, int defaultValue){
 }
 
 float ModelBase::getFloat(const string& attr, float defaultValue){
-    
+
     try {
         return std::stof(get(attr));
     } catch(std::invalid_argument exc){
