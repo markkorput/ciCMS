@@ -112,13 +112,13 @@ void cms::Collection<ItemType>::sync(shared_ptr<Collection<ItemType>> other, boo
 template<class ItemType>
 void cms::Collection<ItemType>::stopSync(Collection<ItemType>& other){
     for(auto it = collectionSyncs.begin(); it != collectionSyncs.end(); it++){
-        if(&it->getSource() == &other){
+        if(&(*it)->getSource() == &other){
             collectionSyncs.erase(it);
             return;
         }
     }
 
-    CI_LOG_W("Could not source to stop syncing from");
+    CI_LOG_W("Could not find source to stop syncing from");
 }
 
 template<class ItemType>

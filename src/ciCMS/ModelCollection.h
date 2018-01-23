@@ -24,11 +24,23 @@ namespace cms {
         std::string mIdAttributeName;
     };
 }
-// specializations in head for windows (Visual Studio), in .cpp file for non windows
-#ifdef CINDER_MSW
 namespace cms {
+#ifndef CINDER_MSW
+
+	// non-windows; implementations in ModelCollection.cpp
+
 	template<>
-	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection) {
+	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection);
+
+	template<>
+	bool CollectionJsonLoader<Model>::loadItem(ci::JsonTree& jsonTree, shared_ptr<Model> itemRef);
+
+	template<>
+	ci::JsonTree CollectionJsonWriter<Model>::getItemJsonTree(shared_ptr<Model> itemRef);
+
+#else
+	template<>
+	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection){
 		if (!jsonTree.hasChild("id"))
 			return nullptr;
 
@@ -39,23 +51,23 @@ namespace cms {
 		});
 	}
 
-	template<>
-	bool CollectionJsonLoader<Model>::loadItem(ci::JsonTree& jsonTree, shared_ptr<Model> itemRef) {
-		for (int idx = 0; idx < jsonTree.getNumChildren(); idx++) {
-			ci::JsonTree subTree = jsonTree.getChild(idx);
-			itemRef->set(subTree.getKey(), subTree.getValue());
-		}
-		return true;
-	}
+    template<>
+    bool CollectionJsonLoader<Model>::loadItem(ci::JsonTree& jsonTree, shared_ptr<Model> itemRef){
+    	for (int idx = 0; idx < jsonTree.getNumChildren(); idx++) {
+    		ci::JsonTree subTree = jsonTree.getChild(idx);
+    		itemRef->set(subTree.getKey(), subTree.getValue());
+    	}
+    	return true;
+    }
 
-	template<>
-	ci::JsonTree CollectionJsonWriter<Model>::getItemJsonTree(shared_ptr<Model> itemRef) {
-		ci::JsonTree tree;
-		itemRef->each([&](const string& attr, const string& value) {
-			tree.addChild(ci::JsonTree(attr, value));
-		});
+    template<>
+    ci::JsonTree CollectionJsonWriter<Model>::getItemJsonTree(shared_ptr<Model> itemRef){
+    	ci::JsonTree tree;
+    	itemRef->each([&](const string& attr, const string& value) {
+    		tree.addChild(ci::JsonTree(attr, value));
+    	});
 
-		return tree;
-	}
-}
+    	return tree;
+    }
 #endif
+}

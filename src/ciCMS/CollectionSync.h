@@ -16,7 +16,7 @@ namespace cms {
             void setup(CollectionBase<ItemType> *target, shared_ptr<CollectionBase<ItemType>> source);
             void destroy();
 
-            CollectionBase<ItemType>& getSource() const { return sourceRef ? sourceRef.get() : pSource; }
+            const CollectionBase<ItemType>& getSource() const { return sourceRef ? *sourceRef.get() : *pSource; }
 
         private: // attributes
 

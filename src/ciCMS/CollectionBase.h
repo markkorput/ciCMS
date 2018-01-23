@@ -56,7 +56,8 @@ namespace cms {
                 return nullptr;
             }
 
-            unsigned int size(){ return instanceRefs.size(); }
+            unsigned int size() const { return instanceRefs.size(); }
+            bool isEmpty() const { return this->size() == 0; }
             bool has(shared_ptr<ItemType> instanceRef){ return indexOf(instanceRef.get()) != CICMS_INVALID_INDEX; }
             bool has(ItemType* cid){ return indexOf(cid) != CICMS_INVALID_INDEX; }
             //! Convenience method that convert the void* CidType to a ItemType* value
