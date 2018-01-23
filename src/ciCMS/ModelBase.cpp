@@ -1,6 +1,6 @@
-#include "ModelBase.h"
 #include "cinder/Log.h"
-#include "boost/lexical_cast.hpp"
+#include "ModelBase.h"
+#include "deserialise.h"
 
 using namespace cms;
 
@@ -95,104 +95,27 @@ void ModelBase::lock(LockFunctor func){
 }
 
 int ModelBase::getInt(const string& attr, int defaultValue){
-    try {
-        return std::stoi(get(attr));
-    } catch(std::invalid_argument exc){
-        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-
-    return defaultValue;
+  return cms::deserialiseInt(this->get(attr), defaultValue);
 }
 
 float ModelBase::getFloat(const string& attr, float defaultValue){
-
-    try {
-        return std::stof(get(attr));
-    } catch(std::invalid_argument exc){
-        // CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-
-    return defaultValue;
+  return cms::deserialiseFloat(this->get(attr), defaultValue);
 }
 
 bool ModelBase::getBool(const string& attr, bool defaultValue){
-    string s = get(attr);
-
-    if(s == "true")
-        return true;
-
-    try {
-        return boost::lexical_cast<bool>(s);
-    } catch(boost::bad_lexical_cast exc){
-        // CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-
-    return defaultValue;
+  return cms::deserialiseBool(this->get(attr), defaultValue);
 }
 
-#include <boost/algorithm/string.hpp>
-
 glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
-    std::vector<std::string> strings;
-    string src = get(attr);
-    boost::split(strings, src, boost::is_any_of(","));
-
-    try {
-        if(strings.size() == 2)
-            return glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
-
-        if(strings.size() == 1 && strings[0] != ""){
-            float val = std::stof(strings[0]);
-            return glm::vec2(val, val);
-        }
-    } catch(std::invalid_argument exc){
-        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-
-    return defaultValue;
+  return cms::deserialiseVec2(this->get(attr), defaultValue);
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
-    std::vector<std::string> strings;
-    string src = get(attr);
-    boost::split(strings, src, boost::is_any_of(","));
-
-    try{
-        if(strings.size() == 3)
-            return glm::vec3(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]));
-
-        if(strings.size() == 1 && strings[0] != ""){
-            float val = std::stof(strings[0]);
-            return glm::vec3(val, val, val);
-        }
-    } catch(std::invalid_argument exc){
-        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-
-    return defaultValue;
+  return cms::deserialiseVec3(this->get(attr), defaultValue);
 }
 
 ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
-    std::vector<std::string> strings;
-    string src = get(attr);
-    boost::split(strings, src, boost::is_any_of(","));
-
-    try{
-        if(strings.size() == 3)
-            return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, 1.0f);
-
-        if(strings.size() == 4)
-            return ci::ColorAf(std::stof(strings[0])/255.0f, std::stof(strings[1])/255.0f, std::stof(strings[2])/255.0f, std::stof(strings[3])/255.0f);
-
-        if(strings.size() == 1 && strings[0] != ""){
-            float val = std::stof(strings[0]);
-            return ci::ColorAf(val/255.0f, val/255.0f, val/255.0f, 1.0f);
-        }
-    } catch(std::invalid_argument exc){
-        CI_LOG_E("-- ciCMS err --\n" << exc.what() << "\n\n-- ciCMS err end --");
-    }
-    // unsupported/unrecognised format
-    return defaultValue;
+  return cms::deserialiseColor(this->get(attr), defaultValue);
 }
 
 

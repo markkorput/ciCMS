@@ -35,7 +35,7 @@ namespace cms { namespace cfg {
             // AttrType val;
             // cmsconv(str, val);
             // this->setterFunc(obj, val);
-            this->setterFunc(obj, cms::fromstr<AttrType>(str));
+            this->setterFunc(obj, cms::deserialise<AttrType>(str));
           }
 
         private:
