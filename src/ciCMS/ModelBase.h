@@ -75,6 +75,8 @@ namespace cms {
 
         bool with(const string& attr, function<void(const string&)> func);
         bool withInt(const string& attr, function<void(const int&)> func);
+        // bool with(const string& attr, function<void(float)> func){ return this->withFloat(attr, func); }
+        bool withFloat(const string& attr, function<void(float)> func);
         bool with(const string& attr, function<void(const bool&)> func){ return this->withBool(attr, func); }
         bool withBool(const string& attr, function<void(const bool&)> func);
         bool with(const string& attr, function<void(const glm::vec2&)> func){ return this->withVec2(attr, func); }

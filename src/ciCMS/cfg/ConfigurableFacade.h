@@ -3,6 +3,7 @@
 #include <map>
 #include <iostream>
 #include "ciCMS/deserialise.h"
+#include "ciCMS/ModelBase.h"
 
 namespace cms { namespace cfg {
 
@@ -46,20 +47,34 @@ namespace cms { namespace cfg {
 
     public:
 
-      void cfg(T& obj, const std::map<std::string, std::string>& data){
+      virtual void cfg(T& obj, const std::map<std::string, std::string>& data){
+        // bool any=false;
+
         for(auto it = data.begin(); it != data.end(); it++){
           for(auto attr : attributes){
             if(attr->getName() == it->first){
               attr->deserialise(obj, it->second);
+              // any = true;
             }
           }
         }
+
+        // return any;
       }
 
       template<typename AttrType>
       void add(const std::string &name, typename Attribute<AttrType>::SetterFunc func){
         auto attr = std::make_shared<Attribute<AttrType>>(name, func);
         this->attributes.push_back(attr);
+      }
+
+    protected:
+
+      // TODO refactor reader method from ModelBase into separate class
+      std::shared_ptr<ModelBase> reader(const std::map<std::string, std::string>& data){
+        auto reader = std::make_shared<ModelBase>();
+        reader->set(data);
+        return reader;
       }
 
     private:

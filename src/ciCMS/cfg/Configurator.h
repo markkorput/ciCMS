@@ -22,7 +22,7 @@ namespace cms { namespace cfg {
     }
 
     template<typename T>
-    void cfg(T& c, Model& model){
+    void cfgWithModel(T& c, Model& model){
       this->apply(model, [this, &c](ModelBase& mod){
         this->cfg(c, mod.attributes());
       });
@@ -31,7 +31,7 @@ namespace cms { namespace cfg {
     void cfg(Configurator& c, const std::map<string, string>& data){
       Model m;
       m.set(data);
-      m.with("active", [&c](const bool& v){ c.setActive(v); });
+      m.withBool("active", [&c](const bool& v){ c.setActive(v); });
     }
 
   private:

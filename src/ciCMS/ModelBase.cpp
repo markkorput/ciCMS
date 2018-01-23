@@ -133,6 +133,14 @@ bool ModelBase::withInt(const string& attr, function<void(const int&)> func){
     return true;
 }
 
+bool ModelBase::withFloat(const string& attr, function<void(float)> func){
+    if(!this->has(attr))
+        return false;
+    func(this->getFloat(attr));
+    return true;
+}
+
+
 bool ModelBase::withBool(const string& attr, function<void(const bool&)> func){
     if(!this->has(attr))
         return false;
