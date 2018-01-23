@@ -33,4 +33,16 @@ TEST_CASE("cms::cfg::Configurator", ""){
     configurator.setActive(true);
     REQUIRE(configurator.isActive() == true);
   }
+
+  SECTION("active_configurator"){
+    Configurator configurator;
+    configurator.setActive(true);
+    auto model = configurator.getModelCollection().findById("model", true);
+    configurator.cfg(configurator, *model);
+    REQUIRE(configurator.isActive() == true);
+    model->set("active", "false");
+    REQUIRE(configurator.isActive() == false);
+    model->set("active", "true");
+    REQUIRE(configurator.isActive() == true);
+  }
 }

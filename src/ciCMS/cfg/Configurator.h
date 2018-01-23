@@ -17,6 +17,17 @@ namespace cms { namespace cfg {
 
     ModelCollection& getModelCollection() { return *this->modelCollection; }
 
+    void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
+      model.transform(func, activeCallbackOwner, this->bActive);
+    }
+
+    template<typename T>
+    void cfg(T& c, Model& model){
+      this->apply(model, [this, &c](ModelBase& mod){
+        this->cfg(c, mod.attributes());
+      });
+    }
+
     void cfg(Configurator& c, const std::map<string, string>& data){
       Model m;
       m.set(data);
