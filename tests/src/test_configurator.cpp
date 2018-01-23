@@ -15,6 +15,12 @@ class CustomObject {
     CustomObject() : name(""), age(0), score(0.0f){}
 };
 
+class CustomFlagObject {
+  public:
+    bool flag;
+    CustomFlagObject() : flag(false){}
+};
+
 class CfgFacade : public ConfigurableFacade<CustomObject> {
   public:
     // constructor registers two configurable attributes
@@ -38,11 +44,22 @@ class CfgFacade : public ConfigurableFacade<CustomObject> {
     }
 };
 
-class Cfg : public Configurator, public CfgFacade {
+class CfgFlagFacade : public ConfigurableFacade<CustomFlagObject> {
+  public:
+    // constructor registers two configurable attributes
+    CfgFlagFacade(){
+      this->add<bool>("flag", [](CustomFlagObject &obj, const bool &v){
+        obj.flag = v;
+      });
+    }
+};
+
+class Cfg : public Configurator, public CfgFacade, public CfgFlagFacade {
   public:
 
     using Configurator::cfg;
     using CfgFacade::cfg;
+    using CfgFlagFacade::cfg;
 
     // overwrite Configurator's version, because that one only knows about
     // the cfg methods in the Configurator class
@@ -94,7 +111,7 @@ TEST_CASE("cms::cfg::Configurator", ""){
     REQUIRE(configurator.isActive() == true);
   }
 
-  SECTION("active_configurator_with_configurable_facade"){
+  SECTION("active_configurator_with_configurable_facades"){
     CustomObject obj;
     Cfg cfg;
 
@@ -144,5 +161,12 @@ TEST_CASE("cms::cfg::Configurator", ""){
     REQUIRE(obj.name == "Janet Doe");
     REQUIRE(obj.age == 33);
     REQUIRE(obj.score == 20.3f);
+
+    CustomFlagObject flagObj;
+    Model flagModel;
+    cfg.cfgWithModel(flagObj, flagModel);
+    REQUIRE(flagObj.flag == false);
+    flagModel.set("flag", "true");
+    REQUIRE(flagObj.flag == true);
   }
 }
