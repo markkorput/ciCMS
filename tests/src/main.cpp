@@ -11,6 +11,7 @@ using namespace std;
 using namespace cms;
 
 TEST_CASE("cms::Model", ""){
+
     SECTION("each"){
         Model model;
         std::vector<string> result;
