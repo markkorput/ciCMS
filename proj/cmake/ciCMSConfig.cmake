@@ -2,7 +2,7 @@ if( NOT TARGET ciCMS )
 	get_filename_component( ciCMS_SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../src" ABSOLUTE )
 	get_filename_component( CINDER_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE )
 
-	FILE(GLOB ciCMS_SOURCES ${ciCMS_SOURCE_PATH}/ciCMS/*.cpp)
+	FILE(GLOB ciCMS_SOURCES ${ciCMS_SOURCE_PATH}/ciCMS/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/*.cpp)
 
 	add_library( ciCMS ${ciCMS_SOURCES} )
 

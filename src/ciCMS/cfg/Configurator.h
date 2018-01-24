@@ -5,11 +5,18 @@
 namespace cms { namespace cfg {
   class Configurator {
   public:
-    Configurator() : bActive(false){
+    Configurator() : bActive(false), bPrivateModelCollection(true){
       modelCollection = new ModelCollection();
     }
 
-    Configurator(ModelCollection& mc) : bActive(false), modelCollection(&mc) {
+    Configurator(ModelCollection& mc) : bActive(false), bPrivateModelCollection(false), modelCollection(&mc) {
+    }
+
+    ~Configurator(){
+      if(bPrivateModelCollection && modelCollection){
+        delete modelCollection;
+        modelCollection = NULL;
+      }
     }
 
     bool isActive() const { return this->bActive; }
@@ -35,7 +42,7 @@ namespace cms { namespace cfg {
     }
 
   private:
-    bool bActive;
+    bool bActive, bPrivateModelCollection;
     ModelCollection* modelCollection;
   };
 }}

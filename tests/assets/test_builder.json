@@ -1,0 +1,4 @@
+[
+  {"id": "typical_usage"},
+  {"id": "typical_usage.obj1", "type":"CustomNode", "name":"root", "value":1.0}
+]

@@ -15,6 +15,7 @@
 
 		<headerPattern>src/ciCMS/*.h</headerPattern>
 		<sourcePattern>src/ciCMS/*.cpp</sourcePattern>
+		<sourcePattern>src/ciCMS/cfg/*.cpp</sourcePattern>
 
 		<platform os="macosx">
 			<includePath>src/ciCMS</includePath>
