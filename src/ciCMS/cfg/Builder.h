@@ -3,10 +3,15 @@
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
-  template<class T>
-  class Builder {
-
+  class BuilderBase {
     public:
+      virtual void* doBuild(const string& id, bool recursive=true){ return NULL; }
+  };
+
+  template<class T>
+  class Builder : public BuilderBase {
+
+    public: // types
 
       typedef std::function<T*(Model&)> InstantiatorFunc;
       typedef std::function<void(T&, Model&)> ExtenderFunc;
@@ -32,7 +37,8 @@ namespace cms { namespace cfg {
 
       typedef std::shared_ptr<Extender> ExtenderRef;
 
-    public:
+    public: // methods
+
       Builder() : bPrivateModelCollection(true) {
         modelCollection = new ModelCollection();
       }
@@ -50,7 +56,16 @@ namespace cms { namespace cfg {
       void addExtender(const string& name, ExtenderFunc func);
       void setChilderFunc(ChilderFunc func){ this->childerFunc = func; }
 
-      T* build(const string& id, bool recursive=true);
+      T* build(const string& id, bool recursive=true){
+        return (T*)this->doBuild(id, recursive);
+      }
+
+      void add(BuilderBase& builder){
+        subBuilders.push_back(&builder);
+      }
+
+    protected:
+      virtual void* doBuild(const string& id, bool recursive=true) override;
 
     private:
       void withEachChildId(const string& parentId, std::function<void(const string& childId)> func);
@@ -63,20 +78,25 @@ namespace cms { namespace cfg {
       std::vector<InstantiatorRef> instantiators;
       std::vector<ExtenderRef> extenders;
       ChilderFunc childerFunc = nullptr;
+      std::vector<BuilderBase*> subBuilders;
   };
 
   template<class T>
-  T* Builder<T>::build(const string& id, bool recursive){
+  void* Builder<T>::doBuild(const string& id, bool recursive){
     auto model = this->modelCollection->findById(id, true);
     auto instantiator = this->findInstantiator(model->get("type"));
 
     if(!instantiator){
+      for(auto subBuilder : this->subBuilders) {
+        auto result = subBuilder->doBuild(id, recursive);
+        if(result)
+          return result;
+      }
       std::cerr << "Could not find instantiator for type: " << model->get("type");
       return NULL;
     }
 
     auto instance = instantiator->func(*model);
-
 
     if(recursive){
       this->withEachChildId(id, [this, instance](const string& childId){

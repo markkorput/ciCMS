@@ -7,6 +7,7 @@
 
 using namespace cms;
 
+// custom demo classes
 class CustomNodeAddon;
 class CustomNode {
   friend CustomNodeAddon;
@@ -17,14 +18,13 @@ class CustomNode {
     float value;
     std::vector<std::shared_ptr<CustomNode>> children;
 
-  private:
     std::vector<CustomNodeAddon*> addons;
 };
 
 class CustomNodeAge : public CustomNode {
-public:
-  CustomNodeAge() : age(0){}
-  int age;
+  public:
+    CustomNodeAge() : age(0){}
+    int age;
 };
 
 class CustomNodeAddon {
@@ -37,12 +37,13 @@ class CustomNodeAddon {
     }
 
     CustomNode* node;
+    std::string name;
 };
 
+// configurator for our custom classes
 class Configurator : public cms::cfg::Configurator {
   public:
     Configurator(ModelCollection& mc) : cms::cfg::Configurator(mc) {
-
     }
 
     void cfg(CustomNode& node, const std::map<string, string>& data){
@@ -60,6 +61,12 @@ class Configurator : public cms::cfg::Configurator {
       m.withInt("age", [&node](int v){ node.age = v; });
     }
 
+    void cfg(CustomNodeAddon& addon, const std::map<string, string>& data){
+      Model m;
+      m.set(data);
+      m.with("name", [&addon](const std::string& v){ addon.name = v; });
+    }
+
     // overwrite Configurator's version, because that one only knows about
     // the cfg methods in the Configurator class
     template<typename T>
@@ -70,6 +77,7 @@ class Configurator : public cms::cfg::Configurator {
     }
 };
 
+// builder for our custom classes
 class Builder : public cms::cfg::Builder<CustomNode> {
   private:
     std::shared_ptr<Configurator> configurator;
@@ -100,46 +108,40 @@ class Builder : public cms::cfg::Builder<CustomNode> {
         return n;
       });
 
-      // // this is how inter-object relationships are configured, use only "root classnames"
-      // this->addConnector("CustomNode", "CustomNode", [](void* child, void* parent){
-      //   ((CustomNode*)parent)->children.push_back(std::shared_ptr<CustomNode>((CustomNode*)child));
-      // });
-      //
-      // // this is how inter-object relationships are configured, use only "root classnames"
-      // this->addConnector("CustomNodeAddon", "CustomNode", [](void* child, void* parent){
-      //   ((CustomNodeAddon*)child)->addTo(*(CustomNode*)parent);
-      // });
-      //
-      // this->addInstantiator("CustomNodeAddon", [this](Model& model){
-      //   // create instance
-      //   auto a = new CustomNodeAddon();
-      //   // apply configuration data
-      //   this->configurator->cfgWithModel(*a, model);
-      //   // return to caller
-      //   return a;
-      // });
-
-      // this->addInstantiator("CustomNodeCustomAddon", "CustomNodeAddon" /* root class */, [this](const Model& model){
-      //   // create instance
-      //   auto n = new CustomNodeAddon();
-      //   // apply configuration data
-      //   this->configurator->cfgWithModel(*n, model);
-      //   // return to caller
-      //   return n;
-      // });
+      this->addExtender("CustomNodeAddon", [this](CustomNode& node, Model& model){
+        // create instance
+        auto a = new CustomNodeAddon();
+        // apply configuration data
+        this->configurator->cfgWithModel(*a, model);
+        a->addTo(node);
+        // return to caller
+        return a;
+      });
     }
+};
+
+class FooKlass {
+
+};
+
+class Builder2 : public cms::cfg::Builder<FooKlass> {
 };
 
 TEST_CASE("cms::cfg::Builder", ""){
   SECTION("typical_usage"){
+    // builder instance
     Builder builder;
+    // load json data which contains hierarchical and configuration information
     builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_builder.json"));
-
+    // build an item from the json data
     auto n1 = builder.build("typical_usage.node1");
+
+    // check the node got created and configured
     REQUIRE(n1->name == "root");
     REQUIRE(n1->value == 1.0f);
     REQUIRE(n1->children.size() == 2);
 
+    // check that all its children were added and configured
     REQUIRE(n1->children[0]->name == "child1");
     REQUIRE(n1->children[0]->value == 2.0f);
     REQUIRE(n1->children[0]->children.size() == 1);
@@ -151,5 +153,22 @@ TEST_CASE("cms::cfg::Builder", ""){
     REQUIRE(n1->children[1]->name == "child2");
     REQUIRE(n1->children[1]->value == 4.5f);
     REQUIRE(n1->children[1]->children.size() == 0);
+
+    // check that all "addons" were attached
+    REQUIRE(n1->addons.size() == 2);
+    REQUIRE(n1->addons[0]->name == "addon#1");
+    REQUIRE(n1->addons[1]->name == "addon no. 2");
+  }
+
+  SECTION("combining_builders"){
+    Builder builder;
+    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_builder.json"));
+    Builder2 builder2;
+    builder2.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_builder.json"));
+    builder2.add(builder);
+    auto n = (CustomNode*)builder2.build("combining_builders.node1");
+    REQUIRE(n->name == "customer");
+    REQUIRE(n->value == 101.0f);
+    REQUIRE(n->children.size() == 1);
   }
 }
