@@ -1,0 +1,12 @@
+[
+  {"id": "typical_usage"},
+  {"id": "typical_usage.node1", "type":"CustomNode", "name":"root", "value":1.0},
+  {"id": "typical_usage.node1.addon1", "type":"CustomNodeAddon", "name":"addon#1"},
+  {"id": "typical_usage.node1.addon2", "type":"CustomNodeAddon", "name":"addon no. 2"},
+  {"id": "typical_usage.node1.c1", "type":"CustomNode", "name":"child1", "value":2.0},
+  {"id": "typical_usage.node1.c1.c1", "type":"CustomNode", "name":"grandchild1", "value":3.0},
+  {"id": "typical_usage.node1.c2", "type":"CustomNode", "name":"child2", "value":4.5},
+
+  {"id": "combining_builders.node1", "type":"CustomNode", "name":"customer", "value":101},
+  {"id": "combining_builders.node1.child1", "type":"CustomNode", "name":"customerchild", "value":102}
+]
