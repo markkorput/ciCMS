@@ -3,6 +3,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Log.h"
+#include "cinder/Rand.h"
 #include "cinder/qtime/QuickTimeGl.h"
 
 using namespace ci;
@@ -87,6 +88,10 @@ private:
   bool bWaitingForFrame = false;
 };
 
+class GridView {
+
+};
+
 
 class MainApp : public App {
 public:
@@ -95,14 +100,19 @@ public:
   void update() override;
   void draw() override;
   void keyDown(KeyEvent event) override;
-  void next();
 
 private:
+
+  void drawGrid(vec2 size, vec2 step, float fps, uint32_t seed=1462);
+
   ci::Timer timer;
   std::vector<fs::path> paths;
   std::shared_ptr<VidFramesLoader> loader = nullptr;
   std::vector<gl::TextureRef> textures;
+  std::vector<std::shared_ptr<std::vector<gl::TextureRef>>> sequences;
   int vidCursor = 0;
+  vec2 step = vec2(64,17);
+  vec2 size = vec2(64,17);
 };
 
 
@@ -112,6 +122,7 @@ MainApp::MainApp() {
 
 void MainApp::setup(){
   setWindowSize( 1280, 480 );
+  timer.start();
 
   auto args = getCommandLineArgs();
   // CI_LOG_I("args size: " << args.size());
@@ -126,19 +137,21 @@ void MainApp::setup(){
   paths.push_back(getAssetPath("_bar3.mov"));
   paths.push_back(getAssetPath("_bar4.mov"));
   paths.push_back(getAssetPath("_bar5.mov"));
-
 }
 
 void MainApp::update(){
-  // auto dt = this->timer.getSeconds();
-  // this->timer.start();
-
   if(loader){
     loader->update();
 
     if(loader->isComplete()){
-      for(int i=0; i<loader->getLoadedFramesCount(); i++)
-        textures.push_back(loader->getTexture(i));
+
+      auto sequence = std::make_shared<std::vector<gl::TextureRef>>();
+      sequences.push_back(sequence);
+      for(int i=0; i<loader->getLoadedFramesCount(); i++){
+        auto tex = loader->getTexture(i);
+        textures.push_back(tex);
+        sequence->push_back(tex);
+      }
 
       loader = nullptr;
     }
@@ -165,17 +178,53 @@ void MainApp::draw(){
       }
     }
   } else {
-    float factor = (float)getMousePos().x / (float)getWindowSize().x;
-    int frame = (int)((float)textures.size()*factor);
-    auto tex = textures[frame];
-    gl::draw(tex, Rectf( 0, 0, getWindowSize().x, getWindowSize().y ));
+    // float factor = (float)getMousePos().x / (float)getWindowSize().x;
+    // int frame = (int)((float)textures.size()*factor);
+    // auto tex = textures[frame];
+    // gl::draw(tex, Rectf( 0, 0, getWindowSize().x, getWindowSize().y ));
+    drawGrid(size, step, 25);
   }
 }
 
 void MainApp::keyDown(KeyEvent event){
-  // switch(event.getChar()){
-  //   case 'a':
-  // }
+  switch(event.getChar()){
+    case 'l': {
+      size = vec2(size.x*1.1f, size.y*1.1f);
+      step = vec2(size.x, size.y*0.5f);
+      return;
+    }
+    case 's': {
+      size = vec2(size.x*0.9f, size.y*0.9f);
+      step = vec2(size.x, size.y*0.5f);
+      return;
+    }
+  }
+}
+
+void MainApp::drawGrid(vec2 size, vec2 step, float fps, uint32_t seed){
+  vec2 cursor = vec2(0.0f, 0.0f);
+  const auto winsize = getWindowSize();
+
+  Rand rander;
+  int counter = 0;
+
+  // fill window veertically
+  while(cursor.y < winsize.y){
+    // fill window horizontally
+    while(cursor.x < winsize.x){
+      rander.seed(seed + counter);
+      int startTex = (int)(rander.nextFloat() * (float)this->textures.size());
+      // CI_LOG_I("draw at: "<<cursor<<" startIdx: " << startTex);
+
+      int texIdx = (int)std::fmod(startTex + this->timer.getSeconds() * fps, this->textures.size());
+      gl::draw(this->textures[texIdx], Rectf(cursor, cursor + size));
+      cursor.x += step.x;
+      counter += 1;
+    }
+
+    cursor.x = 0.0f;
+    cursor.y += step.y;
+  }
 }
 
 CINDER_APP( MainApp, RendererGl )
