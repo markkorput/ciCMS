@@ -4,6 +4,7 @@
 #include <functional>
 // #include "cinder/app/App.h"
 #include "cinder/Signals.h"
+#include "cinder/Log.h"
 
 
 using namespace std;
@@ -16,6 +17,12 @@ namespace cms {
     public: // types & constants
 
         typedef function<void(const StateType&)> PushFunc;
+
+        struct ChangeArgs {
+            StateType previous;
+            StateType current;
+            ChangeArgs(StateType p, StateType c) : previous(p), current(c) {}
+        };
 
     private: // extensions
 
@@ -94,6 +101,56 @@ namespace cms {
                 ci::signals::Connection connection;
         };
 
+        class StateValueRunner : public StateExt {
+          public:
+            StateType value;
+            std::function<void(void)> func;
+            int count = 0;
+            int maxTimes = -1;
+            bool bNegative = false;
+            std::vector<ci::signals::Connection> connections;
+
+            StateValueRunner(State<StateType>& state, StateType value, std::function<void(void)> func, bool negative=false)
+              : StateExt(state, NULL), value(value), func(func), bNegative(negative){}
+
+            StateValueRunner* setMaxTimes(int times){ this->maxTimes = times; return this; }
+            StateValueRunner* setOnce(){ return this->setMaxTimes(1); }
+
+            StateValueRunner setIsNegative(bool negative){ this->bNegative = negative; return this; }
+            bool isNegative(){ return this->bNegative; }
+
+          protected:
+            void setup(){
+              this->connections.push_back(
+                this->state->newValueSignal.connect(
+                  [this](StateType val){ this->check(val); }));
+
+              this->check(this->state->val());
+            }
+
+            void destroy(){
+              for(auto conn : this->connections)
+                conn.disconnect();
+              this->connections.clear();
+            }
+
+            void check(StateType val){
+              bool equal = (val == this->value);
+
+              if(equal ^ this->bNegative)
+                this->run();
+            }
+
+            void run(){
+              this->func();
+              count += 1;
+
+              if(this->maxTimes != -1 && count >= this->maxTimes){
+                this->destroy();
+              }
+            }
+        };
+
     public: // lifecycle methods
 
         State() : bInitialized(false){}
@@ -102,7 +159,7 @@ namespace cms {
 
         State<StateType>* operator=(const StateType &newValue){
             bool change = this->value != newValue;
-
+            StateType prevValue = this->value;
             this->value = newValue;
 
             if(!bInitialized){
@@ -111,7 +168,10 @@ namespace cms {
             }
 
             if(change){
+                // TODO; perform NULL check?
                 this->newValueSignal.emit(this->value);
+                ChangeArgs args(prevValue, this->value);
+                this->changeSignal.emit(args);
             }
 
             return this;
@@ -126,7 +186,7 @@ namespace cms {
     public: // advanced operations methods
 
         void push(PushFunc func, void* owner = NULL){
-            auto ext = make_shared<StatePusher>(*this, func, owner);
+            auto ext = std::make_shared<StatePusher>(*this, func, owner);
             ext->enable();
             extensions.push_back(ext);
         }
@@ -144,11 +204,38 @@ namespace cms {
             }
         }
 
-    public: // events
+        State<StateType>* when(StateType value, std::function<void()> func){
+          auto ext = std::make_shared<StateValueRunner>(*this, value, func);
+          ext->enable();
+          extensions.push_back(ext);
+          return this;
+        }
 
-        //! this event is triggered whenever the model changes (which means; when any attribute changes) and gives the caller a reference to this model
+        State<StateType>* whenNot(StateType value, std::function<void()> func){
+          auto ext = std::make_shared<StateValueRunner>(*this, value, func, true);
+          ext->enable();
+          extensions.push_back(ext);
+          return this;
+        }
+
+        State<StateType>* whenNot(StateType value, std::function<void(const StateType&)> func){
+          auto funcWrapper = [this, &func](){ func(this->getRef()); };
+          return this->whenNot(value, funcWrapper);
+        }
+
+        State<StateType>* whenOnce(StateType value, std::function<void()> func){
+          auto ext = std::make_shared<StateValueRunner>(*this, value, func);
+          ext->setOnce();
+          ext->enable();
+          extensions.push_back(ext);
+          return this;
+        }
+
+    public: // signals
+
         ci::signals::Signal<void(const StateType&)> newValueSignal;
         ci::signals::Signal<void(State<StateType>&)> initializeSignal;
+        ci::signals::Signal<void(ChangeArgs&)> changeSignal;
 
     private: // attributes
 
