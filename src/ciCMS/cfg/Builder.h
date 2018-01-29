@@ -13,8 +13,9 @@ namespace cms { namespace cfg {
 
     public: // types
 
-      typedef std::function<T*(Model&)> InstantiatorFunc;
-      typedef std::function<void(T&, Model&)> ExtenderFunc;
+      typedef Model CfgData;
+      typedef std::function<T*(CfgData&)> InstantiatorFunc;
+      typedef std::function<void(T&, CfgData&)> ExtenderFunc;
       typedef std::function<void(T&, T&)> ChilderFunc;
 
       class Instantiator {

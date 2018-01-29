@@ -10,8 +10,10 @@ include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 
 FILE(GLOB APP_SOURCES ${APP_PATH}/src/*.cpp)
 
+add_definitions(-DCICMS_CTREE)
+
 ci_make_app(
 	SOURCES     ${APP_SOURCES}
 	CINDER_PATH ${CINDER_PATH}
-	BLOCKS		ciCMS
+	BLOCKS ctree ciCMS 
 )
