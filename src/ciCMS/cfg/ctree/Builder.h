@@ -2,6 +2,11 @@
 
 #ifdef CICMS_CTREE
 
+#include <iostream>
+#include <vector>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp> // for is_any_of
+
 #include "ctree/signal.hpp"
 #include "Node.h"
 #include "Configurator.h"
@@ -19,16 +24,17 @@ namespace cms { namespace cfg{ namespace ctree {
 
     public: // types
 
+      typedef Node NodeT;
+      typedef std::map<string, string> CfgDataRaw;
+      typedef Model CfgData;
+
       // TODO; support custom Node extension types
       template<typename ObjT>
       class Wrapper : public ObjT, public Node {
-      public:
-        Wrapper() : Node((ObjT*)this) {
-        }
+        public:
+          Wrapper(const std::string& name) : Node((ObjT*)this, name) {
+          }
       };
-
-      typedef std::map<string, string> CfgDataRaw;
-      typedef Model CfgData;
 
       struct BuildArgs {
         ::ctree::Node* node;
@@ -38,13 +44,39 @@ namespace cms { namespace cfg{ namespace ctree {
           : node(n), object(o), data(dat){}
       };
 
+      class RelativeObjFetcher {
+        public:
+           RelativeObjFetcher(NodeT& node) : node(&node) {
+           }
+
+           template<typename ObjT>
+           ObjT* get(const string& path){
+             // TODO; also support non-direct-children paths
+             for(auto child : *node){
+               auto n = (NodeT*)child;
+
+              if (n->getName() == path) {
+                 auto wrapper = (Wrapper<ObjT>*)n;
+                 return (ObjT*)wrapper;
+               }
+             }
+
+             return NULL;
+           }
+
+        private:
+          NodeT* node;
+      };
+
     public: // lifespan methods
 
       Builder() : bPrivateConfigurator(true) {
         this->configurator = new CfgT(this->getModelCollection());
+        this->setup();
       }
 
       Builder(CfgT& cfg) : bPrivateConfigurator(false), configurator(&cfg) {
+        this->setup();
       }
 
       ~Builder() {
@@ -54,20 +86,28 @@ namespace cms { namespace cfg{ namespace ctree {
         }
       }
 
+      void setup(){
+        this->setChilderFunc([](NodeT& parent, NodeT& child){
+          parent.add(child);
+        });
+      }
+
     public: // configuration methods
 
       template<typename T>
       void addDefaultInstantiator(const string& name){
         this->addInstantiator(name, [this](CfgData& data){
-          auto wrapper = new Wrapper<T>();
+          auto wrapper = new Wrapper<T>(this->getName(data));
           // create ouw object
           auto object = (T*)wrapper;
 
+          // this->configurator->apply(data)->to(object);
           // this->configurator->apply(data)->to(object);
           this->configurator->cfgWithModel(*object, data);
           // attach it to a ctree node
           auto node = (Node*)wrapper;
           this->configurator->cfgWithModel(*node, data);
+          // this->configurator->apply(data)->to(node);
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
@@ -105,12 +145,32 @@ namespace cms { namespace cfg{ namespace ctree {
         delete n;
       }
 
+      template<typename SourceT>
+      std::shared_ptr<RelativeObjFetcher> from(SourceT* origin){
+        // convert origin into a NodeT pointer (via the Wrapper class)
+        return std::make_shared<RelativeObjFetcher>(*(NodeT*)(Wrapper<SourceT>*)origin);
+      }
+
     public: // signals
       ::ctree::Signal<void(BuildArgs&)> buildSignal;
 
-    protected:
-      bool bPrivateConfigurator;
+    protected: // helper methods
+
+      std::string getName(CfgData& data){
+        if (data.has("name"))
+          return data.get("name");
+
+        std::vector<string> strs;
+        std::string id = data.getId();
+        boost::split(strs,id,boost::is_any_of("."));
+        return strs.back();
+      }
+
+    protected: // attributes
       CfgT* configurator;
+
+    private: // attributes
+      bool bPrivateConfigurator;
   };
 }}}
 #endif // CICMS_CTREE

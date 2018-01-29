@@ -13,9 +13,9 @@ namespace cms { namespace cfg {
     //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
     //     };
     //
-    //     template<ObjT>
+    //     template<typename ObjT>
     //     void to(ObjT* obj){
-    //       cfg->cfgWithModel(obj, data);
+    //       cfg->cfgWithModel(*obj, data);
     //     }
     //
     //   private:
@@ -46,6 +46,10 @@ namespace cms { namespace cfg {
     void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
       model.transform(func, activeCallbackOwner, this->bActive);
     }
+
+    // shared_ptr<Applier> apply(CfgData& data) {
+    //   return std::make_shared<Applier>(this, data);
+    // }
 
     template<typename T>
     void cfgWithModel(T& c, Model& model){

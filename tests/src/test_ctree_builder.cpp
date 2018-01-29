@@ -30,6 +30,8 @@ public:
 
   // using cms::cfg::ctree::cfgWithModel;
   void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
+    // TODO; take name from name attribute or otherwise default to last part
+    // (splitting by period (.) of the id)
   }
 
   void cfg(Namer& obj, const std::map<string, string>& data){
@@ -41,6 +43,7 @@ public:
   void cfg(Ager& obj, const std::map<string, string>& data){
     Model m;
     m.set(data);
+    m.withInt("age", [&obj](const int& v){ obj.age = v; });
   }
 
 
@@ -62,18 +65,20 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
     builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
 
     builder.addDefaultInstantiator<Namer>("Namer");
-    // builder.addDefaultInstantiator<Ager>("Ager");
+    builder.addDefaultInstantiator<Ager>("Ager");
     // build an item from the json data
     auto namer = builder.build<Namer>("typical_usage.Namer");
     REQUIRE(namer->name == "root");
-    // auto ager1 = builder.from(namer)->get<Ager>("Ager");
-    // REQUIRE(ager1->age == 10);
-    // auto ager2 = builder.from(namer)->get<Ager>("Ager2");
-    // REQUIRE(ager2->age == 20);
-    // auto ager3 = builder.from(namer)->get<Ager>("Ager3");
-    // REQUIRE(ager3 == NULL);
-    // auto foo = builder.from(namer)->get<Ager>("foorbar");
-    // REQUIRE(foo == NULL);
+    auto ager1 = builder.from(namer)->get<Ager>("Ager");
+    // std::cout << "ager1: " << ager1;
+    REQUIRE(ager1->age == 10);
+    auto ager2 = builder.from(namer)->get<Ager>("Ager2");
+    // std::cout << "ager2: " << ager2;
+    REQUIRE(ager2->age == 20);
+    auto ager3 = builder.from(namer)->get<Ager>("Ager3");
+    REQUIRE(ager3 == NULL);
+    auto foo = builder.from(namer)->get<Ager>("foorbar");
+    REQUIRE(foo == NULL);
   }
 }
 

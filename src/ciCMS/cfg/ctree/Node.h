@@ -11,7 +11,7 @@ namespace cms { namespace cfg { namespace ctree {
     public:
 
       template<typename T>
-      static Node* create(T* obj){
+      static Node* create(T* obj, const std::string& name){
         auto n = new Node(obj);
 
         n->destroySignal.connect([](Node& node){
@@ -25,13 +25,15 @@ namespace cms { namespace cfg { namespace ctree {
 
     protected: // private(!) constructor; use static create method to instantiate
 
-      Node(void* obj) : object(obj) {
+      Node(void* obj, const std::string& name) : object(obj), name(name) {
       }
 
     public:
       ~Node(){
         this->destroySignal.emit(*this);
       }
+
+      const std::string& getName(){ return name; }
 
     public: // methods
       template<typename T>
@@ -42,7 +44,8 @@ namespace cms { namespace cfg { namespace ctree {
 
     private:
       void* object;
-      // TODO; add some string type attribute which (populated with typeid() for runtime type-checking?)
+      // TODO; add some string type attribute for runtime type-checking?
+      std::string name;
   };
 }}}
 
