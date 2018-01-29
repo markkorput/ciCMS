@@ -5,6 +5,25 @@
 namespace cms { namespace cfg {
   class Configurator {
   public:
+    typedef Model CfgData;
+    typedef std::map<string, string> CfgDataRaw;
+
+    // class Applier {
+    //   public:
+    //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
+    //     };
+    //
+    //     template<ObjT>
+    //     void to(ObjT* obj){
+    //       cfg->cfgWithModel(obj, data);
+    //     }
+    //
+    //   private:
+    //     Configurator* cfg;
+    //     CfgData& data;
+    // };
+
+  public:
     Configurator() : bActive(false), bPrivateModelCollection(true){
       modelCollection = new ModelCollection();
     }

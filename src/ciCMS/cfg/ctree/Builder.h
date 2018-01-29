@@ -14,9 +14,18 @@
 
 namespace cms { namespace cfg{ namespace ctree {
 
-  class Builder : ::cms::cfg::Builder<Node> {
+  template<typename CfgT>
+  class Builder : public ::cms::cfg::Builder<Node> {
 
     public: // types
+
+      // TODO; support custom Node extension types
+      template<typename ObjT>
+      class Wrapper : public ObjT, public Node {
+      public:
+        Wrapper() : Node((ObjT*)this) {
+        }
+      };
 
       typedef std::map<string, string> CfgDataRaw;
       typedef Model CfgData;
@@ -29,36 +38,57 @@ namespace cms { namespace cfg{ namespace ctree {
           : node(n), object(o), data(dat){}
       };
 
-    public:
+    public: // lifespan methods
 
-      Builder() {
-        this->configurator = new Configurator();
+      Builder() : bPrivateConfigurator(true) {
+        this->configurator = new CfgT(this->getModelCollection());
+      }
+
+      Builder(CfgT& cfg) : bPrivateConfigurator(false), configurator(&cfg) {
       }
 
       ~Builder() {
-        if(this->configurator){
+        if(this->configurator && this->bPrivateConfigurator){
           delete this->configurator;
           this->configurator = NULL;
         }
       }
 
-    protected:
+    public: // configuration methods
 
       template<typename T>
       void addDefaultInstantiator(const string& name){
-        this->addInstantiator(name, [this](const CfgData& data){
+        this->addInstantiator(name, [this](CfgData& data){
+          auto wrapper = new Wrapper<T>();
           // create ouw object
-          auto object = new T();
+          auto object = (T*)wrapper;
+
+          // this->configurator->apply(data)->to(object);
           this->configurator->cfgWithModel(*object, data);
           // attach it to a ctree node
-          auto node = Node::create(object);
+          auto node = (Node*)wrapper;
           this->configurator->cfgWithModel(*node, data);
           // emit signal
-          BuildArgs args(node, object, data);
+          BuildArgs args(node, object, &data);
           buildSignal.emit(args);
           // return result
           return node;
         });
+      }
+
+    public: // hierarchy operations
+
+      template<typename ObjT>
+      ObjT* build(const string& id){
+        // our instantiators "wrap" each requested class in a wrapper class,
+        // which is basically the requested class together with a Node.
+        // Our parent builder class only knows about the Node part, so here
+        // we convert from Node to requested class (via the WrapperClass)
+        auto node = ::cms::cfg::Builder<Node>::build(id);
+        auto wrapper = (Wrapper<ObjT>*)node;
+        // TODO; perform some runtime type check?
+        auto obj = (ObjT*)wrapper;
+        return obj;
       }
 
       void destroy(cms::cfg::ctree::Node* n){
@@ -75,11 +105,12 @@ namespace cms { namespace cfg{ namespace ctree {
         delete n;
       }
 
-    public:
+    public: // signals
       ::ctree::Signal<void(BuildArgs&)> buildSignal;
 
     protected:
-      Configurator* configurator;
+      bool bPrivateConfigurator;
+      CfgT* configurator;
   };
 }}}
-#endif CICMS_CTREE
+#endif // CICMS_CTREE

@@ -1,0 +1,5 @@
+[
+  {"id": "typical_usage.Namer", "type":"Namer", "name":"root"},
+  {"id": "typical_usage.Namer.Ager", "type":"Ager", "age":10},
+  {"id": "typical_usage.Namer.Ager2", "type":"Ager", "age":20}
+]

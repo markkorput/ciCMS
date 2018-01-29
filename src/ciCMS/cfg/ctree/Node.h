@@ -23,7 +23,7 @@ namespace cms { namespace cfg { namespace ctree {
         return n;
       }
 
-    private: // private(!) constructor; use static create method to instantiate
+    protected: // private(!) constructor; use static create method to instantiate
 
       Node(void* obj) : object(obj) {
       }
@@ -42,6 +42,7 @@ namespace cms { namespace cfg { namespace ctree {
 
     private:
       void* object;
+      // TODO; add some string type attribute which (populated with typeid() for runtime type-checking?)
   };
 }}}
 
