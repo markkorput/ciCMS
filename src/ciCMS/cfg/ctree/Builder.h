@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp> // for is_any_of
 
 #include "ctree/signal.hpp"
@@ -44,25 +45,47 @@ namespace cms { namespace cfg{ namespace ctree {
           : node(n), object(o), data(dat){}
       };
 
-      class RelativeObjFetcher {
+      class Selection {
         public:
-           RelativeObjFetcher(NodeT& node) : node(&node) {
-           }
+          Selection(NodeT& node) : node(&node) {
+          }
 
-           template<typename ObjT>
-           ObjT* get(const string& path){
-             // TODO; also support non-direct-children paths
-             for(auto child : *node){
-               auto n = (NodeT*)child;
+          NodeT* getNode(){
+            return node;
+          }
 
-              if (n->getName() == path) {
-                 auto wrapper = (Wrapper<ObjT>*)n;
-                 return (ObjT*)wrapper;
-               }
-             }
+          template<typename ObjT>
+          ObjT* get(const string& path){
+            std::vector<string> strs;
+            boost::split(strs,path,boost::is_any_of("."));
+            unsigned int counter = 0;
 
-             return NULL;
-           }
+            std::string name = strs[0];
+
+            // loop over each child to find the one with this name
+            for(auto child : *node){
+              auto n = (NodeT*)child;
+
+              if (n->getName() == name) {
+                // no more sub-names? return this object for this child
+                if(strs.size() == 1){
+                  return (ObjT*)(Wrapper<ObjT>*)n;
+                }
+
+                // remove first name (one we just found) and move to on level deeper
+                strs.erase(strs.begin());
+                return std::make_shared<Selection>(*n)->template get<ObjT>(boost::algorithm::join(strs, "."));
+              }
+            }
+
+            return NULL;
+          }
+
+          template<typename ObjT>
+          void attach(ObjT* obj){
+            auto objNode = (NodeT*)(Wrapper<ObjT>*)obj;
+            node->add(*objNode);
+          }
 
         private:
           NodeT* node;
@@ -146,9 +169,9 @@ namespace cms { namespace cfg{ namespace ctree {
       }
 
       template<typename SourceT>
-      std::shared_ptr<RelativeObjFetcher> from(SourceT* origin){
+      std::shared_ptr<Selection> select(SourceT* origin){
         // convert origin into a NodeT pointer (via the Wrapper class)
-        return std::make_shared<RelativeObjFetcher>(*(NodeT*)(Wrapper<SourceT>*)origin);
+        return std::make_shared<Selection>(*(NodeT*)(Wrapper<SourceT>*)origin);
       }
 
     public: // signals
@@ -157,8 +180,8 @@ namespace cms { namespace cfg{ namespace ctree {
     protected: // helper methods
 
       std::string getName(CfgData& data){
-        if (data.has("name"))
-          return data.get("name");
+        // if (data.has("name"))
+        // return data.get("name");
 
         std::vector<string> strs;
         std::string id = data.getId();
