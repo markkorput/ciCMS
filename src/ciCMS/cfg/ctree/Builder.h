@@ -18,7 +18,7 @@
 // ‎ADD_TYPE("UiButton", ui::Button);
 // ‎ADD_TYPE(VideoSource);
 
-namespace cms { namespace cfg{ namespace ctree {
+namespace cms { namespace cfg { namespace ctree {
 
   template<typename CfgT>
   class Builder : public ::cms::cfg::Builder<Node> {
