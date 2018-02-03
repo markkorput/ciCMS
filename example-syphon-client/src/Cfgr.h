@@ -27,7 +27,18 @@ class Cfgr : public cms::cfg::Configurator {
     ObjectFetcherFunc objectFetcherFunc;
 
   public:
-    void setObjectFetcher(ObjectFetcherFunc func){ this->objectFetcherFunc = func; }
+
+    Cfgr() {
+    }
+
+    Cfgr(ModelCollection& mc) : cms::cfg::Configurator(mc) {
+    }
+
+  public: // getter/setters
+
+    void setObjectFetcher(ObjectFetcherFunc func){
+      this->objectFetcherFunc = func;
+    }
 
     template <typename Signature>
     ctree::Signal<Signature>* getSignal(const std::string& id) {
@@ -47,10 +58,10 @@ class Cfgr : public cms::cfg::Configurator {
       return this->objectFetcherFunc ? (ObjT*)this->objectFetcherFunc(id) : NULL;
     }
 
-    Cfgr() {
-    }
+  public: // cfg
 
-    Cfgr(ModelCollection& mc) : cms::cfg::Configurator(mc) {
+    void cfg(cms::cfg::Configurator& cfgr, const std::map<string, string>& data){
+      cms::cfg::Configurator::cfg(cfgr, data);
     }
 
     // using cms::cfg::ctree::cfgWithModel;
@@ -103,5 +114,10 @@ class Cfgr : public cms::cfg::Configurator {
       this->apply(model, [this, &c](ModelBase& mod){
         this->cfg(c, mod.attributes());
       });
+    }
+
+    template<typename T>
+    void cfg(T& obj, const std::string& modelId) {
+      this->cfgWithModel<T>(obj, *this->getModelCollection().findById(modelId, true));
     }
 };

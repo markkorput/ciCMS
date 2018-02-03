@@ -47,6 +47,7 @@ void MainApp::setup(){
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
 
+  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
   pRunner = builder.build<Runner>("Runner");
 }
 
@@ -66,12 +67,13 @@ void MainApp::draw(){
 }
 
 void MainApp::keyDown(KeyEvent event){
-  // switch(event.getChar()){
-  //   case 'l': {
-  //   }
-  //   case 's': {
-  //   }
-  // }
+  switch(event.getChar()){
+    case 'l': {
+      builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
+    }
+    case 's': {
+    }
+  }
 }
 
 CINDER_APP( MainApp, RendererGl )
