@@ -30,12 +30,15 @@ namespace cms { namespace cfg { namespace ctree {
       typedef Model CfgData;
 
       // TODO; support custom Node extension types
-      template<typename ObjT>
-      class Wrapper : public Node, public ObjT {
-        public:
-          Wrapper(const std::string& name) : Node((ObjT*)this, name) {
-          }
-      };
+      // template<typename ObjT>
+      // class Wrapper {
+      //   public:
+      //     Wrapper(const std::string& name) : Node(new ObjT(), name) {
+      //       ObjT* pObj = new ObjT();
+      //
+      //     }
+      //
+      // };
 
       struct BuildArgs {
         ::ctree::Node* node;
@@ -69,7 +72,7 @@ namespace cms { namespace cfg { namespace ctree {
               if (n->getName() == name) {
                 // no more sub-names? return this object for this child
                 if(strs.size() == 1){
-                  return (ObjT*)(Wrapper<ObjT>*)n;
+                  return (ObjT*)n->template getObject<ObjT>(n);
                 }
 
                 // remove first name (one we just found) and move to on level deeper
@@ -93,7 +96,7 @@ namespace cms { namespace cfg { namespace ctree {
 
           template<typename ObjT>
           void attach(ObjT* obj){
-            auto objNode = (NodeT*)(Wrapper<ObjT>*)obj;
+            auto objNode = (NodeT*)NodeT::fromObj<ObjT>(obj);
             node->add(*objNode);
           }
 
@@ -130,15 +133,17 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename T>
       void addDefaultInstantiator(const string& name){
         this->addInstantiator(name, [this, &name](CfgData& data){
-          auto wrapper = new Wrapper<T>(this->getName(data));
+          // auto wrapper = new Wrapper<T>(this->getName(data));
+          auto node = NodeT::create<T>(name);
           // create ouw object
-          auto object = (T*)wrapper;
+          // auto object = (T*)wrapper;
+          auto object = node->template getObject<T>();
 
           // this->configurator->apply(data)->to(object);
           // this->configurator->apply(data)->to(object);
           this->configurator->cfgWithModel(*object, data);
           // attach it to a ctree node
-          auto node = (Node*)wrapper;
+          // auto node = (Node*)wrapper;
           this->configurator->cfgWithModel(*node, data);
           // this->configurator->apply(data)->to(node);
           // emit signal
@@ -160,9 +165,9 @@ namespace cms { namespace cfg { namespace ctree {
         // Our parent builder class only knows about the Node part, so here
         // we convert from Node to requested class (via the WrapperClass)
         auto node = ::cms::cfg::Builder<Node>::build(id);
-        auto wrapper = (Wrapper<ObjT>*)node;
+        // auto wrapper = (Wrapper<ObjT>*)node;
         // TODO; perform some runtime type check?
-        auto obj = (ObjT*)wrapper;
+        auto obj = node->template getObject<ObjT>();
         return obj;
       }
 
@@ -185,6 +190,7 @@ namespace cms { namespace cfg { namespace ctree {
           parent->erase((::ctree::Node*)n);
         }
 
+        // std::cout << "DEL DEL DEL " << n << std::endl;
         delete n;
       }
 
@@ -197,7 +203,8 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename SourceT>
       std::shared_ptr<Selection> select(SourceT* origin){
         // convert origin into a NodeT pointer (via the Wrapper class)
-        return std::make_shared<Selection>(*(NodeT*)(Wrapper<SourceT>*)origin);
+        // return std::make_shared<Selection>(*(NodeT*)(Wrapper<SourceT>*)origin);
+        return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
       }
 
     public: // signals
