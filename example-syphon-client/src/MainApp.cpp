@@ -34,7 +34,7 @@ class MainApp : public App {
 
 void MainApp::setup(){
   builder.buildSignal.connect([this](cms::cfg::ctree::Builder<Cfgr>::BuildArgs& args){
-    CI_LOG_I("COLLECTED built object: " << args.data->getId());
+    // CI_LOG_I("COLLECTED built object: " << args.data->getId());
     this->builtObjects[args.data->getId()] = args.object;
   });
 
@@ -48,7 +48,6 @@ void MainApp::setup(){
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
 
   pRunner = builder.build<Runner>("Runner");
-  CI_LOG_I("pRunner: " << pRunner);
 }
 
 void MainApp::cleanup() {

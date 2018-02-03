@@ -106,7 +106,7 @@ namespace cms { namespace cfg {
       return NULL;
     }
 
-    std::cout << " - building: " << id << std::endl;
+    // std::cout << " - building: " << id << std::endl;
 
     auto instance = instantiator->func(*model);
     this->instantiateSignal.emit(*instance, *model);

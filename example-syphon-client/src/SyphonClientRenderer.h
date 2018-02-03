@@ -10,9 +10,6 @@ class SyphonClientRenderer {
   public:
     SyphonClientRenderer() : mClient(NULL){}
 
-    ~SyphonClientRenderer() {
-      CI_LOG_I("~SyphonClientRenderer");
-    }
     void draw() {
       if (mClient) {
         ci::gl::draw(mClient->getTexture());
@@ -22,7 +19,6 @@ class SyphonClientRenderer {
     void setSyphonClient(syphonClient* client) {
       mClient = client;
     }
-
 
   private:
     syphonClient* mClient;

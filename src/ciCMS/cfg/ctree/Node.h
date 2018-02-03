@@ -9,7 +9,7 @@ namespace cms { namespace cfg { namespace ctree {
 
   class Node : public ::ctree::Node {
 
-    public:
+    public: // static methods
 
       template<typename T>
       static Node* fromObj(T* obj) {
@@ -18,64 +18,55 @@ namespace cms { namespace cfg { namespace ctree {
 
       template<typename T>
       static Node* create(const std::string& name){
+        // allocate Node and Object in single block of memory
+        // this way we can always calculate the Node's address from
+        // the corresponding Object's address.
         void* mem = std::malloc(sizeof(Node) + sizeof(T));
-        // long memI = (long)mem;
-        void* objMem = (T*)((long)mem + sizeof(Node));
-        T* obj = new (objMem)T();
-        Node* n = new (mem) Node(obj, name);
+        // call the constructors of the Node and Object, but
+        // assign memory address manually
+        T* obj = new ((void*)((long)mem + sizeof(Node)))T();
+        Node* n = new (mem) Node(name);
 
-        // T* obj = n + sizeof(Node);
-        // n->object = obj;
-        // n->name = name;
-        // n->destroyFunc = [obj](){
-        //   delete (T)obj;
-        //   delete n;
-        // });
-        return n;
-      }
+        // std::cout << "CREATED NODE with name '" << name << "' " << obj << std::endl;
 
-      template<typename T>
-      static Node* create(T* obj, const std::string& name){
-        auto n = new Node(obj);
-        // n->destroySignal.connect([](Node& node){
-        //   auto obj = node.getObject<T>();
-        //   if(obj) delete obj;
-        //   node.object = NULL;
-        // });
+        // register a destroyFunc, to be executd when n->destroy is called
+        // this way the caller does not need to know about the type of object
+        // that the node points to, but it will still do the proper destruction
+        n->destroyFunc = [mem, obj, n](){
+          // std::cout << "DELETING NODE with name: '" <<n->getName() << "': " << obj << std::endl;
+          obj->~T();
+          n->~Node();
+          std::free(mem);
+        };
 
         return n;
       }
 
     protected: // private(!) constructor; use static create method to instantiate
 
-      template<typename ObjT>
-      Node(ObjT* obj, const std::string& name) : object(obj), name(name) {
-        // std::cout << "CREACREA CREA: " << name << " = " << obj << std::endl;
-        // this->destroySignal.connect([this](Node& node){
-        //   auto obj = node.getObject<ObjT>();
-        //   // std::cout << "objbojbjbobjbjobjo: " << obj << std::endl;
-        //   std::cout << "DEL DEL DEL2 " <<this->name << " = " << obj << std::endl;
-        //   if(obj) delete obj;
-        //   node.object = NULL;
-        // });
+      Node(const std::string& name) : name(name) {
       }
 
     public:
-      // ~Node(){
-      //   this->destroySignal.emit(*this);
-      // }
+
+      void destroy() {
+        if (this->destroyFunc) {
+          this->destroyFunc();
+        } else {
+          std::cerr << "no destroyFunc set on Node with name: " << name;
+        }
+      }
 
       const std::string& getName(){ return name; }
 
     public: // methods
       template<typename T>
-      T* getObject(){ return (T*)object; }
+      T* getObject(){ return (T*)((long)this + sizeof(Node)); }
 
-    public: // signals
-      std::function<void()> destroyFunc;
+    public:
+      std::function<void()> destroyFunc = nullptr;
 
     private:
-      void* object;
       // TODO; add some string type attribute for runtime type-checking?
       std::string name;
   };

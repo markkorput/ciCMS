@@ -65,7 +65,6 @@ class Cfgr : public cms::cfg::Configurator {
 
       m.with("drawEmit", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
-        std::cout << "drawEmit signal: " << pSignal << std::endl;
         obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
       });
     }
@@ -73,7 +72,7 @@ class Cfgr : public cms::cfg::Configurator {
     void cfg(syphonClient& obj, const std::map<string, string>& data){
       Model m;
       m.set(data);
-      m.with("server", [&obj](const std::string& v){ obj.set("", v); CI_LOG_I("Set syphon client to: " << v); });
+      m.with("server", [&obj](const std::string& v){ obj.set("", v); });
     }
 
     void cfg(SyphonClientRenderer& obj, const std::map<string, string>& data){
@@ -93,7 +92,6 @@ class Cfgr : public cms::cfg::Configurator {
 
       m.with("drawOn", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
-        std::cout << "drawOn signal: " << pSignal << std::endl;
         pSignal->connect([&obj](){ obj.draw(); });
       });
     }

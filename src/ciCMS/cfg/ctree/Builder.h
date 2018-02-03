@@ -29,17 +29,6 @@ namespace cms { namespace cfg { namespace ctree {
       typedef std::map<string, string> CfgDataRaw;
       typedef Model CfgData;
 
-      // TODO; support custom Node extension types
-      // template<typename ObjT>
-      // class Wrapper {
-      //   public:
-      //     Wrapper(const std::string& name) : Node(new ObjT(), name) {
-      //       ObjT* pObj = new ObjT();
-      //
-      //     }
-      //
-      // };
-
       struct BuildArgs {
         ::ctree::Node* node;
         void* object;
@@ -133,19 +122,12 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename T>
       void addDefaultInstantiator(const string& name){
         this->addInstantiator(name, [this, &name](CfgData& data){
-          // auto wrapper = new Wrapper<T>(this->getName(data));
           auto node = NodeT::create<T>(name);
           // create ouw object
-          // auto object = (T*)wrapper;
           auto object = node->template getObject<T>();
-
-          // this->configurator->apply(data)->to(object);
-          // this->configurator->apply(data)->to(object);
           this->configurator->cfgWithModel(*object, data);
           // attach it to a ctree node
-          // auto node = (Node*)wrapper;
           this->configurator->cfgWithModel(*node, data);
-          // this->configurator->apply(data)->to(node);
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
@@ -160,27 +142,19 @@ namespace cms { namespace cfg { namespace ctree {
 
       template<typename ObjT>
       ObjT* build(const string& id){
-        // our instantiators "wrap" each requested class in a wrapper class,
-        // which is basically the requested class together with a Node.
-        // Our parent builder class only knows about the Node part, so here
-        // we convert from Node to requested class (via the WrapperClass)
         auto node = ::cms::cfg::Builder<Node>::build(id);
-        // auto wrapper = (Wrapper<ObjT>*)node;
-        // TODO; perform some runtime type check?
         auto obj = node->template getObject<ObjT>();
         return obj;
       }
 
       void destroyNode(cms::cfg::ctree::Node* n){
-        std::cout << " - DESTROY: " << n->getName() << "(" << n->size() << " children)" << std::endl;
+        // std::cout << " - DESTROY: " << n->getName() << "(" << n->size() << " children)" << std::endl;
 
         // destroy all offspring
         // for(auto it = n->rbegin(); it != n->rend(); ++it) {
         while(n->size() > 0) {
-        // for(int i=0; i<n->size(); i++){
-          // auto child = (cms::cfg::ctree::Node*)*it;
           auto child = (cms::cfg::ctree::Node*)n->at(0);
-          std::cout << " child " << child->getName() << std::endl;
+          // std::cout << " child " << child->getName() << std::endl;
           this->destroyNode(child);
         }
 
@@ -190,20 +164,17 @@ namespace cms { namespace cfg { namespace ctree {
           parent->erase((::ctree::Node*)n);
         }
 
-        // std::cout << "DEL DEL DEL " << n << std::endl;
-        delete n;
+        n->destroy();
       }
 
       template<typename ObjT>
       void destroy(ObjT* obj){
-        // std::cout << "- destroy object: " << obj << ", wrapper: " << (Wrapper<ObjT>*)obj << ", node: " << (NodeT*)(Wrapper<ObjT>*)obj;
         this->destroyNode(this->select(obj)->getNode());
       }
 
       template<typename SourceT>
       std::shared_ptr<Selection> select(SourceT* origin){
-        // convert origin into a NodeT pointer (via the Wrapper class)
-        // return std::make_shared<Selection>(*(NodeT*)(Wrapper<SourceT>*)origin);
+        // convert origin into a NodeT pointer
         return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
       }
 
