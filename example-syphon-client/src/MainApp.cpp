@@ -29,9 +29,19 @@ class MainApp : public App {
   // private:
     cms::cfg::ctree::Builder<Cfgr> builder;
     Runner* pRunner;
+    std::map<std::string, void*> builtObjects;
 };
 
 void MainApp::setup(){
+  builder.buildSignal.connect([this](cms::cfg::ctree::Builder<Cfgr>::BuildArgs& args){
+    CI_LOG_I("COLLECTED built object: " << args.data->getId());
+    this->builtObjects[args.data->getId()] = args.object;
+  });
+
+  builder.getConfigurator()->setObjectFetcher([this](const std::string& id){
+    return this->builtObjects[id];
+  });
+
   builder.addDefaultInstantiator<Runner>("Runner");
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");

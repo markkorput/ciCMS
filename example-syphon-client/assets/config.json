@@ -1,5 +1,5 @@
 {
   "Runner": {"drawEmit": "draw"},
   "Runner.SyphonClient": {"server":"Simple Server"},
-  "Runner.SyphonClientRenderer": {"client": "SyphonClient", "drawOn": "draw"}
+  "Runner.SyphonClientRenderer": {"client": "Runner.SyphonClient", "drawOn": "draw"}
 }

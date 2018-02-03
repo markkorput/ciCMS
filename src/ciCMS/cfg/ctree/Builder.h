@@ -82,6 +82,16 @@ namespace cms { namespace cfg { namespace ctree {
           }
 
           template<typename ObjT>
+          ObjT* getSibling(const string& path){
+            if (!node->parent()) {
+              return NULL;
+            }
+
+            Selection sel(*(NodeT*)node->parent());
+            return sel.get<ObjT>(path);
+          }
+
+          template<typename ObjT>
           void attach(ObjT* obj){
             auto objNode = (NodeT*)(Wrapper<ObjT>*)obj;
             node->add(*objNode);
@@ -138,6 +148,8 @@ namespace cms { namespace cfg { namespace ctree {
           return node;
         });
       }
+
+      CfgT* getConfigurator() { return configurator; }
 
     public: // hierarchy operations
 

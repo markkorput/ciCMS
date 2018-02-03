@@ -1,10 +1,12 @@
 #pragma once
 
 #include <map>
+#include <iostream>
 // blocks
 #include "ctree/signal.hpp"
 #include "ctree/node.h"
 #include "ciCMS/cfg/Configurator.h"
+#include "ciCMS/cfg/ctree/Builder.h"
 #include "ciCMS/cfg/ctree/Node.h"
 #include "ciCMS/Model.h"
 #include "ciCMS/ModelCollection.h"
@@ -17,10 +19,15 @@ using namespace cms;
 
 // our custom configurator for our test-classes
 class Cfgr : public cms::cfg::Configurator {
+  public:
+    typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
+
   private:
     std::map<std::string, void*> signals;
+    ObjectFetcherFunc objectFetcherFunc;
 
   public:
+    void setObjectFetcher(ObjectFetcherFunc func){ this->objectFetcherFunc = func; }
 
     template <typename Signature>
     ctree::Signal<Signature>* getSignal(const std::string& id) {
@@ -35,6 +42,10 @@ class Cfgr : public cms::cfg::Configurator {
       return pp;
     }
 
+    template<typename ObjT>
+    ObjT* getObject(const std::string& id) {
+      return this->objectFetcherFunc ? (ObjT*)this->objectFetcherFunc(id) : NULL;
+    }
 
     Cfgr() {
     }
@@ -69,8 +80,15 @@ class Cfgr : public cms::cfg::Configurator {
       Model m;
       m.set(data);
 
-      m.with("client", [this](const std::string& v){
+      m.with("client", [this, &obj](const std::string& v){
+        auto p = this->getObject<syphonClient>(v);
 
+        if (!p) {
+          std::cerr << "could not find syphonClient object: " << v << std::endl;
+          return;
+        }
+
+        obj.setSyphonClient(p);
       });
 
       m.with("drawOn", [this, &obj](const std::string& v){

@@ -15,12 +15,13 @@ class SyphonClientRenderer {
     }
     void draw() {
       if (mClient) {
-        CI_LOG_I("Drawing!1!");
         ci::gl::draw(mClient->getTexture());
       }
     }
 
-    void setSyphonClient(syphonClient* client) { mClient = client; }
+    void setSyphonClient(syphonClient* client) {
+      mClient = client;
+    }
 
 
   private:
