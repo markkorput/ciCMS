@@ -31,7 +31,7 @@ namespace cms { namespace cfg { namespace ctree {
 
       // TODO; support custom Node extension types
       template<typename ObjT>
-      class Wrapper : public ObjT, public Node {
+      class Wrapper : public Node, public ObjT {
         public:
           Wrapper(const std::string& name) : Node((ObjT*)this, name) {
           }
@@ -119,7 +119,7 @@ namespace cms { namespace cfg { namespace ctree {
 
       template<typename T>
       void addDefaultInstantiator(const string& name){
-        this->addInstantiator(name, [this](CfgData& data){
+        this->addInstantiator(name, [this, &name](CfgData& data){
           auto wrapper = new Wrapper<T>(this->getName(data));
           // create ouw object
           auto object = (T*)wrapper;
@@ -154,10 +154,18 @@ namespace cms { namespace cfg { namespace ctree {
         return obj;
       }
 
-      void destroy(cms::cfg::ctree::Node* n){
+      void destroyNode(cms::cfg::ctree::Node* n){
+        std::cout << " - DESTROY: " << n->getName() << "(" << n->size() << " children)" << std::endl;
+
         // destroy all offspring
-        for(auto it = n->begin(); it != n->end(); it++)
-          this->destroy((cms::cfg::ctree::Node*)*it);
+        // for(auto it = n->rbegin(); it != n->rend(); ++it) {
+        while(n->size() > 0) {
+        // for(int i=0; i<n->size(); i++){
+          // auto child = (cms::cfg::ctree::Node*)*it;
+          auto child = (cms::cfg::ctree::Node*)n->at(0);
+          std::cout << " child " << child->getName() << std::endl;
+          this->destroyNode(child);
+        }
 
         // remove from parent, if it has one
         ::ctree::Node* parent = n->parent();
@@ -166,6 +174,12 @@ namespace cms { namespace cfg { namespace ctree {
         }
 
         delete n;
+      }
+
+      template<typename ObjT>
+      void destroy(ObjT* obj){
+        // std::cout << "- destroy object: " << obj << ", wrapper: " << (Wrapper<ObjT>*)obj << ", node: " << (NodeT*)(Wrapper<ObjT>*)obj;
+        this->destroyNode(this->select(obj)->getNode());
       }
 
       template<typename SourceT>

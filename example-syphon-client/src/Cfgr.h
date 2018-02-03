@@ -1,6 +1,9 @@
 #pragma once
 
+#include <map>
 // blocks
+#include "ctree/signal.hpp"
+#include "ctree/node.h"
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/cfg/ctree/Node.h"
 #include "ciCMS/Model.h"
@@ -14,7 +17,24 @@ using namespace cms;
 
 // our custom configurator for our test-classes
 class Cfgr : public cms::cfg::Configurator {
+  private:
+    std::map<std::string, void*> signals;
+
   public:
+
+    template <typename Signature>
+    ctree::Signal<Signature>* getSignal(const std::string& id) {
+      auto p = this->signals[id];
+
+      if (p != NULL) {
+        return (ctree::Signal<Signature>*)p;
+      }
+
+      auto pp = new ctree::Signal<Signature>();
+      this->signals[id] = pp;
+      return pp;
+    }
+
 
     Cfgr() {
     }
@@ -31,19 +51,33 @@ class Cfgr : public cms::cfg::Configurator {
     void cfg(Runner& obj, const std::map<string, string>& data){
       Model m;
       m.set(data);
-      // m.with("name", [&obj](const std::string& v){ obj.name = v; });
+
+      m.with("drawEmit", [this, &obj](const std::string& v){
+        auto pSignal = this->getSignal<void()>(v);
+        std::cout << "drawEmit signal: " << pSignal << std::endl;
+        obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
+      });
     }
 
     void cfg(syphonClient& obj, const std::map<string, string>& data){
       Model m;
       m.set(data);
-      // m.with("name", [&obj](const std::string& v){ obj.name = v; });
+      m.with("server", [&obj](const std::string& v){ obj.set("", v); CI_LOG_I("Set syphon client to: " << v); });
     }
 
     void cfg(SyphonClientRenderer& obj, const std::map<string, string>& data){
       Model m;
       m.set(data);
-      // m.with("name", [&obj](const std::string& v){ obj.name = v; });
+
+      m.with("client", [this](const std::string& v){
+
+      });
+
+      m.with("drawOn", [this, &obj](const std::string& v){
+        auto pSignal = this->getSignal<void()>(v);
+        std::cout << "drawOn signal: " << pSignal << std::endl;
+        pSignal->connect([&obj](){ obj.draw(); });
+      });
     }
 
     // overwrite Configurator's version, because that one only knows about

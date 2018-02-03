@@ -103,6 +103,8 @@ namespace cms { namespace cfg {
       return NULL;
     }
 
+    std::cout << " - building: " << id << std::endl;
+
     auto instance = instantiator->func(*model);
 
     if(recursive){
