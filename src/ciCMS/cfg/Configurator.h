@@ -1,9 +1,29 @@
 #pragma once
 
+#include <iostream>
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
   class Configurator {
+  public:
+    typedef Model CfgData;
+    typedef std::map<string, string> CfgDataRaw;
+
+    // class Applier {
+    //   public:
+    //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
+    //     };
+    //
+    //     template<typename ObjT>
+    //     void to(ObjT* obj){
+    //       cfg->cfgWithModel(*obj, data);
+    //     }
+    //
+    //   private:
+    //     Configurator* cfg;
+    //     CfgData& data;
+    // };
+
   public:
     Configurator() : bActive(false), bPrivateModelCollection(true){
       modelCollection = new ModelCollection();
@@ -20,13 +40,21 @@ namespace cms { namespace cfg {
     }
 
     bool isActive() const { return this->bActive; }
-    void setActive(bool active) { this->bActive = active; }
+    void setActive(bool active) {
+      this->bActive = active;
+      if (active)
+        std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+    }
 
     ModelCollection& getModelCollection() { return *this->modelCollection; }
 
     void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
       model.transform(func, activeCallbackOwner, this->bActive);
     }
+
+    // shared_ptr<Applier> apply(CfgData& data) {
+    //   return std::make_shared<Applier>(this, data);
+    // }
 
     template<typename T>
     void cfgWithModel(T& c, Model& model){

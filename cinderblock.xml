@@ -14,8 +14,13 @@
 		<supports os="msw" /><!-- ??? -->
 
 		<headerPattern>src/ciCMS/*.h</headerPattern>
+		<headerPattern>src/ciCMS/**/*.h</headerPattern>
+		<headerPattern>src/ciCMS/**/**/*.h</headerPattern>
 		<sourcePattern>src/ciCMS/*.cpp</sourcePattern>
-		<sourcePattern>src/ciCMS/cfg/*.cpp</sourcePattern>
+		<sourcePattern>src/ciCMS/*/*.cpp</sourcePattern>
+		<sourcePattern>src/ciCMS/**/**/*.cpp</sourcePattern>
+		<headerPattern>lib/ctree/include/**/*.h</headerPattern>
+		<headerPattern>lib/ctree/src/**/*.cpp</headerPattern>
 
 		<platform os="macosx">
 			<includePath>src/ciCMS</includePath>

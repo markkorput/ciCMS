@@ -1,5 +1,10 @@
 #pragma once
 
+#include <iostream>
+#include <vector>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp> // for is_any_of
+#include "cinder/app/App.h"
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
@@ -13,8 +18,9 @@ namespace cms { namespace cfg {
 
     public: // types
 
-      typedef std::function<T*(Model&)> InstantiatorFunc;
-      typedef std::function<void(T&, Model&)> ExtenderFunc;
+      typedef Model CfgData;
+      typedef std::function<T*(CfgData&)> InstantiatorFunc;
+      typedef std::function<void(T&, CfgData&)> ExtenderFunc;
       typedef std::function<void(T&, T&)> ChilderFunc;
 
       class Instantiator {
@@ -66,12 +72,15 @@ namespace cms { namespace cfg {
 
     protected:
       virtual void* doBuild(const string& id, bool recursive=true) override;
+      std::string getType(const CfgData& data);
 
     private:
       void withEachChildId(const string& parentId, std::function<void(const string& childId)> func);
       InstantiatorRef findInstantiator(const string& id);
       ExtenderRef findExtender(const string& name);
 
+    public:
+      ci::signals::Signal<void(T& item, Model& model)> instantiateSignal;
     private:
       bool bPrivateModelCollection;
       ModelCollection* modelCollection;
@@ -84,7 +93,8 @@ namespace cms { namespace cfg {
   template<class T>
   void* Builder<T>::doBuild(const string& id, bool recursive){
     auto model = this->modelCollection->findById(id, true);
-    auto instantiator = this->findInstantiator(model->get("type"));
+    std::string typ = this->getType(*model);
+    auto instantiator = this->findInstantiator(typ);
 
     if(!instantiator){
       for(auto subBuilder : this->subBuilders) {
@@ -92,16 +102,20 @@ namespace cms { namespace cfg {
         if(result)
           return result;
       }
-      std::cerr << "Could not find instantiator for type: " << model->get("type");
+      std::cerr << "Could not find instantiator for type: " << typ;
       return NULL;
     }
 
+    // std::cout << " - building: " << id << std::endl;
+
     auto instance = instantiator->func(*model);
+    this->instantiateSignal.emit(*instance, *model);
 
     if(recursive){
       this->withEachChildId(id, [this, instance](const string& childId){
+        // std::cout << "withEachChildId: " << childId;
         auto childmodel = this->modelCollection->findById(childId, true);
-        auto extender = this->findExtender(childmodel->get("type"));
+        auto extender = this->findExtender(this->getType(*childmodel));
 
         if(extender) {
           extender->func(*instance, *childmodel);
@@ -117,6 +131,17 @@ namespace cms { namespace cfg {
     }
 
     return instance;
+  }
+
+  template<class T>
+  std::string Builder<T>::getType(const CfgData& data){
+    if (data.has("type"))
+      return data.get("type");
+
+    std::vector<string> strs;
+    std::string id = data.getId();
+    boost::split(strs,id,boost::is_any_of("."));
+    return strs.back();
   }
 
   template<class T>

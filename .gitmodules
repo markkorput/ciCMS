@@ -1,0 +1,3 @@
+[submodule "lib/ctree"]
+	path = lib/ctree
+	url = git@github.com:markkorput/ctree.git
