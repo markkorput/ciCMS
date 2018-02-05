@@ -41,10 +41,12 @@ namespace cms {
 #else
 	template<>
 	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection){
-		if (!jsonTree.hasChild("id"))
-			return nullptr;
+        auto id = jsonTree.hasChild("id") ? jsonTree.getValueForKey("id") : jsonTree.getKey();
 
-		std::string id = jsonTree.getValueForKey("id");
+		// if (!jsonTree.hasChild("id"))
+		// 	return nullptr;
+
+		// std::string id = jsonTree.getValueForKey("id");
 
 		return collection.first([&id](shared_ptr<Model> modelRef) {
 			return modelRef->get("id") == id;
@@ -53,11 +55,16 @@ namespace cms {
 
     template<>
     bool CollectionJsonLoader<Model>::loadItem(ci::JsonTree& jsonTree, shared_ptr<Model> itemRef){
-    	for (int idx = 0; idx < jsonTree.getNumChildren(); idx++) {
-    		ci::JsonTree subTree = jsonTree.getChild(idx);
-    		itemRef->set(subTree.getKey(), subTree.getValue());
-    	}
-    	return true;
+        for (int idx = 0; idx < jsonTree.getNumChildren(); idx++) {
+            ci::JsonTree subTree = jsonTree.getChild(idx);
+            itemRef->set(subTree.getKey(), subTree.getValue());
+        }
+
+        if (!jsonTree.hasChild("id")) {
+            itemRef->set("id", jsonTree.getKey());
+        }
+
+        return true;
     }
 
     template<>

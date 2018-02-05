@@ -104,10 +104,13 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
 
     // attach new nodes to our original hierarchy
     builder.select(namer)->attach(ager3);
-    // verify that that names nog has a third child
+
+    // verify that that names now has a third child
     REQUIRE(builder.select(namer)->getNode()->size() == 3);
     REQUIRE(builder.select(namer)->get<Ager>("Ager3") != NULL);
     REQUIRE(builder.select(namer)->get<Ager>("Ager3") == ager3);
+
+    // fetch sub item various level deep
     REQUIRE(builder.select(namer)->get<Namer>("Ager3.Namer")->name == "child_of_30");
     REQUIRE(builder.select(namer)->get<Namer>("Ager3.Namer") == builder.select(ager3)->get<Namer>("Namer"));
   }

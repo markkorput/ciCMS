@@ -4,6 +4,7 @@
 #include <vector>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp> // for is_any_of
+#include "cinder/app/App.h"
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
@@ -78,6 +79,8 @@ namespace cms { namespace cfg {
       InstantiatorRef findInstantiator(const string& id);
       ExtenderRef findExtender(const string& name);
 
+    public:
+      ci::signals::Signal<void(T& item, Model& model)> instantiateSignal;
     private:
       bool bPrivateModelCollection;
       ModelCollection* modelCollection;
@@ -103,7 +106,10 @@ namespace cms { namespace cfg {
       return NULL;
     }
 
+    // std::cout << " - building: " << id << std::endl;
+
     auto instance = instantiator->func(*model);
+    this->instantiateSignal.emit(*instance, *model);
 
     if(recursive){
       this->withEachChildId(id, [this, instance](const string& childId){

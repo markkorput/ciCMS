@@ -18,7 +18,7 @@
 // ‎ADD_TYPE("UiButton", ui::Button);
 // ‎ADD_TYPE(VideoSource);
 
-namespace cms { namespace cfg{ namespace ctree {
+namespace cms { namespace cfg { namespace ctree {
 
   template<typename CfgT>
   class Builder : public ::cms::cfg::Builder<Node> {
@@ -28,14 +28,6 @@ namespace cms { namespace cfg{ namespace ctree {
       typedef Node NodeT;
       typedef std::map<string, string> CfgDataRaw;
       typedef Model CfgData;
-
-      // TODO; support custom Node extension types
-      template<typename ObjT>
-      class Wrapper : public ObjT, public Node {
-        public:
-          Wrapper(const std::string& name) : Node((ObjT*)this, name) {
-          }
-      };
 
       struct BuildArgs {
         ::ctree::Node* node;
@@ -69,7 +61,7 @@ namespace cms { namespace cfg{ namespace ctree {
               if (n->getName() == name) {
                 // no more sub-names? return this object for this child
                 if(strs.size() == 1){
-                  return (ObjT*)(Wrapper<ObjT>*)n;
+                  return (ObjT*)n->template getObject<ObjT>(n);
                 }
 
                 // remove first name (one we just found) and move to on level deeper
@@ -82,8 +74,18 @@ namespace cms { namespace cfg{ namespace ctree {
           }
 
           template<typename ObjT>
+          ObjT* getSibling(const string& path){
+            if (!node->parent()) {
+              return NULL;
+            }
+
+            Selection sel(*(NodeT*)node->parent());
+            return sel.get<ObjT>(path);
+          }
+
+          template<typename ObjT>
           void attach(ObjT* obj){
-            auto objNode = (NodeT*)(Wrapper<ObjT>*)obj;
+            auto objNode = (NodeT*)NodeT::fromObj<ObjT>(obj);
             node->add(*objNode);
           }
 
@@ -119,18 +121,13 @@ namespace cms { namespace cfg{ namespace ctree {
 
       template<typename T>
       void addDefaultInstantiator(const string& name){
-        this->addInstantiator(name, [this](CfgData& data){
-          auto wrapper = new Wrapper<T>(this->getName(data));
+        this->addInstantiator(name, [this, &name](CfgData& data){
+          auto node = NodeT::create<T>(name);
           // create ouw object
-          auto object = (T*)wrapper;
-
-          // this->configurator->apply(data)->to(object);
-          // this->configurator->apply(data)->to(object);
+          auto object = node->template getObject<T>();
           this->configurator->cfgWithModel(*object, data);
           // attach it to a ctree node
-          auto node = (Node*)wrapper;
           this->configurator->cfgWithModel(*node, data);
-          // this->configurator->apply(data)->to(node);
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
@@ -139,25 +136,27 @@ namespace cms { namespace cfg{ namespace ctree {
         });
       }
 
+      CfgT* getConfigurator() { return configurator; }
+
     public: // hierarchy operations
 
       template<typename ObjT>
       ObjT* build(const string& id){
-        // our instantiators "wrap" each requested class in a wrapper class,
-        // which is basically the requested class together with a Node.
-        // Our parent builder class only knows about the Node part, so here
-        // we convert from Node to requested class (via the WrapperClass)
         auto node = ::cms::cfg::Builder<Node>::build(id);
-        auto wrapper = (Wrapper<ObjT>*)node;
-        // TODO; perform some runtime type check?
-        auto obj = (ObjT*)wrapper;
+        auto obj = node->template getObject<ObjT>();
         return obj;
       }
 
-      void destroy(cms::cfg::ctree::Node* n){
+      void destroyNode(cms::cfg::ctree::Node* n){
+        // std::cout << " - DESTROY: " << n->getName() << "(" << n->size() << " children)" << std::endl;
+
         // destroy all offspring
-        for(auto it = n->begin(); it != n->end(); it++)
-          this->destroy((cms::cfg::ctree::Node*)*it);
+        // for(auto it = n->rbegin(); it != n->rend(); ++it) {
+        while(n->size() > 0) {
+          auto child = (cms::cfg::ctree::Node*)n->at(0);
+          // std::cout << " child " << child->getName() << std::endl;
+          this->destroyNode(child);
+        }
 
         // remove from parent, if it has one
         ::ctree::Node* parent = n->parent();
@@ -165,13 +164,18 @@ namespace cms { namespace cfg{ namespace ctree {
           parent->erase((::ctree::Node*)n);
         }
 
-        delete n;
+        n->destroy();
+      }
+
+      template<typename ObjT>
+      void destroy(ObjT* obj){
+        this->destroyNode(this->select(obj)->getNode());
       }
 
       template<typename SourceT>
       std::shared_ptr<Selection> select(SourceT* origin){
-        // convert origin into a NodeT pointer (via the Wrapper class)
-        return std::make_shared<Selection>(*(NodeT*)(Wrapper<SourceT>*)origin);
+        // convert origin into a NodeT pointer
+        return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
       }
 
     public: // signals

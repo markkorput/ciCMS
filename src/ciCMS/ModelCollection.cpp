@@ -24,10 +24,11 @@ shared_ptr<Model> ModelCollection::findById(const std::string& value, bool creat
 namespace cms {
 	template<>
 	shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection) {
-		if (!jsonTree.hasChild("id"))
-			return nullptr;
-
-		std::string id = jsonTree.getValueForKey("id");
+    auto id = jsonTree.hasChild("id") ? jsonTree.getValueForKey("id") : jsonTree.getKey();
+		// if (!jsonTree.hasChild("id"))
+		// 	return nullptr;
+    //
+		// std::string id = jsonTree.getValueForKey("id");
 
 		return collection.first([&id](shared_ptr<Model> modelRef) {
 			return modelRef->get("id") == id;
@@ -40,6 +41,11 @@ namespace cms {
 			ci::JsonTree subTree = jsonTree.getChild(idx);
 			itemRef->set(subTree.getKey(), subTree.getValue());
 		}
+
+    if (!jsonTree.hasChild("id")) {
+        itemRef->set("id", jsonTree.getKey());
+    }
+
 		return true;
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
@@ -39,7 +40,11 @@ namespace cms { namespace cfg {
     }
 
     bool isActive() const { return this->bActive; }
-    void setActive(bool active) { this->bActive = active; }
+    void setActive(bool active) {
+      this->bActive = active;
+      if (active)
+        std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+    }
 
     ModelCollection& getModelCollection() { return *this->modelCollection; }
 
