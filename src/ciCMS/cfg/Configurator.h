@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
+#include "CfgReader.hpp"
 
 namespace cms { namespace cfg {
 
@@ -101,6 +102,10 @@ namespace cms { namespace cfg {
         Model m;
         m.set(data);
         m.withBool("active", [&c](const bool& v){ c.setActive(v); });
+      }
+
+      static const CfgReader& read(const CfgDataRaw& data) {
+        return CfgReader::read(data);
       }
 
     private: // attributes

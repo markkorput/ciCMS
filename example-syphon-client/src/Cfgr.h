@@ -25,7 +25,6 @@ class Cfgr : public cms::cfg::Configurator {
     Cfgr(ModelCollection& mc) : cms::cfg::Configurator(mc) {
     }
 
-
   public: // cfg
 
     void cfg(cms::cfg::Configurator& cfgr, const std::map<string, string>& data){
@@ -39,26 +38,22 @@ class Cfgr : public cms::cfg::Configurator {
     }
 
     void cfg(Runner& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-
-      m.with("drawEmit", [this, &obj](const std::string& v){
+      read(data)
+      .with("drawEmit", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
         obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
       });
     }
 
     void cfg(syphonClient& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-      m.with("server", [&obj](const std::string& v){ obj.set("", v); });
+      read(data)
+      .with("server", [&obj](const std::string& v){ obj.set("", v); });
     }
 
     void cfg(SyphonClientRenderer& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
+      read(data)
 
-      m.with("client", [this, &obj](const std::string& v){
+      .with("client", [this, &obj](const std::string& v){
         auto p = this->getObject<syphonClient>(v);
 
         if (!p) {
@@ -67,9 +62,9 @@ class Cfgr : public cms::cfg::Configurator {
         }
 
         obj.setSyphonClient(p);
-      });
+      })
 
-      m.with("drawOn", [this, &obj](const std::string& v){
+      .with("drawOn", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
         pSignal->connect([&obj](){ obj.draw(); });
       });

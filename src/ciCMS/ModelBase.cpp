@@ -118,7 +118,6 @@ ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultVa
   return cms::deserialiseColor(this->get(attr), defaultValue);
 }
 
-
 bool ModelBase::with(const string& attr, function<void(const string&)> func){
     if(!this->has(attr))
         return false;
