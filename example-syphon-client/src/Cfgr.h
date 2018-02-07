@@ -3,7 +3,6 @@
 #include <map>
 #include <iostream>
 // blocks
-#include "ctree/signal.hpp"
 #include "ctree/node.h"
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/cfg/ctree/Builder.h"
@@ -19,31 +18,13 @@ using namespace cms;
 
 // our custom configurator for our test-classes
 class Cfgr : public cms::cfg::Configurator {
-  private:
-    std::map<std::string, void*> signals;
-
   public:
-
     Cfgr() {
     }
 
     Cfgr(ModelCollection& mc) : cms::cfg::Configurator(mc) {
     }
 
-  public: // getter/setters
-
-    template <typename Signature>
-    ctree::Signal<Signature>* getSignal(const std::string& id) {
-      auto p = this->signals[id];
-
-      if (p != NULL) {
-        return (ctree::Signal<Signature>*)p;
-      }
-
-      auto pp = new ctree::Signal<Signature>();
-      this->signals[id] = pp;
-      return pp;
-    }
 
   public: // cfg
 

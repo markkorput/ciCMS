@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "ciCMS/ModelCollection.h"
+#include "ctree/signal.hpp"
 
 namespace cms { namespace cfg {
 
@@ -53,14 +54,6 @@ namespace cms { namespace cfg {
 
       ModelCollection& getModelCollection() { return *this->modelCollection; }
 
-      void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
-        model.transform(func, activeCallbackOwner, this->bActive);
-      }
-
-      // shared_ptr<Applier> apply(CfgData& data) {
-      //   return std::make_shared<Applier>(this, data);
-      // }
-
       void setObjectFetcher(ObjectFetcherFunc func){
         this->objectFetcherFunc = func;
       }
@@ -74,7 +67,28 @@ namespace cms { namespace cfg {
         return (ObjT*)this->getObjectPointer(id);
       }
 
+      template <typename Signature>
+      ::ctree::Signal<Signature>* getSignal(const std::string& id) {
+        auto p = this->signals[id];
+
+        if (p != NULL) {
+          return (::ctree::Signal<Signature>*)p;
+        }
+
+        auto pp = new ::ctree::Signal<Signature>();
+        this->signals[id] = pp;
+        return pp;
+      }
+
     public: // cfgs
+
+      void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
+        model.transform(func, activeCallbackOwner, this->bActive);
+      }
+
+      // shared_ptr<Applier> apply(CfgData& data) {
+      //   return std::make_shared<Applier>(this, data);
+      // }
 
       template<typename T>
       void cfgWithModel(T& c, Model& model){
@@ -93,5 +107,6 @@ namespace cms { namespace cfg {
       bool bActive, bPrivateModelCollection;
       ModelCollection* modelCollection;
       ObjectFetcherFunc objectFetcherFunc;
+      std::map<std::string, void*> signals;
   };
 }}
