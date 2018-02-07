@@ -3,10 +3,7 @@
 #include <map>
 #include <iostream>
 // blocks
-#include "ctree/node.h"
 #include "ciCMS/cfg/Configurator.h"
-#include "ciCMS/cfg/ctree/Builder.h"
-#include "ciCMS/cfg/ctree/Node.h"
 #include "ciCMS/Model.h"
 #include "ciCMS/ModelCollection.h"
 #include "cinderSyphon.h"
@@ -29,12 +26,6 @@ class Cfgr : public cms::cfg::Configurator {
 
     void cfg(cms::cfg::Configurator& cfgr, const std::map<string, string>& data){
       cms::cfg::Configurator::cfg(cfgr, data);
-    }
-
-    // using cms::cfg::ctree::cfgWithModel;
-    void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
-      // TODO; take name from name attribute or otherwise default to last part
-      // (splitting by period (.) of the id)
     }
 
     void cfg(Runner& obj, const std::map<string, string>& data){
@@ -70,15 +61,7 @@ class Cfgr : public cms::cfg::Configurator {
       });
     }
 
-    // overwrite Configurator's version, because that one only knows about
-    // the cfg methods in the Configurator class
-    template<typename T>
-    void cfgWithModel(T& c, Model& model){
-      this->apply(model, [this, &c](ModelBase& mod){
-        this->cfg(c, mod.attributes());
-      });
-    }
-
+    // cfg-by-data-id
     template<typename T>
     void cfg(T& obj, const std::string& modelId) {
       this->cfgWithModel<T>(obj, *this->getModelCollection().findById(modelId, true));

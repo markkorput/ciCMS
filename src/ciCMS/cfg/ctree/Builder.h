@@ -78,9 +78,11 @@ namespace cms { namespace cfg { namespace ctree {
           auto node = NodeT::create<T>(this->getName(data));
           // create ouw object
           auto object = node->template getObject<T>();
-          this->configurator->cfgWithModel(*object, data);
+          this->configurator->apply(data, [this, object](ModelBase& mod){
+            this->configurator->cfg(*object, mod.attributes());
+          });
           // attach it to a ctree node
-          this->configurator->cfgWithModel(*node, data);
+          // this->configurator->cfgWithModel(*node, data);
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
