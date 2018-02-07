@@ -76,12 +76,14 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
     REQUIRE(namer->name == "root");
     // check that our object was built with two child objects
     REQUIRE(builder.select(namer)->getNode()->size() == 2);
+    REQUIRE(builder.select(namer)->getName() == "Namer");
 
     // fetch an "child" item from the just created hierarchy
     // of which names was the root element
     auto ager1 = builder.select(namer)->get<Ager>("Ager");
     REQUIRE(ager1->age == 10);
     REQUIRE(builder.select(ager1)->getNode()->size() == 1);
+    REQUIRE(builder.select(ager1)->getName() == "Ager");
 
     // fetch child of child (grandchild of namer)
     REQUIRE(builder.select(ager1)->get<Ager>("SubAger")->age == 3);
@@ -90,24 +92,25 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
     auto ager2 = builder.select(namer)->get<Ager>("Ager2");
     REQUIRE(ager2->age == 20);
     REQUIRE(builder.select(ager2)->getNode()->size() == 0);
+    REQUIRE(builder.select(ager2)->getName() == "Ager2");
 
     // try (and fail) to fetch some non-existing child items
     REQUIRE(builder.select(namer)->get<Ager>("Ager3") == NULL);
     REQUIRE(builder.select(namer)->get<Ager>("foobar") == NULL);
-
 
     // build a new set of objects
     auto ager3 = builder.build<Ager>("typical_usage.Ager3");
     REQUIRE(ager3->age == 30);
     REQUIRE(builder.select(ager3)->getNode()->size() == 1);
     REQUIRE(builder.select(ager3)->get<Namer>("Namer")->name == "child_of_30");
+    REQUIRE(builder.select(ager3)->getName() == "Ager3"); // node name
 
     // attach new nodes to our original hierarchy
     builder.select(namer)->attach(ager3);
 
     // verify that that names now has a third child
     REQUIRE(builder.select(namer)->getNode()->size() == 3);
-    REQUIRE(builder.select(namer)->get<Ager>("Ager3") != NULL);
+    // REQUIRE(builder.select(namer)->get<Ager>("Ager3") != NULL);
     REQUIRE(builder.select(namer)->get<Ager>("Ager3") == ager3);
 
     // fetch sub item various level deep

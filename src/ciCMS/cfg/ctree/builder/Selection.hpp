@@ -13,27 +13,18 @@ class Selection {
     ObjT* get(const string& path){
       std::vector<string> strs;
       boost::split(strs,path,boost::is_any_of("."));
-      unsigned int counter = 0;
 
-      std::string name = strs[0];
+      auto parentNode = this->getNode();
 
-      // loop over each child to find the one with this name
-      for(auto child : *node){
-        auto n = (NodeT*)child;
+      for(auto str : strs) {
+        Selection sel(*parentNode);
+        parentNode = sel.getChildNodeWithName(str);
 
-        if (n->getName() == name) {
-          // no more sub-names? return this object for this child
-          if(strs.size() == 1){
-            return n->template getObject<ObjT>();
-          }
-
-          // remove first name (one we just found) and move to on level deeper
-          strs.erase(strs.begin());
-          return std::make_shared<Selection>(*n)->template get<ObjT>(boost::algorithm::join(strs, "."));
-        }
+        if(parentNode == NULL)
+          return NULL;
       }
 
-      return NULL;
+      return parentNode->template getObject<ObjT>();
     }
 
     template<typename ObjT>
@@ -50,6 +41,20 @@ class Selection {
     void attach(ObjT* obj){
       auto objNode = (NodeT*)NodeT::fromObj<ObjT>(obj);
       node->add(*objNode);
+    }
+
+    const std::string& getName() {
+      return node->getName();
+    }
+
+  protected:
+
+    NodeT* getChildNodeWithName(const string& name) {
+      for(auto child : *node)
+        if (((NodeT*)child)->getName() == name)
+          return (NodeT*)child;
+
+      return NULL;
     }
 
   private:

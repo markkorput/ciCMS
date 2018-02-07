@@ -9,5 +9,11 @@
         {"name" : "john"},
         {"name" : "bob"},
         {"name" : "henk"}
-    ]
+    ],
+
+    "col3" : {
+      "itemA": {"name": "alpha"},
+      "itemB": {"name": "bravo"},
+      "itemC": {"name": "charlie"}
+    }
 }

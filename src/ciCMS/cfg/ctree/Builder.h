@@ -75,7 +75,7 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename T>
       void addDefaultInstantiator(const string& name){
         this->addInstantiator(name, [this, &name](CfgData& data){
-          auto node = NodeT::create<T>(name);
+          auto node = NodeT::create<T>(this->getName(data));
           // create ouw object
           auto object = node->template getObject<T>();
           this->configurator->cfgWithModel(*object, data);
@@ -141,8 +141,8 @@ namespace cms { namespace cfg { namespace ctree {
     protected: // helper methods
 
       std::string getName(CfgData& data){
-        // if (data.has("name"))
-        // return data.get("name");
+        if (data.has("_name"))
+          return data.get("_name");
 
         std::vector<string> strs;
         std::string id = data.getId();

@@ -174,7 +174,7 @@ TEST_CASE("cms::cfg::Configurator", ""){
     Cfg cfg;
     REQUIRE(cfg.getObject<Cfg>("foo.bar") == NULL);
     cfg.setObjectFetcher([&cfg](const std::string& id){ return &cfg; });
-    REQUIRE(cfg.getObj("foo.bar") == &cfg);
+    REQUIRE(cfg.getObjectPointer("foo.bar") == &cfg);
     REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
   }
 }
