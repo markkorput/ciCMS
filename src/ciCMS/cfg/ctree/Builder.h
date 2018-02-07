@@ -68,6 +68,14 @@ namespace cms { namespace cfg { namespace ctree {
         this->setChilderFunc([](NodeT& parent, NodeT& child){
           parent.add(child);
         });
+
+        // TODO; make this optional for performance optimization?
+        this->registry = std::shared_ptr<Registry>(new Registry(this));
+
+        // give our configurator an object fetcher which looks for objects in our Registry
+        configurator->setObjectFetcher([this](const std::string& id){
+          return this->registry->getById(id);
+        });
       }
 
     public: // configuration methods
@@ -136,10 +144,6 @@ namespace cms { namespace cfg { namespace ctree {
         return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
       }
 
-    public: // signals
-      ::ctree::Signal<void(BuildArgs&)> buildSignal;
-      ::ctree::Signal<void(DestroyArgs&)> destroySignal;
-
     protected: // helper methods
 
       std::string getName(CfgData& data){
@@ -152,11 +156,14 @@ namespace cms { namespace cfg { namespace ctree {
         return strs.back();
       }
 
-    protected: // attributes
-      CfgT* configurator;
+    public: // signals
+      ::ctree::Signal<void(BuildArgs&)> buildSignal;
+      ::ctree::Signal<void(DestroyArgs&)> destroySignal;
 
     private: // attributes
       bool bPrivateConfigurator;
+      CfgT* configurator;
+      std::shared_ptr<Registry> registry;
   };
 }}}
 #endif // CICMS_CTREE

@@ -45,11 +45,14 @@ namespace cms {
 
     if(jsonTree.hasChild("id")) {
       id = jsonTree.getValueForKey("id");
-    } else if (jsonTree.hasParent() && jsonTree.getParent().getNodeType() == ci::JsonTree::NODE_OBJECT) {
-      id = jsonTree.getKey();
     } else {
-      return nullptr;
+      id = jsonTree.getKey();
     }
+    // } else if (jsonTree.hasParent() && jsonTree.getParent().getNodeType() == ci::JsonTree::NODE_OBJECT) {
+    //   id = jsonTree.getKey();
+    // } else {
+    //   return nullptr;
+    // }
 
     return collection.first([&id](shared_ptr<Model> modelRef) {
       return modelRef->get("id") == id;

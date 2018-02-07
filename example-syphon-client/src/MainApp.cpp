@@ -1,3 +1,5 @@
+// stdlib
+#include <iostream>
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
@@ -28,17 +30,10 @@ class MainApp : public App {
 
   private:
     cms::cfg::ctree::Builder<Cfgr> builder;
-    cms::cfg::ctree::Builder<Cfgr>::Registry* builderRegistry;
     Runner* pRunner;
 };
 
 void MainApp::setup(){
-  builderRegistry = new cms::cfg::ctree::Builder<Cfgr>::Registry(&builder);
-
-  builder.getConfigurator()->setObjectFetcher([this](const std::string& id){
-    return this->builderRegistry->getById(id);
-  });
-
   builder.addDefaultInstantiator<Runner>("Runner");
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
@@ -66,7 +61,9 @@ void MainApp::draw(){
 void MainApp::keyDown(KeyEvent event){
   switch(event.getChar()){
     case 'l': {
+      std::cout << "Re-Loading json data" << std::endl;
       builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
+      std::cout << "JSON collection size: " << builder.getModelCollection().size() << std::endl;
     }
     case 's': {
     }
