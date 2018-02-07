@@ -4,73 +4,75 @@
 #include "ciCMS/ModelCollection.h"
 
 namespace cms { namespace cfg {
+
   class Configurator {
-  public:
-    typedef Model CfgData;
-    typedef std::map<string, string> CfgDataRaw;
+    public:
 
-    // class Applier {
-    //   public:
-    //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
-    //     };
-    //
-    //     template<typename ObjT>
-    //     void to(ObjT* obj){
-    //       cfg->cfgWithModel(*obj, data);
-    //     }
-    //
-    //   private:
-    //     Configurator* cfg;
-    //     CfgData& data;
-    // };
+      typedef Model CfgData;
+      typedef std::map<string, string> CfgDataRaw;
 
-  public:
-    Configurator() : bActive(false), bPrivateModelCollection(true){
-      modelCollection = new ModelCollection();
-    }
+      // class Applier {
+      //   public:
+      //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
+      //     };
+      //
+      //     template<typename ObjT>
+      //     void to(ObjT* obj){
+      //       cfg->cfgWithModel(*obj, data);
+      //     }
+      //
+      //   private:
+      //     Configurator* cfg;
+      //     CfgData& data;
+      // };
 
-    Configurator(ModelCollection& mc) : bActive(false), bPrivateModelCollection(false), modelCollection(&mc) {
-    }
-
-    ~Configurator(){
-      if(bPrivateModelCollection && modelCollection){
-        delete modelCollection;
-        modelCollection = NULL;
+    public:
+      Configurator() : bActive(false), bPrivateModelCollection(true){
+        modelCollection = new ModelCollection();
       }
-    }
 
-    bool isActive() const { return this->bActive; }
-    void setActive(bool active) {
-      this->bActive = active;
-      if (active)
-        std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
-    }
+      Configurator(ModelCollection& mc) : bActive(false), bPrivateModelCollection(false), modelCollection(&mc) {
+      }
 
-    ModelCollection& getModelCollection() { return *this->modelCollection; }
+      ~Configurator(){
+        if(bPrivateModelCollection && modelCollection){
+          delete modelCollection;
+          modelCollection = NULL;
+        }
+      }
 
-    void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
-      model.transform(func, activeCallbackOwner, this->bActive);
-    }
+      bool isActive() const { return this->bActive; }
+      void setActive(bool active) {
+        this->bActive = active;
+        if (active)
+          std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+      }
 
-    // shared_ptr<Applier> apply(CfgData& data) {
-    //   return std::make_shared<Applier>(this, data);
-    // }
+      ModelCollection& getModelCollection() { return *this->modelCollection; }
 
-    template<typename T>
-    void cfgWithModel(T& c, Model& model){
-      this->apply(model, [this, &c](ModelBase& mod){
-        this->cfg(c, mod.attributes());
-      });
-    }
+      void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
+        model.transform(func, activeCallbackOwner, this->bActive);
+      }
 
-    void cfg(Configurator& c, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-      m.withBool("active", [&c](const bool& v){ c.setActive(v); });
-    }
+      // shared_ptr<Applier> apply(CfgData& data) {
+      //   return std::make_shared<Applier>(this, data);
+      // }
 
-  private:
-    bool bActive, bPrivateModelCollection;
-    ModelCollection* modelCollection;
+      template<typename T>
+      void cfgWithModel(T& c, Model& model){
+        this->apply(model, [this, &c](ModelBase& mod){
+          this->cfg(c, mod.attributes());
+        });
+      }
+
+      void cfg(Configurator& c, const std::map<string, string>& data){
+        Model m;
+        m.set(data);
+        m.withBool("active", [&c](const bool& v){ c.setActive(v); });
+      }
+
+    private:
+      bool bActive, bPrivateModelCollection;
+      ModelCollection* modelCollection;
   };
 }}

@@ -10,7 +10,6 @@
 
 #include "ctree/signal.hpp"
 #include "Node.h"
-#include "Configurator.h"
 #include "../Builder.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
@@ -37,6 +36,12 @@ namespace cms { namespace cfg { namespace ctree {
           : node(n), object(o), data(dat){}
       };
 
+      struct DestroyArgs {
+        ::ctree::Node* node;
+        void* object;
+        DestroyArgs(::ctree::Node* n, void* o) : node(n), object(o) {}
+      };
+
       class Selection {
         public:
           Selection(NodeT& node) : node(&node) {
@@ -61,7 +66,7 @@ namespace cms { namespace cfg { namespace ctree {
               if (n->getName() == name) {
                 // no more sub-names? return this object for this child
                 if(strs.size() == 1){
-                  return (ObjT*)n->template getObject<ObjT>(n);
+                  return n->template getObject<ObjT>();
                 }
 
                 // remove first name (one we just found) and move to on level deeper
@@ -91,6 +96,57 @@ namespace cms { namespace cfg { namespace ctree {
 
         private:
           NodeT* node;
+      };
+
+      class Registry {
+        public:
+          typedef std::function<std::string(BuildArgs&)> IdentifierFunc;
+
+        public:
+          Registry(Builder<CfgT>* b) : Registry(b, [](BuildArgs& args) { return args.data->getId(); }) {}
+
+          Registry(Builder<CfgT>* b, IdentifierFunc idFunc) : identifierFunc(idFunc) {
+            // register callback for when the builder builds an object
+            connections.push_back(
+              b->buildSignal.connect([this](BuildArgs& args){
+                this->objectsById[this->identifierFunc(args)] = args.object;
+              })
+            );
+
+            // register callback for when the builder destroys an object
+            connections.push_back(
+              b->destroySignal.connect([this](DestroyArgs& args){
+                for(auto it = this->objectsById.begin(); it != this->objectsById.end(); it++) {
+                  if (it->second == args.object) {
+                    this->objectsById.erase(it);
+                    return;
+                  }
+                }
+              })
+            );
+          }
+
+          ~Registry() {
+            for(auto conn : connections) {
+              conn.disconnect();
+            }
+
+            connections.clear();
+          }
+
+          void* getById(const std::string& id) {
+            return this->objectsById[id];
+          }
+
+          template<typename ObjT>
+          ObjT* get(const std::string& id) {
+            return (ObjT*)this->objectsById[id];
+          }
+
+        private:
+          IdentifierFunc identifierFunc;
+          std::vector<ci::signals::Connection> connections;
+          std::map<std::string, void*> objectsById;
       };
 
     public: // lifespan methods
@@ -164,6 +220,9 @@ namespace cms { namespace cfg { namespace ctree {
           parent->erase((::ctree::Node*)n);
         }
 
+        DestroyArgs args(n, n->getObjectPointer());
+        destroySignal.emit(args);
+
         n->destroy();
       }
 
@@ -180,6 +239,7 @@ namespace cms { namespace cfg { namespace ctree {
 
     public: // signals
       ::ctree::Signal<void(BuildArgs&)> buildSignal;
+      ::ctree::Signal<void(DestroyArgs&)> destroySignal;
 
     protected: // helper methods
 
