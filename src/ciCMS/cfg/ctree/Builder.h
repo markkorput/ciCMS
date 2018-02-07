@@ -23,7 +23,6 @@ namespace cms { namespace cfg { namespace ctree {
   class Builder : public ::cms::cfg::Builder<Node> {
 
     public: // types
-
       typedef Node NodeT;
       typedef std::map<string, string> CfgDataRaw;
       typedef Model CfgData;
@@ -32,6 +31,7 @@ namespace cms { namespace cfg { namespace ctree {
         ::ctree::Node* node;
         void* object;
         CfgData* data;
+
         BuildArgs(::ctree::Node* n, void* o, CfgData* dat)
           : node(n), object(o), data(dat){}
       };
@@ -39,115 +39,12 @@ namespace cms { namespace cfg { namespace ctree {
       struct DestroyArgs {
         ::ctree::Node* node;
         void* object;
+
         DestroyArgs(::ctree::Node* n, void* o) : node(n), object(o) {}
       };
 
-      class Selection {
-        public:
-          Selection(NodeT& node) : node(&node) {
-          }
-
-          NodeT* getNode(){
-            return node;
-          }
-
-          template<typename ObjT>
-          ObjT* get(const string& path){
-            std::vector<string> strs;
-            boost::split(strs,path,boost::is_any_of("."));
-            unsigned int counter = 0;
-
-            std::string name = strs[0];
-
-            // loop over each child to find the one with this name
-            for(auto child : *node){
-              auto n = (NodeT*)child;
-
-              if (n->getName() == name) {
-                // no more sub-names? return this object for this child
-                if(strs.size() == 1){
-                  return n->template getObject<ObjT>();
-                }
-
-                // remove first name (one we just found) and move to on level deeper
-                strs.erase(strs.begin());
-                return std::make_shared<Selection>(*n)->template get<ObjT>(boost::algorithm::join(strs, "."));
-              }
-            }
-
-            return NULL;
-          }
-
-          template<typename ObjT>
-          ObjT* getSibling(const string& path){
-            if (!node->parent()) {
-              return NULL;
-            }
-
-            Selection sel(*(NodeT*)node->parent());
-            return sel.get<ObjT>(path);
-          }
-
-          template<typename ObjT>
-          void attach(ObjT* obj){
-            auto objNode = (NodeT*)NodeT::fromObj<ObjT>(obj);
-            node->add(*objNode);
-          }
-
-        private:
-          NodeT* node;
-      };
-
-      class Registry {
-        public:
-          typedef std::function<std::string(BuildArgs&)> IdentifierFunc;
-
-        public:
-          Registry(Builder<CfgT>* b) : Registry(b, [](BuildArgs& args) { return args.data->getId(); }) {}
-
-          Registry(Builder<CfgT>* b, IdentifierFunc idFunc) : identifierFunc(idFunc) {
-            // register callback for when the builder builds an object
-            connections.push_back(
-              b->buildSignal.connect([this](BuildArgs& args){
-                this->objectsById[this->identifierFunc(args)] = args.object;
-              })
-            );
-
-            // register callback for when the builder destroys an object
-            connections.push_back(
-              b->destroySignal.connect([this](DestroyArgs& args){
-                for(auto it = this->objectsById.begin(); it != this->objectsById.end(); it++) {
-                  if (it->second == args.object) {
-                    this->objectsById.erase(it);
-                    return;
-                  }
-                }
-              })
-            );
-          }
-
-          ~Registry() {
-            for(auto conn : connections) {
-              conn.disconnect();
-            }
-
-            connections.clear();
-          }
-
-          void* getById(const std::string& id) {
-            return this->objectsById[id];
-          }
-
-          template<typename ObjT>
-          ObjT* get(const std::string& id) {
-            return (ObjT*)this->objectsById[id];
-          }
-
-        private:
-          IdentifierFunc identifierFunc;
-          std::vector<ci::signals::Connection> connections;
-          std::map<std::string, void*> objectsById;
-      };
+      #include "builder/Registry.hpp"
+      #include "builder/Selection.hpp"
 
     public: // lifespan methods
 

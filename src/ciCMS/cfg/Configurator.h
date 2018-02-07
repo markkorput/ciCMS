@@ -6,10 +6,11 @@
 namespace cms { namespace cfg {
 
   class Configurator {
-    public:
+    public: // types
 
       typedef Model CfgData;
       typedef std::map<string, string> CfgDataRaw;
+      typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
 
       // class Applier {
       //   public:
@@ -26,7 +27,7 @@ namespace cms { namespace cfg {
       //     CfgData& data;
       // };
 
-    public:
+    public: // lifecycle methods
       Configurator() : bActive(false), bPrivateModelCollection(true){
         modelCollection = new ModelCollection();
       }
@@ -40,6 +41,8 @@ namespace cms { namespace cfg {
           modelCollection = NULL;
         }
       }
+
+    public: // getters and setters
 
       bool isActive() const { return this->bActive; }
       void setActive(bool active) {
@@ -58,6 +61,21 @@ namespace cms { namespace cfg {
       //   return std::make_shared<Applier>(this, data);
       // }
 
+      void setObjectFetcher(ObjectFetcherFunc func){
+        this->objectFetcherFunc = func;
+      }
+
+      inline void* getObjectPointer(const std::string& id) {
+        return this->objectFetcherFunc ? this->objectFetcherFunc(id) : NULL;
+      }
+
+      template<typename ObjT>
+      ObjT* getObject(const std::string& id) {
+        return (ObjT*)this->getObjectPointer(id);
+      }
+
+    public: // cfgs
+
       template<typename T>
       void cfgWithModel(T& c, Model& model){
         this->apply(model, [this, &c](ModelBase& mod){
@@ -71,8 +89,9 @@ namespace cms { namespace cfg {
         m.withBool("active", [&c](const bool& v){ c.setActive(v); });
       }
 
-    private:
+    private: // attributes
       bool bActive, bPrivateModelCollection;
       ModelCollection* modelCollection;
+      ObjectFetcherFunc objectFetcherFunc;
   };
 }}

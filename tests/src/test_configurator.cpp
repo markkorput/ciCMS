@@ -169,4 +169,12 @@ TEST_CASE("cms::cfg::Configurator", ""){
     flagModel.set("flag", "true");
     REQUIRE(flagObj.flag == true);
   }
+
+  SECTION("getObject setObjectFetcher"){
+    Cfg cfg;
+    REQUIRE(cfg.getObject<Cfg>("foo.bar") == NULL);
+    cfg.setObjectFetcher([&cfg](const std::string& id){ return &cfg; });
+    REQUIRE(cfg.getObj("foo.bar") == &cfg);
+    REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
+  }
 }

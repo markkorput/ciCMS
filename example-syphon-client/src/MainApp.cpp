@@ -26,7 +26,7 @@ class MainApp : public App {
     void draw() override;
     void keyDown(KeyEvent event) override;
 
-  // private:
+  private:
     cms::cfg::ctree::Builder<Cfgr> builder;
     cms::cfg::ctree::Builder<Cfgr>::Registry* builderRegistry;
     Runner* pRunner;

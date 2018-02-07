@@ -19,12 +19,8 @@ using namespace cms;
 
 // our custom configurator for our test-classes
 class Cfgr : public cms::cfg::Configurator {
-  public:
-    typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
-
   private:
     std::map<std::string, void*> signals;
-    ObjectFetcherFunc objectFetcherFunc;
 
   public:
 
@@ -35,10 +31,6 @@ class Cfgr : public cms::cfg::Configurator {
     }
 
   public: // getter/setters
-
-    void setObjectFetcher(ObjectFetcherFunc func){
-      this->objectFetcherFunc = func;
-    }
 
     template <typename Signature>
     ctree::Signal<Signature>* getSignal(const std::string& id) {
@@ -51,11 +43,6 @@ class Cfgr : public cms::cfg::Configurator {
       auto pp = new ctree::Signal<Signature>();
       this->signals[id] = pp;
       return pp;
-    }
-
-    template<typename ObjT>
-    ObjT* getObject(const std::string& id) {
-      return this->objectFetcherFunc ? (ObjT*)this->objectFetcherFunc(id) : NULL;
     }
 
   public: // cfg
