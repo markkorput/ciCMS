@@ -185,6 +185,10 @@ namespace cms {
 
     public: // advanced operations methods
 
+        void push(State<StateType>& otherState) {
+          this->push([&otherState](const StateType& v){ otherState = v; }, &otherState);
+        }
+
         void push(PushFunc func, void* owner = NULL){
             auto ext = std::make_shared<StatePusher>(*this, func, owner);
             ext->enable();

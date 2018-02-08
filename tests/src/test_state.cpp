@@ -54,4 +54,13 @@ TEST_CASE("cms::State"){
     state = 3;
     REQUIRE(three == 1);
   }
+
+  SECTION("push-to-other-state"){
+    State<float> s1, s2;
+    s1 = 1.0f;
+    s2 = 2.0f;
+    s1.push(s2);
+    s1 = 3.0f;
+    REQUIRE(s2.val() == 3.0f);
+  }
 }

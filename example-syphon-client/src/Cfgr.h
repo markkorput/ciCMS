@@ -2,6 +2,7 @@
 
 #include <map>
 #include <iostream>
+#include <regex>
 // blocks
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/Model.h"
@@ -9,6 +10,7 @@
 #include "cinderSyphon.h"
 // local
 #include "Runner.h"
+#include "Keyboard.h"
 #include "SyphonClientRenderer.h"
 
 using namespace cms;
@@ -33,8 +35,24 @@ class Cfgr : public cms::cfg::Configurator {
       .with("drawEmit", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
         obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
+      })
+      .with("drawState", [this, &obj](const std::string& v){
+        auto pState = this->getState<bool>(v);
+        pState->operator=(true);
+        // obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
+        pState->push(obj.drawState);
       });
     }
+
+    void cfg(Keyboard& obj, const std::map<string, string>& data){
+      read(data)
+      .withRegex("^key:toggle:(.)$", [this, &obj](const std::smatch& match, const std::string& v){
+        // std::cout << "MATHC on key: " << match[1] << " with value: " << v << std::endl;
+        auto pState = this->getState<bool>(v);
+        obj.onKeyDown(match[1], [pState](){ pState->operator=(!pState->val()); });
+      });
+    }
+
 
     void cfg(syphonClient& obj, const std::map<string, string>& data){
       read(data)

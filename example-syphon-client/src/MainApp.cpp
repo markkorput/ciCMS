@@ -13,6 +13,7 @@
 // local
 #include "Cfgr.h"
 #include "Runner.h"
+#include "Keyboard.h"
 #include "SyphonClientRenderer.h"
 
 using namespace ci;
@@ -35,6 +36,7 @@ class MainApp : public App {
 
 void MainApp::setup(){
   builder.addDefaultInstantiator<Runner>("Runner");
+  builder.addDefaultInstantiator<Keyboard>("Keyboard");
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));

@@ -4,6 +4,7 @@
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
 #include "CfgReader.hpp"
+#include "ciCMS/State.h"
 
 namespace cms { namespace cfg {
 
@@ -42,6 +43,8 @@ namespace cms { namespace cfg {
           delete modelCollection;
           modelCollection = NULL;
         }
+
+        std::cout << "TODO: deallocate all items in this.signals and this.states" << std::endl;
       }
 
     public: // getters and setters
@@ -81,6 +84,19 @@ namespace cms { namespace cfg {
         return pp;
       }
 
+      template <typename Signature>
+      cms::State<Signature>* getState(const std::string& id) {
+        auto p = this->states[id];
+
+        if (p != NULL) {
+          return (cms::State<Signature>*)p;
+        }
+
+        auto pp = new cms::State<Signature>();
+        this->states[id] = pp;
+        return pp;
+      }
+
     public: // cfgs
 
       void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
@@ -113,5 +129,6 @@ namespace cms { namespace cfg {
       ModelCollection* modelCollection;
       ObjectFetcherFunc objectFetcherFunc;
       std::map<std::string, void*> signals;
+      std::map<std::string, void*> states;
   };
 }}
