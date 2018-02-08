@@ -1,7 +1,7 @@
 {
   "Cfgr": {"active": true},
   "Runner": {"drawEmit": "draw", "drawState":"drawEnabled" },
-  "Runner.Keyboard": {"key:toggle:d": "drawEnabled"},
+  "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
   "Runner.SyphonClient": {"server": "Simple Server"},
   "Runner.SyphonClientRenderer": {"client": "Runner.SyphonClient", "drawOn": "draw"}
 }

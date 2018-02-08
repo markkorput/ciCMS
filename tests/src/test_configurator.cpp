@@ -177,4 +177,69 @@ TEST_CASE("cms::cfg::Configurator", ""){
     REQUIRE(cfg.getObjectPointer("foo.bar") == &cfg);
     REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
   }
+
+  SECTION("compileScript"){
+    Configurator cfg;
+    {
+      auto toggleFunc = cfg.compileScript("toggle:turnedOn");
+      cfg.getState<bool>("turnedOn")->operator=(false);
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+      toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+      toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+      toggleFunc(); toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    }
+
+    {
+      auto func = cfg.compileScript("+1:someInt");
+      cfg.getState<int>("someInt")->operator=(1);
+      REQUIRE(cfg.getState<int>("someInt")->val() == 1);
+      func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 2);
+      func();func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 4);
+    }
+
+    {
+      auto func = cfg.compileScript("-3:someInt");
+      REQUIRE(cfg.getState<int>("someInt")->val() == 4);
+      func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 1);
+      func();func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == -5);
+    }
+
+    {
+      auto func = cfg.compileScript("+4.6:someFloat");
+      cfg.getState<float>("someFloat")->operator=(1.0f);
+      REQUIRE(cfg.getState<float>("someFloat")->val() == 1.0f);
+      func();
+      REQUIRE(cfg.getState<float>("someFloat")->val() == 5.6f);
+      func();func();
+      REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()-14.8f) < 0.0001f);
+    }
+
+    {
+      auto func = cfg.compileScript("-3.2:someFloat");
+      cfg.getState<float>("someFloat")->operator=(1.0f);
+      func();
+      REQUIRE(cfg.getState<float>("someFloat")->val() == -2.2f);
+      func();func();
+      REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()+8.6f) < 0.0001f);
+    }
+
+    {
+      int count = 0;
+      cfg.getSignal<void()>("foobar")->connect([&count](){ count += 2; });
+      REQUIRE(count == 0);
+
+      auto func = cfg.compileScript("emit:foobar");
+      func();
+      REQUIRE(count == 2);
+      func(); func();
+      REQUIRE(count == 6);
+    }
+  }
 }

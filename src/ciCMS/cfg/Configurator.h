@@ -1,10 +1,12 @@
 #pragma once
 
 #include <iostream>
+#include <regex>
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
 #include "CfgReader.hpp"
 #include "ciCMS/State.h"
+#include "ciCMS/deserialise.h"
 
 namespace cms { namespace cfg {
 
@@ -14,6 +16,7 @@ namespace cms { namespace cfg {
       typedef Model CfgData;
       typedef std::map<string, string> CfgDataRaw;
       typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
+      typedef std::function<void()> CompiledScriptFunc;
 
       // class Applier {
       //   public:
@@ -44,7 +47,7 @@ namespace cms { namespace cfg {
           modelCollection = NULL;
         }
 
-        std::cout << "TODO: deallocate all items in this.signals and this.states" << std::endl;
+        std::cout << "T O D O: deallocate all items in this.signals and this.states" << std::endl;
       }
 
     public: // getters and setters
@@ -53,7 +56,7 @@ namespace cms { namespace cfg {
       void setActive(bool active) {
         this->bActive = active;
         if (active)
-          std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+          std::cout << "!!! Configurator::setActive; configurator set to active = TRUE, use for development only!!!\n" << std::endl;
       }
 
       ModelCollection& getModelCollection() { return *this->modelCollection; }
@@ -95,6 +98,74 @@ namespace cms { namespace cfg {
         auto pp = new cms::State<Signature>();
         this->states[id] = pp;
         return pp;
+      }
+
+    public: // helper methods
+
+      CompiledScriptFunc compileScript(const std::string& script) {
+        std::smatch match;
+
+        { std::regex expr("^emit:(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            auto pSignal = this->getSignal<void()>(match[1]);
+            return [pSignal](){ pSignal->emit(); };
+          }
+        }
+
+        { std::regex expr("^toggle:(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            auto pState = this->getState<bool>(match[1]);
+            return [pState](){
+              pState->operator=(!pState->val());
+            };
+          }
+        }
+
+        { std::regex expr("^\\+(\\d+):(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            int delta = cms::deserialiseInt(match[1], 0);
+            auto pState = this->getState<int>(match[2]);
+
+            return [pState, delta](){
+              pState->operator=(pState->val()+delta);
+            };
+          }
+        }
+
+        { std::regex expr("^\\-(\\d+):(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            int delta = cms::deserialiseInt(match[1], 0);
+            auto pState = this->getState<int>(match[2]);
+
+            return [pState, delta](){
+              pState->operator=(pState->val()-delta);
+            };
+          }
+        }
+
+        { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            auto delta = cms::deserialiseFloat(match[1], 0.0f);
+            auto pState = this->getState<float>(match[2]);
+
+            return [pState, delta](){
+              pState->operator=(pState->val()+delta);
+            };
+          }
+        }
+
+        { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
+          if( std::regex_match(script, match, expr) ) {
+            auto delta = cms::deserialiseFloat(match[1], 0.0f);
+            auto pState = this->getState<float>(match[2]);
+
+            return [pState, delta](){
+              pState->operator=(pState->val()-delta);
+            };
+          }
+        }
+
+        return [](){};
       }
 
     public: // cfgs

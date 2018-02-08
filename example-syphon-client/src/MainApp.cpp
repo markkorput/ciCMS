@@ -35,13 +35,15 @@ class MainApp : public App {
 };
 
 void MainApp::setup(){
+  // configure our builder and configurator
   builder.addDefaultInstantiator<Runner>("Runner");
   builder.addDefaultInstantiator<Keyboard>("Keyboard");
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-
   builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
+
+  // build our application hierarchy
   pRunner = builder.build<Runner>("Runner");
 }
 
