@@ -2,17 +2,15 @@
 
 #include <map>
 #include <iostream>
+#include <regex>
 // blocks
-#include "ctree/signal.hpp"
-#include "ctree/node.h"
 #include "ciCMS/cfg/Configurator.h"
-#include "ciCMS/cfg/ctree/Builder.h"
-#include "ciCMS/cfg/ctree/Node.h"
 #include "ciCMS/Model.h"
 #include "ciCMS/ModelCollection.h"
 #include "cinderSyphon.h"
 // local
 #include "Runner.h"
+#include "Keyboard.h"
 #include "SyphonClientRenderer.h"
 
 using namespace cms;
@@ -20,42 +18,10 @@ using namespace cms;
 // our custom configurator for our test-classes
 class Cfgr : public cms::cfg::Configurator {
   public:
-    typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
-
-  private:
-    std::map<std::string, void*> signals;
-    ObjectFetcherFunc objectFetcherFunc;
-
-  public:
-
     Cfgr() {
     }
 
     Cfgr(ModelCollection& mc) : cms::cfg::Configurator(mc) {
-    }
-
-  public: // getter/setters
-
-    void setObjectFetcher(ObjectFetcherFunc func){
-      this->objectFetcherFunc = func;
-    }
-
-    template <typename Signature>
-    ctree::Signal<Signature>* getSignal(const std::string& id) {
-      auto p = this->signals[id];
-
-      if (p != NULL) {
-        return (ctree::Signal<Signature>*)p;
-      }
-
-      auto pp = new ctree::Signal<Signature>();
-      this->signals[id] = pp;
-      return pp;
-    }
-
-    template<typename ObjT>
-    ObjT* getObject(const std::string& id) {
-      return this->objectFetcherFunc ? (ObjT*)this->objectFetcherFunc(id) : NULL;
     }
 
   public: // cfg
@@ -64,33 +30,39 @@ class Cfgr : public cms::cfg::Configurator {
       cms::cfg::Configurator::cfg(cfgr, data);
     }
 
-    // using cms::cfg::ctree::cfgWithModel;
-    void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
-      // TODO; take name from name attribute or otherwise default to last part
-      // (splitting by period (.) of the id)
-    }
-
     void cfg(Runner& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-
-      m.with("drawEmit", [this, &obj](const std::string& v){
+      read(data)
+      .with("drawEmit", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
         obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
+      })
+      .with("drawState", [this, &obj](const std::string& v){
+        auto pState = this->getState<bool>(v);
+        pState->operator=(true);
+        // obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
+        pState->push(obj.drawState);
       });
     }
 
+    void cfg(Keyboard& obj, const std::map<string, string>& data){
+      read(data)
+      .withRegex("^key:toggle:(.)$", [this, &obj](const std::smatch& match, const std::string& v){
+        // std::cout << "MATHC on key: " << match[1] << " with value: " << v << std::endl;
+        auto pState = this->getState<bool>(v);
+        obj.onKeyDown(match[1], [pState](){ pState->operator=(!pState->val()); });
+      });
+    }
+
+
     void cfg(syphonClient& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-      m.with("server", [&obj](const std::string& v){ obj.set("", v); });
+      read(data)
+      .with("server", [&obj](const std::string& v){ obj.set("", v); });
     }
 
     void cfg(SyphonClientRenderer& obj, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
+      read(data)
 
-      m.with("client", [this, &obj](const std::string& v){
+      .with("client", [this, &obj](const std::string& v){
         auto p = this->getObject<syphonClient>(v);
 
         if (!p) {
@@ -99,23 +71,15 @@ class Cfgr : public cms::cfg::Configurator {
         }
 
         obj.setSyphonClient(p);
-      });
+      })
 
-      m.with("drawOn", [this, &obj](const std::string& v){
+      .with("drawOn", [this, &obj](const std::string& v){
         auto pSignal = this->getSignal<void()>(v);
         pSignal->connect([&obj](){ obj.draw(); });
       });
     }
 
-    // overwrite Configurator's version, because that one only knows about
-    // the cfg methods in the Configurator class
-    template<typename T>
-    void cfgWithModel(T& c, Model& model){
-      this->apply(model, [this, &c](ModelBase& mod){
-        this->cfg(c, mod.attributes());
-      });
-    }
-
+    // cfg-by-data-id
     template<typename T>
     void cfg(T& obj, const std::string& modelId) {
       this->cfgWithModel<T>(obj, *this->getModelCollection().findById(modelId, true));

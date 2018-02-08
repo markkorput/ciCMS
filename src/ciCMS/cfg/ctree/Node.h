@@ -60,13 +60,14 @@ namespace cms { namespace cfg { namespace ctree {
       const std::string& getName(){ return name; }
 
     public: // methods
+
       template<typename T>
       T* getObject(){ return (T*)((long)this + sizeof(Node)); }
 
-    public:
-      std::function<void()> destroyFunc = nullptr;
+      void* getObjectPointer(){ return (void*)((long)this + sizeof(Node)); }
 
     private:
+      std::function<void()> destroyFunc = nullptr;
       // TODO; add some string type attribute for runtime type-checking?
       std::string name;
   };

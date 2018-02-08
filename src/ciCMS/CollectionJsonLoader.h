@@ -34,8 +34,9 @@ namespace cms {
             bool load(const ci::JsonTree& jsonTree){
                 bool allSuccess = true;
 
-                for(int idx=0; idx<jsonTree.getNumChildren(); idx++){
-                    auto subTree = jsonTree.getChild(idx);
+                // for(int idx=0; idx<jsonTree.getNumChildren(); idx++){
+                for(auto subTree : jsonTree.getChildren()) {
+                    // auto subTree = jsonTree.getChild(idx);
                     auto existingItemRef = findMatch(subTree, *this->collection);
                     auto itemRef = existingItemRef ? existingItemRef : this->collection->create();
                     allSuccess &= loadItem(subTree, itemRef);

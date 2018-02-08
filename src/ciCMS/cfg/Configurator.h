@@ -2,75 +2,133 @@
 
 #include <iostream>
 #include "ciCMS/ModelCollection.h"
+#include "ctree/signal.hpp"
+#include "CfgReader.hpp"
+#include "ciCMS/State.h"
 
 namespace cms { namespace cfg {
+
   class Configurator {
-  public:
-    typedef Model CfgData;
-    typedef std::map<string, string> CfgDataRaw;
+    public: // types
 
-    // class Applier {
-    //   public:
-    //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
-    //     };
-    //
-    //     template<typename ObjT>
-    //     void to(ObjT* obj){
-    //       cfg->cfgWithModel(*obj, data);
-    //     }
-    //
-    //   private:
-    //     Configurator* cfg;
-    //     CfgData& data;
-    // };
+      typedef Model CfgData;
+      typedef std::map<string, string> CfgDataRaw;
+      typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
 
-  public:
-    Configurator() : bActive(false), bPrivateModelCollection(true){
-      modelCollection = new ModelCollection();
-    }
+      // class Applier {
+      //   public:
+      //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
+      //     };
+      //
+      //     template<typename ObjT>
+      //     void to(ObjT* obj){
+      //       cfg->cfgWithModel(*obj, data);
+      //     }
+      //
+      //   private:
+      //     Configurator* cfg;
+      //     CfgData& data;
+      // };
 
-    Configurator(ModelCollection& mc) : bActive(false), bPrivateModelCollection(false), modelCollection(&mc) {
-    }
-
-    ~Configurator(){
-      if(bPrivateModelCollection && modelCollection){
-        delete modelCollection;
-        modelCollection = NULL;
+    public: // lifecycle methods
+      Configurator() : bActive(false), bPrivateModelCollection(true){
+        modelCollection = new ModelCollection();
       }
-    }
 
-    bool isActive() const { return this->bActive; }
-    void setActive(bool active) {
-      this->bActive = active;
-      if (active)
-        std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
-    }
+      Configurator(ModelCollection& mc) : bActive(false), bPrivateModelCollection(false), modelCollection(&mc) {
+      }
 
-    ModelCollection& getModelCollection() { return *this->modelCollection; }
+      ~Configurator(){
+        if(bPrivateModelCollection && modelCollection){
+          delete modelCollection;
+          modelCollection = NULL;
+        }
 
-    void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
-      model.transform(func, activeCallbackOwner, this->bActive);
-    }
+        std::cout << "TODO: deallocate all items in this.signals and this.states" << std::endl;
+      }
 
-    // shared_ptr<Applier> apply(CfgData& data) {
-    //   return std::make_shared<Applier>(this, data);
-    // }
+    public: // getters and setters
 
-    template<typename T>
-    void cfgWithModel(T& c, Model& model){
-      this->apply(model, [this, &c](ModelBase& mod){
-        this->cfg(c, mod.attributes());
-      });
-    }
+      bool isActive() const { return this->bActive; }
+      void setActive(bool active) {
+        this->bActive = active;
+        if (active)
+          std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+      }
 
-    void cfg(Configurator& c, const std::map<string, string>& data){
-      Model m;
-      m.set(data);
-      m.withBool("active", [&c](const bool& v){ c.setActive(v); });
-    }
+      ModelCollection& getModelCollection() { return *this->modelCollection; }
 
-  private:
-    bool bActive, bPrivateModelCollection;
-    ModelCollection* modelCollection;
+      void setObjectFetcher(ObjectFetcherFunc func){
+        this->objectFetcherFunc = func;
+      }
+
+      inline void* getObjectPointer(const std::string& id) {
+        return this->objectFetcherFunc ? this->objectFetcherFunc(id) : NULL;
+      }
+
+      template<typename ObjT>
+      ObjT* getObject(const std::string& id) {
+        return (ObjT*)this->getObjectPointer(id);
+      }
+
+      template <typename Signature>
+      ::ctree::Signal<Signature>* getSignal(const std::string& id) {
+        auto p = this->signals[id];
+
+        if (p != NULL) {
+          return (::ctree::Signal<Signature>*)p;
+        }
+
+        auto pp = new ::ctree::Signal<Signature>();
+        this->signals[id] = pp;
+        return pp;
+      }
+
+      template <typename Signature>
+      cms::State<Signature>* getState(const std::string& id) {
+        auto p = this->states[id];
+
+        if (p != NULL) {
+          return (cms::State<Signature>*)p;
+        }
+
+        auto pp = new cms::State<Signature>();
+        this->states[id] = pp;
+        return pp;
+      }
+
+    public: // cfgs
+
+      void apply(Model& model, Model::ModelTransformFunctor func, void* activeCallbackOwner = NULL){
+        model.transform(func, activeCallbackOwner, this->bActive);
+      }
+
+      // shared_ptr<Applier> apply(CfgData& data) {
+      //   return std::make_shared<Applier>(this, data);
+      // }
+
+      template<typename T>
+      void cfgWithModel(T& c, Model& model){
+        this->apply(model, [this, &c](ModelBase& mod){
+          this->cfg(c, mod.attributes());
+        });
+      }
+
+      void cfg(Configurator& c, const std::map<string, string>& data){
+        Model m;
+        m.set(data);
+        m.withBool("active", [&c](const bool& v){ c.setActive(v); });
+      }
+
+      static const CfgReader& read(const CfgDataRaw& data) {
+        return CfgReader::read(data);
+      }
+
+    private: // attributes
+      bool bActive, bPrivateModelCollection;
+      ModelCollection* modelCollection;
+      ObjectFetcherFunc objectFetcherFunc;
+      std::map<std::string, void*> signals;
+      std::map<std::string, void*> states;
   };
 }}

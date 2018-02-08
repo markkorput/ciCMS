@@ -10,7 +10,6 @@
 
 #include "ctree/signal.hpp"
 #include "Node.h"
-#include "Configurator.h"
 #include "../Builder.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
@@ -24,7 +23,6 @@ namespace cms { namespace cfg { namespace ctree {
   class Builder : public ::cms::cfg::Builder<Node> {
 
     public: // types
-
       typedef Node NodeT;
       typedef std::map<string, string> CfgDataRaw;
       typedef Model CfgData;
@@ -33,65 +31,20 @@ namespace cms { namespace cfg { namespace ctree {
         ::ctree::Node* node;
         void* object;
         CfgData* data;
+
         BuildArgs(::ctree::Node* n, void* o, CfgData* dat)
           : node(n), object(o), data(dat){}
       };
 
-      class Selection {
-        public:
-          Selection(NodeT& node) : node(&node) {
-          }
+      struct DestroyArgs {
+        ::ctree::Node* node;
+        void* object;
 
-          NodeT* getNode(){
-            return node;
-          }
-
-          template<typename ObjT>
-          ObjT* get(const string& path){
-            std::vector<string> strs;
-            boost::split(strs,path,boost::is_any_of("."));
-            unsigned int counter = 0;
-
-            std::string name = strs[0];
-
-            // loop over each child to find the one with this name
-            for(auto child : *node){
-              auto n = (NodeT*)child;
-
-              if (n->getName() == name) {
-                // no more sub-names? return this object for this child
-                if(strs.size() == 1){
-                  return (ObjT*)n->template getObject<ObjT>(n);
-                }
-
-                // remove first name (one we just found) and move to on level deeper
-                strs.erase(strs.begin());
-                return std::make_shared<Selection>(*n)->template get<ObjT>(boost::algorithm::join(strs, "."));
-              }
-            }
-
-            return NULL;
-          }
-
-          template<typename ObjT>
-          ObjT* getSibling(const string& path){
-            if (!node->parent()) {
-              return NULL;
-            }
-
-            Selection sel(*(NodeT*)node->parent());
-            return sel.get<ObjT>(path);
-          }
-
-          template<typename ObjT>
-          void attach(ObjT* obj){
-            auto objNode = (NodeT*)NodeT::fromObj<ObjT>(obj);
-            node->add(*objNode);
-          }
-
-        private:
-          NodeT* node;
+        DestroyArgs(::ctree::Node* n, void* o) : node(n), object(o) {}
       };
+
+      #include "builder/Registry.hpp"
+      #include "builder/Selection.hpp"
 
     public: // lifespan methods
 
@@ -115,6 +68,14 @@ namespace cms { namespace cfg { namespace ctree {
         this->setChilderFunc([](NodeT& parent, NodeT& child){
           parent.add(child);
         });
+
+        // TODO; make this optional for performance optimization?
+        this->registry = std::shared_ptr<Registry>(new Registry(this));
+
+        // give our configurator an object fetcher which looks for objects in our Registry
+        configurator->setObjectFetcher([this](const std::string& id){
+          return this->registry->getById(id);
+        });
       }
 
     public: // configuration methods
@@ -122,12 +83,14 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename T>
       void addDefaultInstantiator(const string& name){
         this->addInstantiator(name, [this, &name](CfgData& data){
-          auto node = NodeT::create<T>(name);
+          auto node = NodeT::create<T>(this->getName(data));
           // create ouw object
           auto object = node->template getObject<T>();
-          this->configurator->cfgWithModel(*object, data);
+          this->configurator->apply(data, [this, object](ModelBase& mod){
+            this->configurator->cfg(*object, mod.attributes());
+          });
           // attach it to a ctree node
-          this->configurator->cfgWithModel(*node, data);
+          // this->configurator->cfgWithModel(*node, data);
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
@@ -164,6 +127,9 @@ namespace cms { namespace cfg { namespace ctree {
           parent->erase((::ctree::Node*)n);
         }
 
+        DestroyArgs args(n, n->getObjectPointer());
+        destroySignal.emit(args);
+
         n->destroy();
       }
 
@@ -178,14 +144,11 @@ namespace cms { namespace cfg { namespace ctree {
         return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
       }
 
-    public: // signals
-      ::ctree::Signal<void(BuildArgs&)> buildSignal;
-
     protected: // helper methods
 
       std::string getName(CfgData& data){
-        // if (data.has("name"))
-        // return data.get("name");
+        if (data.has("_name"))
+          return data.get("_name");
 
         std::vector<string> strs;
         std::string id = data.getId();
@@ -193,11 +156,14 @@ namespace cms { namespace cfg { namespace ctree {
         return strs.back();
       }
 
-    protected: // attributes
-      CfgT* configurator;
+    public: // signals
+      ::ctree::Signal<void(BuildArgs&)> buildSignal;
+      ::ctree::Signal<void(DestroyArgs&)> destroySignal;
 
     private: // attributes
       bool bPrivateConfigurator;
+      CfgT* configurator;
+      std::shared_ptr<Registry> registry;
   };
 }}}
 #endif // CICMS_CTREE

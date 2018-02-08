@@ -1,3 +1,5 @@
+// stdlib
+#include <iostream>
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
@@ -11,6 +13,7 @@
 // local
 #include "Cfgr.h"
 #include "Runner.h"
+#include "Keyboard.h"
 #include "SyphonClientRenderer.h"
 
 using namespace ci;
@@ -26,23 +29,14 @@ class MainApp : public App {
     void draw() override;
     void keyDown(KeyEvent event) override;
 
-  // private:
+  private:
     cms::cfg::ctree::Builder<Cfgr> builder;
     Runner* pRunner;
-    std::map<std::string, void*> builtObjects;
 };
 
 void MainApp::setup(){
-  builder.buildSignal.connect([this](cms::cfg::ctree::Builder<Cfgr>::BuildArgs& args){
-    // CI_LOG_I("COLLECTED built object: " << args.data->getId());
-    this->builtObjects[args.data->getId()] = args.object;
-  });
-
-  builder.getConfigurator()->setObjectFetcher([this](const std::string& id){
-    return this->builtObjects[id];
-  });
-
   builder.addDefaultInstantiator<Runner>("Runner");
+  builder.addDefaultInstantiator<Keyboard>("Keyboard");
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
@@ -69,7 +63,9 @@ void MainApp::draw(){
 void MainApp::keyDown(KeyEvent event){
   switch(event.getChar()){
     case 'l': {
+      std::cout << "Re-Loading json data" << std::endl;
       builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
+      std::cout << "JSON collection size: " << builder.getModelCollection().size() << std::endl;
     }
     case 's': {
     }
