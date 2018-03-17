@@ -666,6 +666,12 @@ TEST_CASE("cms::Collection", ""){
         REQUIRE(col.at(2)->get("age") == "13");
     }
 
+    SECTION("loadJsonFromFile_missing_file"){
+      ModelCollection col;
+      auto p = ci::app::getAssetPath("foobar.json");
+      REQUIRE(!col.loadJsonFromFile(p));
+    }
+
     SECTION("toJsonString"){
         ModelCollection col;
         col.create()->set("value", "v1");
