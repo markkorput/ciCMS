@@ -11,6 +11,7 @@ class Registry {
       // register callback for when the builder builds an object
       connections.push_back(
         b->buildSignal.connect([this](BuildArgs& args){
+          // CI_LOG_I("Registry detected: " << this->identifierFunc(args));
           this->objectsById[this->identifierFunc(args)] = args.object;
         })
       );

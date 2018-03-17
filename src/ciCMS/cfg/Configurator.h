@@ -18,6 +18,11 @@ namespace cms { namespace cfg {
       typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
       typedef std::function<void()> CompiledScriptFunc;
 
+      struct ObjCallback {
+        std::string id;
+        std::function<void(void*)> func;
+      };
+
       // class Applier {
       //   public:
       //     Applier(Configurator* cfg, CfgData& data) : cfg(cfg), data(data){
@@ -65,6 +70,16 @@ namespace cms { namespace cfg {
         this->objectFetcherFunc = func;
       }
 
+      void notifyNewObject(void* obj, const CfgData& data) {
+        for(int i=objCallbacks.size()-1; i>=0; i--) {
+          auto oc = objCallbacks[i];
+          if(oc.id == data.getId()) {
+            oc.func(obj);
+            objCallbacks.erase(objCallbacks.begin()+i);
+          }
+        }
+      }
+
       inline void* getObjectPointer(const std::string& id) {
         return this->objectFetcherFunc ? this->objectFetcherFunc(id) : NULL;
       }
@@ -73,6 +88,27 @@ namespace cms { namespace cfg {
       ObjT* getObject(const std::string& id) {
         return (ObjT*)this->getObjectPointer(id);
       }
+
+      template<typename ObjT>
+      void withObject(const std::string& id, std::function<void(ObjT&)> func) {
+        auto p = this->getObject<ObjT>(id);
+
+        if(p) {
+          func(*p);
+          return;
+        }
+
+        // register callback to get invoked later
+
+        ObjCallback oc;
+        oc.id = id;
+        oc.func = [func](void* objPointer) {
+          func(*(ObjT*)objPointer);
+        };
+
+        this->objCallbacks.push_back(oc);
+      }
+
 
       template <typename Signature>
       ::ctree::Signal<Signature>* getSignal(const std::string& id) {
@@ -201,5 +237,8 @@ namespace cms { namespace cfg {
       ObjectFetcherFunc objectFetcherFunc;
       std::map<std::string, void*> signals;
       std::map<std::string, void*> states;
+
+      // object callbacks
+      std::vector<ObjCallback> objCallbacks;
   };
 }}
