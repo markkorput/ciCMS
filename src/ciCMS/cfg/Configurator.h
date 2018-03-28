@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <regex>
+#include "boost/algorithm/string.hpp"
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
 #include "CfgReader.hpp"
@@ -90,6 +91,23 @@ namespace cms { namespace cfg {
       }
 
       template<typename ObjT>
+      size_t getObjects(std::vector<ObjT*> target, const std::string& ids, const std::string& delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        size_t count=0;
+        for(auto& id : strings) {
+          auto p = (ObjT*)this->getObjectPointer(id);
+          if (p) {
+            target.push_back(p);
+            count += 1;
+          }
+        }
+
+        return count;
+      }
+
+      template<typename ObjT>
       void withObject(const std::string& id, std::function<void(ObjT&)> func) {
         auto p = this->getObject<ObjT>(id);
 
@@ -109,6 +127,15 @@ namespace cms { namespace cfg {
         this->objCallbacks.push_back(oc);
       }
 
+      template<typename ObjT>
+      void withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        for(auto& id : strings) {
+          this->withObject<ObjT>(id, func);
+        }
+      }
 
       template <typename Signature>
       ::ctree::Signal<Signature>* getSignal(const std::string& id) {
