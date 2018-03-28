@@ -20,6 +20,15 @@ namespace cms {
                 return model.get(attr) == value;
             });
         }
+
+        // void merge(const Model& source) {}
+        // void merge(const ModelCollection& source) {
+        //   for(int i=0; i<source.size(); i++) {
+        //       auto model = source.at(i);
+        //
+        //   }
+        // }
+
     private:
         std::string mIdAttributeName;
     };
@@ -41,22 +50,22 @@ namespace cms {
 #else
     template<>
     shared_ptr<Model> CollectionJsonLoader<Model>::findMatch(ci::JsonTree& jsonTree, CollectionBase<Model>& collection){
-    std::string id;
+        std::string id;
 
-    if(jsonTree.hasChild("id")) {
-      id = jsonTree.getValueForKey("id");
-    } else {
-      id = jsonTree.getKey();
-    }
-    // } else if (jsonTree.hasParent() && jsonTree.getParent().getNodeType() == ci::JsonTree::NODE_OBJECT) {
-    //   id = jsonTree.getKey();
-    // } else {
-    //   return nullptr;
-    // }
+        if(jsonTree.hasChild("id")) {
+          id = jsonTree.getValueForKey("id");
+        } else {
+          id = jsonTree.getKey();
+        }
+        // } else if (jsonTree.hasParent() && jsonTree.getParent().getNodeType() == ci::JsonTree::NODE_OBJECT) {
+        //   id = jsonTree.getKey();
+        // } else {
+        //   return nullptr;
+        // }
 
-    return collection.first([&id](shared_ptr<Model> modelRef) {
-      return modelRef->get("id") == id;
-    });
+        return collection.first([&id](shared_ptr<Model> modelRef) {
+          return modelRef->get("id") == id;
+        });
     }
 
     template<>

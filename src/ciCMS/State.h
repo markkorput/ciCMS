@@ -180,8 +180,8 @@ namespace cms {
     public: // reader methods
 
         const StateType& getRef(){ return value; }
-        StateType val(){ return value; }
-        bool isInitialized(){ return bInitialized; }
+        StateType val() const { return value; }
+        bool isInitialized() const { return bInitialized; }
 
     public: // advanced operations methods
 

@@ -38,8 +38,11 @@ namespace cms {
                 if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
                     fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
 
-                ci::JsonTree jsonTree(fileContentString);
+                return this->load(fileContentString);
+            }
 
+            bool load(const std::string& jsonString) {
+                ci::JsonTree jsonTree(jsonString);
                 return load(jsonTree);
             }
 
