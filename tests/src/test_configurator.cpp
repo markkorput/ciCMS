@@ -71,7 +71,7 @@ class Cfg : public Configurator, public CfgFacade, public CfgFlagFacade {
     }
 };
 
-TEST_CASE("cms::cfg::Configurator", ""){
+TEST_CASE("", "[cms::cfg::Configurator]"){
   SECTION("default_model_collection"){
     Configurator configurator;
     REQUIRE(configurator.getModelCollection().size() == 0);
@@ -176,6 +176,18 @@ TEST_CASE("cms::cfg::Configurator", ""){
     cfg.setObjectFetcher([&cfg](const std::string& id){ return &cfg; });
     REQUIRE(cfg.getObjectPointer("foo.bar") == &cfg);
     REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
+  }
+
+  SECTION("withObject") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("getObjects") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects") {
+    std::cerr << "TODO" << std::endl;
   }
 
   SECTION("compileScript"){
