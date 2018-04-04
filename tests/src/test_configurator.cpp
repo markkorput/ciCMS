@@ -253,5 +253,22 @@ TEST_CASE("", "[cms::cfg::Configurator]"){
       func(); func();
       REQUIRE(count == 6);
     }
+
+    {
+      int count1=0, count2=0;
+      cfg.getSignal<void()>("signaller")->connect([&count1](){ count1 += 1; });
+      cfg.getState<bool>("toggler")->push([&count2](const bool& v){ count2 += 1; });
+
+      REQUIRE(count1 == 0);
+      REQUIRE(count2 == 0);
+
+      auto func = cfg.compileScript("emit:signaller;toggle:toggler");
+      func();
+      REQUIRE(count1 == 1);
+      REQUIRE(count2 == 1);
+      func(); func();
+      REQUIRE(count1 == 3);
+      REQUIRE(count2 == 3);
+    }
   }
 }

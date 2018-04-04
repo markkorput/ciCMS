@@ -166,69 +166,79 @@ namespace cms { namespace cfg {
     public: // helper methods
 
       CompiledScriptFunc compileScript(const std::string& script) {
+        std::vector<std::string> scripts;
+        boost::split(scripts, script, boost::is_any_of(";"));
+
+        auto funcRefs = std::make_shared<std::vector<CompiledScriptFunc>>();
         std::smatch match;
 
-        { std::regex expr("^emit:(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            auto pSignal = this->getSignal<void()>(match[1]);
-            return [pSignal](){ pSignal->emit(); };
+        for(auto& src : scripts) {
+          { std::regex expr("^emit:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto pSignal = this->getSignal<void()>(match[1]);
+              funcRefs->push_back( [pSignal](){ pSignal->emit(); } );
+            }
           }
+
+          { std::regex expr("^toggle:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto pState = this->getState<bool>(match[1]);
+              funcRefs->push_back( [pState](){
+                pState->operator=(!pState->val());
+              } );
+            }
+          }
+
+          { std::regex expr("^\\+(\\d+):(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              int delta = cms::deserialiseInt(match[1], 0);
+              auto pState = this->getState<int>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()+delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\-(\\d+):(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              int delta = cms::deserialiseInt(match[1], 0);
+              auto pState = this->getState<int>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()-delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto delta = cms::deserialiseFloat(match[1], 0.0f);
+              auto pState = this->getState<float>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()+delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto delta = cms::deserialiseFloat(match[1], 0.0f);
+              auto pState = this->getState<float>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()-delta);
+              } );
+            }
+          }
+
+          // return [](){};
         }
 
-        { std::regex expr("^toggle:(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            auto pState = this->getState<bool>(match[1]);
-            return [pState](){
-              pState->operator=(!pState->val());
-            };
-          }
-        }
-
-        { std::regex expr("^\\+(\\d+):(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            int delta = cms::deserialiseInt(match[1], 0);
-            auto pState = this->getState<int>(match[2]);
-
-            return [pState, delta](){
-              pState->operator=(pState->val()+delta);
-            };
-          }
-        }
-
-        { std::regex expr("^\\-(\\d+):(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            int delta = cms::deserialiseInt(match[1], 0);
-            auto pState = this->getState<int>(match[2]);
-
-            return [pState, delta](){
-              pState->operator=(pState->val()-delta);
-            };
-          }
-        }
-
-        { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            auto delta = cms::deserialiseFloat(match[1], 0.0f);
-            auto pState = this->getState<float>(match[2]);
-
-            return [pState, delta](){
-              pState->operator=(pState->val()+delta);
-            };
-          }
-        }
-
-        { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
-          if( std::regex_match(script, match, expr) ) {
-            auto delta = cms::deserialiseFloat(match[1], 0.0f);
-            auto pState = this->getState<float>(match[2]);
-
-            return [pState, delta](){
-              pState->operator=(pState->val()-delta);
-            };
-          }
-        }
-
-        return [](){};
+        return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {
+          for(auto func : (*funcRefs)) { func(); }
+        };
       }
 
     public: // cfgs
