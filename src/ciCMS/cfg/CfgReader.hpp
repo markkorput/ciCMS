@@ -74,27 +74,27 @@ namespace cms { namespace cfg {
   public: // conversion methods
 
     int getInt(const string& attr, int defaultValue) const {
-      return cms::deserialiseInt(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseInt(this->at(attr), defaultValue) : defaultValue;
     }
 
     float getFloat(const string& attr, float defaultValue) const {
-      return cms::deserialiseFloat(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseFloat(this->at(attr), defaultValue) : defaultValue;
     }
 
     bool getBool(const string& attr, bool defaultValue) const {
-      return cms::deserialiseBool(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseBool(this->at(attr), defaultValue) : defaultValue;
     }
 
     glm::vec2 getVec2(const string& attr, const glm::vec2& defaultValue) const {
-      return cms::deserialiseVec2(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseVec2(this->at(attr), defaultValue) : defaultValue;
     }
 
     glm::vec3 getVec3(const string& attr, const glm::vec3& defaultValue) const {
-      return cms::deserialiseVec3(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseVec3(this->at(attr), defaultValue) : defaultValue;
     }
 
     ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue) const {
-      return cms::deserialiseColor(this->at(attr), defaultValue);
+      return has(attr) ? cms::deserialiseColor(this->at(attr), defaultValue) : defaultValue;
     }
   };
 }}
