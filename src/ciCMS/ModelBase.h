@@ -3,6 +3,7 @@
 #include <memory>
 #include <functional>
 #include "cinder/app/App.h"
+#include "cinder/app/App.h"
 // #include "cinder/Signals.h"
 
 using namespace std;
@@ -64,7 +65,19 @@ namespace cms {
         //! this virtual method is called whenever an attribute is changed (using this->set()) and can be overwritten be inheriting classes
         virtual void onAttributeChanged(const string &attr, const string &value, const string &old_value){}
 
-    public: // conversion getters
+    public: // attribute conversions
+
+    ModelBase* set(const string &attr, bool val, bool notify = true) {
+        return this->set(attr, val ? "true" : "false", notify);
+    }
+
+        ModelBase* set(const string &attr, const ci::vec2& val, bool notify = true) {
+            return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y), notify);
+        }
+
+        ModelBase* set(const string &attr, const ci::vec3& val, bool notify = true) {
+            return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y) +","+std::to_string(val.z), notify);
+        }
 
         int getInt(const string& attr, int defaultValue = 0);
         float getFloat(const string& attr, float defaultValue = 0.0f);
