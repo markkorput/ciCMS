@@ -137,6 +137,18 @@ namespace cms { namespace cfg {
         }
       }
 
+      template<typename ObjT>
+      void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        for(auto& id : strings) {
+          this->withObject<ObjT>(id, [func, id](ObjT& obj) {
+            func(obj, id);
+          });
+        }
+      }
+
       template <typename Signature>
       ::ctree::Signal<Signature>* getSignal(const std::string& id) {
         auto p = this->signals[id];

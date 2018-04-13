@@ -190,6 +190,10 @@ TEST_CASE("", "[cms::cfg::Configurator]"){
     std::cerr << "TODO" << std::endl;
   }
 
+  SECTION("withObjects_with_id") {
+
+  }
+
   SECTION("compileScript"){
     Configurator cfg;
     {
