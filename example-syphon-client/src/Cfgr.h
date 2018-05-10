@@ -46,10 +46,11 @@ class Cfgr : public cms::cfg::Configurator {
 
     void cfg(Keyboard& obj, const std::map<string, string>& data){
       read(data)
-      .withRegex("^key:toggle:(.)$", [this, &obj](const std::smatch& match, const std::string& v){
-        // std::cout << "MATHC on key: " << match[1] << " with value: " << v << std::endl;
-        auto pState = this->getState<bool>(v);
-        obj.onKeyDown(match[1], [pState](){ pState->operator=(!pState->val()); });
+      .withRegex("^key:(.)$", [this, &obj](const std::smatch& match, const std::string& v){
+        // compile lambda func based on script in attribute value
+        auto func = this->compileScript(v);
+        // register func as action to be performed when the specified key is pressed
+        obj.onKeyDown(match[1], func);
       });
     }
 

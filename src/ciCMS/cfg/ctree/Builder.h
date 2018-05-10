@@ -94,6 +94,7 @@ namespace cms { namespace cfg { namespace ctree {
           // emit signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
+          this->configurator->notifyNewObject(object, data);
           // return result
           return node;
         });

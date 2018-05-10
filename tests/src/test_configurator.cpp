@@ -71,7 +71,7 @@ class Cfg : public Configurator, public CfgFacade, public CfgFlagFacade {
     }
 };
 
-TEST_CASE("cms::cfg::Configurator", ""){
+TEST_CASE("", "[cms::cfg::Configurator]"){
   SECTION("default_model_collection"){
     Configurator configurator;
     REQUIRE(configurator.getModelCollection().size() == 0);
@@ -176,5 +176,103 @@ TEST_CASE("cms::cfg::Configurator", ""){
     cfg.setObjectFetcher([&cfg](const std::string& id){ return &cfg; });
     REQUIRE(cfg.getObjectPointer("foo.bar") == &cfg);
     REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
+  }
+
+  SECTION("withObject") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("getObjects") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects_with_id") {
+
+  }
+
+  SECTION("compileScript"){
+    Configurator cfg;
+    {
+      auto toggleFunc = cfg.compileScript("toggle:turnedOn");
+      cfg.getState<bool>("turnedOn")->operator=(false);
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+      toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+      toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+      toggleFunc(); toggleFunc();
+      REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    }
+
+    {
+      auto func = cfg.compileScript("+1:someInt");
+      cfg.getState<int>("someInt")->operator=(1);
+      REQUIRE(cfg.getState<int>("someInt")->val() == 1);
+      func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 2);
+      func();func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 4);
+    }
+
+    {
+      auto func = cfg.compileScript("-3:someInt");
+      REQUIRE(cfg.getState<int>("someInt")->val() == 4);
+      func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == 1);
+      func();func();
+      REQUIRE(cfg.getState<int>("someInt")->val() == -5);
+    }
+
+    {
+      auto func = cfg.compileScript("+4.6:someFloat");
+      cfg.getState<float>("someFloat")->operator=(1.0f);
+      REQUIRE(cfg.getState<float>("someFloat")->val() == 1.0f);
+      func();
+      REQUIRE(cfg.getState<float>("someFloat")->val() == 5.6f);
+      func();func();
+      REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()-14.8f) < 0.0001f);
+    }
+
+    {
+      auto func = cfg.compileScript("-3.2:someFloat");
+      cfg.getState<float>("someFloat")->operator=(1.0f);
+      func();
+      REQUIRE(cfg.getState<float>("someFloat")->val() == -2.2f);
+      func();func();
+      REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()+8.6f) < 0.0001f);
+    }
+
+    {
+      int count = 0;
+      cfg.getSignal<void()>("foobar")->connect([&count](){ count += 2; });
+      REQUIRE(count == 0);
+
+      auto func = cfg.compileScript("emit:foobar");
+      func();
+      REQUIRE(count == 2);
+      func(); func();
+      REQUIRE(count == 6);
+    }
+
+    {
+      int count1=0, count2=0;
+      cfg.getSignal<void()>("signaller")->connect([&count1](){ count1 += 1; });
+      cfg.getState<bool>("toggler")->push([&count2](const bool& v){ count2 += 1; });
+
+      REQUIRE(count1 == 0);
+      REQUIRE(count2 == 0);
+
+      auto func = cfg.compileScript("emit:signaller;toggle:toggler");
+      func();
+      REQUIRE(count1 == 1);
+      REQUIRE(count2 == 1);
+      func(); func();
+      REQUIRE(count1 == 3);
+      REQUIRE(count2 == 3);
+    }
   }
 }

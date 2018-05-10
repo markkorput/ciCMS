@@ -1,7 +1,12 @@
 #pragma once
 
+// stdlib
+#include <sys/stat.h>
+#include <unistd.h>
+// cinder
 #include "cinder/app/App.h"
 #include "cinder/Json.h"
+// local
 #include "CollectionBase.h"
 
 namespace cms {
@@ -20,14 +25,24 @@ namespace cms {
             }
 
             bool load(){
+                // check if file exists
+                struct stat buffer;
+                if (stat (filePath.c_str(), &buffer) != 0) {
+                    // log file-not-exist warning?
+                    return false;
+                }
+
                 auto dataSourceRef = ci::loadFile(filePath);
                 string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
 
                 if(fileContentString.length() > dataSourceRef->getBuffer()->getSize())
                     fileContentString.resize( dataSourceRef->getBuffer()->getSize() );
 
-                ci::JsonTree jsonTree(fileContentString);
+                return this->load(fileContentString);
+            }
 
+            bool load(const std::string& jsonString) {
+                ci::JsonTree jsonTree(jsonString);
                 return load(jsonTree);
             }
 

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <iostream>
+#include <regex>
+#include "boost/algorithm/string.hpp"
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
 #include "CfgReader.hpp"
 #include "ciCMS/State.h"
+#include "ciCMS/deserialise.h"
 
 namespace cms { namespace cfg {
 
@@ -14,6 +17,12 @@ namespace cms { namespace cfg {
       typedef Model CfgData;
       typedef std::map<string, string> CfgDataRaw;
       typedef std::function<void*(const std::string&)> ObjectFetcherFunc;
+      typedef std::function<void()> CompiledScriptFunc;
+
+      struct ObjCallback {
+        std::string id;
+        std::function<void(void*)> func;
+      };
 
       // class Applier {
       //   public:
@@ -44,7 +53,7 @@ namespace cms { namespace cfg {
           modelCollection = NULL;
         }
 
-        std::cout << "TODO: deallocate all items in this.signals and this.states" << std::endl;
+        std::cout << "T O D O: deallocate all items in this.signals and this.states" << std::endl;
       }
 
     public: // getters and setters
@@ -53,13 +62,23 @@ namespace cms { namespace cfg {
       void setActive(bool active) {
         this->bActive = active;
         if (active)
-          std::cout << "Configurator::setActive; configurator set to active = TRUE, use for development only!" << std::endl;
+          std::cout << "!!! Configurator::setActive; configurator set to active = TRUE, use for development only!!!\n" << std::endl;
       }
 
       ModelCollection& getModelCollection() { return *this->modelCollection; }
 
       void setObjectFetcher(ObjectFetcherFunc func){
         this->objectFetcherFunc = func;
+      }
+
+      void notifyNewObject(void* obj, const CfgData& data) {
+        for(int i=objCallbacks.size()-1; i>=0; i--) {
+          auto oc = objCallbacks[i];
+          if(oc.id == data.getId()) {
+            oc.func(obj);
+            objCallbacks.erase(objCallbacks.begin()+i);
+          }
+        }
       }
 
       inline void* getObjectPointer(const std::string& id) {
@@ -69,6 +88,65 @@ namespace cms { namespace cfg {
       template<typename ObjT>
       ObjT* getObject(const std::string& id) {
         return (ObjT*)this->getObjectPointer(id);
+      }
+
+      template<typename ObjT>
+      size_t getObjects(std::vector<ObjT*> target, const std::string& ids, const std::string& delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        size_t count=0;
+        for(auto& id : strings) {
+          auto p = (ObjT*)this->getObjectPointer(id);
+          if (p) {
+            target.push_back(p);
+            count += 1;
+          }
+        }
+
+        return count;
+      }
+
+      template<typename ObjT>
+      void withObject(const std::string& id, std::function<void(ObjT&)> func) {
+        auto p = this->getObject<ObjT>(id);
+
+        if(p) {
+          func(*p);
+          return;
+        }
+
+        // register callback to get invoked later
+
+        ObjCallback oc;
+        oc.id = id;
+        oc.func = [func](void* objPointer) {
+          func(*(ObjT*)objPointer);
+        };
+
+        this->objCallbacks.push_back(oc);
+      }
+
+      template<typename ObjT>
+      void withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        for(auto& id : strings) {
+          this->withObject<ObjT>(id, func);
+        }
+      }
+
+      template<typename ObjT>
+      void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",") {
+        std::vector<std::string> strings;
+        boost::split(strings, ids, boost::is_any_of(delimiter));
+
+        for(auto& id : strings) {
+          this->withObject<ObjT>(id, [func, id](ObjT& obj) {
+            func(obj, id);
+          });
+        }
       }
 
       template <typename Signature>
@@ -95,6 +173,84 @@ namespace cms { namespace cfg {
         auto pp = new cms::State<Signature>();
         this->states[id] = pp;
         return pp;
+      }
+
+    public: // helper methods
+
+      CompiledScriptFunc compileScript(const std::string& script) {
+        std::vector<std::string> scripts;
+        boost::split(scripts, script, boost::is_any_of(";"));
+
+        auto funcRefs = std::make_shared<std::vector<CompiledScriptFunc>>();
+        std::smatch match;
+
+        for(auto& src : scripts) {
+          { std::regex expr("^emit:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto pSignal = this->getSignal<void()>(match[1]);
+              funcRefs->push_back( [pSignal](){ pSignal->emit(); } );
+            }
+          }
+
+          { std::regex expr("^toggle:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto pState = this->getState<bool>(match[1]);
+              funcRefs->push_back( [pState](){
+                pState->operator=(!pState->val());
+              } );
+            }
+          }
+
+          { std::regex expr("^\\+(\\d+):(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              int delta = cms::deserialiseInt(match[1], 0);
+              auto pState = this->getState<int>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()+delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\-(\\d+):(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              int delta = cms::deserialiseInt(match[1], 0);
+              auto pState = this->getState<int>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()-delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto delta = cms::deserialiseFloat(match[1], 0.0f);
+              auto pState = this->getState<float>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()+delta);
+              } );
+            }
+          }
+
+          { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
+            if( std::regex_match(src, match, expr) ) {
+              auto delta = cms::deserialiseFloat(match[1], 0.0f);
+              auto pState = this->getState<float>(match[2]);
+
+              funcRefs->push_back( [pState, delta](){
+                pState->operator=(pState->val()-delta);
+              } );
+            }
+          }
+
+          // return [](){};
+        }
+
+        return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {
+          for(auto func : (*funcRefs)) { func(); }
+        };
       }
 
     public: // cfgs
@@ -130,5 +286,8 @@ namespace cms { namespace cfg {
       ObjectFetcherFunc objectFetcherFunc;
       std::map<std::string, void*> signals;
       std::map<std::string, void*> states;
+
+      // object callbacks
+      std::vector<ObjCallback> objCallbacks;
   };
 }}

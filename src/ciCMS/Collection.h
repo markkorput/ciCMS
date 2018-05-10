@@ -63,6 +63,12 @@ namespace cms {
                 return loader.load();
             }
 
+            bool loadJson(const std::string& jsonString){
+                CollectionJsonLoader<ItemType> loader;
+                loader.setup(*this);
+                return loader.load(jsonString);
+            }
+
             bool loadJson(const ci::JsonTree& jsonTree){
                 CollectionJsonLoader<ItemType> loader;
                 loader.setup(*this);
