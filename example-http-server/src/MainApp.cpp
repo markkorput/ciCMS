@@ -1,5 +1,6 @@
 // stdlib
 #include <iostream>
+
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
@@ -88,6 +89,58 @@ void MainApp::loadCfgData() {
     CI_LOG_I("Loaded Asset config");
 
   builder.getModelCollection().loadJson(tmpCol.toJsonString());
+}
+
+
+#include <boost/network/protocol/http/server.hpp>
+
+namespace http = boost::network::http;
+
+/*<< Defines the server. >>*/
+struct hello_world;
+typedef http::server<hello_world> server;
+
+/*<< Defines the request handler.  It's a class that defines two
+     functions, `operator()` and `log()` >>*/
+struct hello_world {
+  /*<< This is the function that handles the incoming request. >>*/
+  void operator()(server::request const &request, server::connection_ptr connection) {
+    server::string_type ip = source(request);
+    unsigned int port = request.source_port;
+    std::ostringstream data;
+    data << "Hello, " << ip << ':' << port << '!';
+
+    std::map<std::string, std::string> headers = {
+      {"Content-Length", "0"},
+      {"Content-Type", "text/plain"},
+    };
+
+    auto body = data.str();
+    headers["Content-Length"] = std::to_string(body.size());
+
+    connection->set_status(server::connection::ok);
+    connection->set_headers(headers);
+    connection->write(body);
+  }
+};
+
+int httpTest() {
+
+  try {
+    /*<< Creates the request handler. >>*/
+    hello_world handler;
+    /*<< Creates the server. >>*/
+    server::options options(handler);
+    server server_(options.address("0.0.0.0").port("8080")); //options.address(argv[1]).port(argv[2]));
+    /*<< Runs the server. >>*/
+    server_.run();
+  }
+  catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    return 1;
+  }
+
+  return 0;
 }
 
 CINDER_APP( MainApp, RendererGl )
