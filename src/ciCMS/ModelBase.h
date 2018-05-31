@@ -3,7 +3,6 @@
 #include <memory>
 #include <functional>
 #include "cinder/app/App.h"
-#include "cinder/app/App.h"
 // #include "cinder/Signals.h"
 
 using namespace std;

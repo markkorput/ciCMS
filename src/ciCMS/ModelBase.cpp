@@ -5,6 +5,7 @@
 using namespace cms;
 
 ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
+  CI_LOG_I("New Value: ");
     if(isLocked()){
         CI_LOG_V("model locked; queueing .set operation for attribute: " << attr);
         modQueueRefs.push_back(make_shared<Mod>(attr, value, notify));
@@ -12,9 +13,9 @@ ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
     }
 
     string old_value = _attributes[attr];
-
-    _attributes[attr] = value;
-    onSetAttribute(attr, value);
+    string new_value = value;
+    _attributes[attr] = new_value;
+    onSetAttribute(attr, new_value);
 
     if(notify && old_value != value){
         AttrChangeArgs args;
