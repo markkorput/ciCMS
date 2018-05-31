@@ -1,0 +1,5 @@
+{
+  "Cfgr": {"active": true},
+  "Runner": {"drawEmit": "draw", "exitEmit":"exit", "drawState":"drawEnabled" },
+  "Runner.Keyboard": {"key:d": "toggle:drawEnabled"}
+}
