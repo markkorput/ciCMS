@@ -30,6 +30,9 @@ class MainApp : public App {
     void keyDown(KeyEvent event) override;
 
   private:
+    void loadCfgData();
+
+  private:
     cms::cfg::ctree::Builder<Cfgr> builder;
     Runner* pRunner;
 };
@@ -38,7 +41,7 @@ void MainApp::setup(){
   // configure our builder and configurator
   builder.addDefaultInstantiator<Runner>("Runner");
   builder.addDefaultInstantiator<Keyboard>("Keyboard");
-  builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
+  this->loadCfgData();
   builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
 
   // build our application hierarchy
@@ -62,14 +65,29 @@ void MainApp::draw(){
 
 void MainApp::keyDown(KeyEvent event){
   switch(event.getChar()){
-    case 'l': {
-      std::cout << "Re-Loading json data" << std::endl;
-      builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-      std::cout << "JSON collection size: " << builder.getModelCollection().size() << std::endl;
-    }
-    case 's': {
-    }
+    case 'l': { loadCfgData(); break; }
+    case 's': { }
   }
+}
+
+void MainApp::loadCfgData() {
+  cms::ModelCollection tmpCol;
+
+  // default; embedded config
+  if(tmpCol.loadJsonFromFile(ci::app::getResourcePath("config.json")))
+    CI_LOG_I("Loaded Resource config");
+
+  // if found; AppData file settings will overwrite default resource file settings
+  // std::string appdataPath = std::getenv("HOME");
+  // appdataPath += "/Library/Application Support/APPLICATION_NAME/config.json";
+  // if(tmpCol.loadJsonFromFile(appdataPath))
+  //   CI_LOG_I("Loaded AppData config");
+
+  // if found; config asset file settings will overwrite default resource file settings
+  if(tmpCol.loadJsonFromFile(ci::app::getAssetPath("config.json")))
+    CI_LOG_I("Loaded Asset config");
+
+  builder.getModelCollection().loadJson(tmpCol.toJsonString());
 }
 
 CINDER_APP( MainApp, RendererGl )
