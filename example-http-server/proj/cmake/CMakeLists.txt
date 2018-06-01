@@ -8,7 +8,7 @@ get_filename_component( APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE )
 
 include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 
-FILE(GLOB APP_SOURCES ${APP_PATH}/src/*.cpp)
+FILE(GLOB APP_SOURCES ${APP_PATH}/src/*.cpp ${APP_PATH}/src/*/*.cpp)
 
 add_definitions(-DCICMS_CTREE)
 

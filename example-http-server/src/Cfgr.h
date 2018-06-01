@@ -11,6 +11,7 @@
 // local
 #include "Runner.h"
 #include "Keyboard.h"
+#include "components/HttpServer.h"
 
 using namespace cms;
 
@@ -66,6 +67,15 @@ class Cfgr : public cms::cfg::Configurator {
         // register func as action to be performed when the specified key is pressed
         obj.onKeyDown(match[1], func);
       });
+    }
+
+    void cfg(HttpServer& obj, const std::map<string, string>& data){
+      read(data)
+      .withInt("port", [&obj](const int& v){
+        obj.setPort(v);
+      });
+
+      obj.start(true /* force restart */);
     }
 
     // cfg-by-data-id

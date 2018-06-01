@@ -1,5 +1,6 @@
 {
   "Cfgr": {"active": true},
   "Runner": {"drawEmit": "draw", "exitEmit":"exit", "drawState":"drawEnabled" },
-  "Runner.Keyboard": {"key:d": "toggle:drawEnabled"}
+  "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
+  "Runner.HttpServer": {"port": 8082}
 }
