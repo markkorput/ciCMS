@@ -1,6 +1,12 @@
 {
   "Cfgr": {"active": true},
-  "Runner": {"drawEmit": "draw", "exitEmit":"exit", "drawState":"drawEnabled" },
+  "Runner": {"drawEmit": "draw", "exitEmit":"exit", "drawState":"drawEnabled", "exitSignal":"cmd-quit" },
   "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
-  "Runner.HttpServer": {"port": 8082}
+
+  "Runner.HttpServer": {"port": 8082, "requestEmit": "httpRequest"},
+
+  "Runner.HttpFileServer": {"requestSignal": "httpRequest", "folder": "/Users/mark/Desktop/TEST"},
+
+  "Runner.HttpPathHandler": {"requestSignal": "httpRequest", "pathEmit": "http-api1-ctrl", "handle": "/api-v1/ctrl"},
+  "Runner.HttpPathHandler.api1.quit": {"type": "HttpPathHandler", "pathSignal": "http-api1-ctrl", "scope": "/quit", "emit": "cmd-quit"}
 }

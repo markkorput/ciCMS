@@ -59,6 +59,8 @@ void MainApp::cleanup() {
 }
 
 void MainApp::update(){
+  if (!pRunner->update())
+    this->quit();
 }
 
 void MainApp::draw(){

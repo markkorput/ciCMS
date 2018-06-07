@@ -56,6 +56,9 @@ class Cfgr : public cms::cfg::Configurator {
         pState->operator=(true);
         // obj.drawSignal.connect([pSignal](){ pSignal->emit(); });
         pState->push(obj.drawState);
+      })
+      .with("exitSignal", [this, &obj](const std::string& v){
+        this->onSignals<void()>(v, [&obj](){ obj.stop(); });
       });
     }
 
@@ -73,6 +76,11 @@ class Cfgr : public cms::cfg::Configurator {
       read(data)
       .withInt("port", [&obj](const int& v){
         obj.setPort(v);
+      })
+      .withBool("queue", [&obj](const bool& v){ obj.setQueue(v); })
+      .with("requestEmit", [this, &obj](const std::string& v){
+        auto pSignal = this->getSignal<void(const HttpServer::Request& r, HttpServer::ConnectionPtr c)>(v);
+        obj.requestSignal.connect([pSignal](const HttpServer::Request& r, HttpServer::ConnectionPtr c){ pSignal->emit(r, c); });
       });
 
       obj.start(true /* force restart */);

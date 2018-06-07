@@ -2,6 +2,7 @@
 
 // cinder
 #include "cinder/gl/gl.h"
+#include "cinder/app/App.h"
 #include "cinder/Log.h"
 // blocks
 #include "ctree/signal.hpp"
@@ -35,8 +36,14 @@ class Runner {
       }
     }
 
-    void update() {
+    bool update() {
+      if (bExited) return false;
       updateSignal.emit();
+      return true;
+    }
+
+    void stop() {
+      this->destroy(); // for now
     }
 
   public:

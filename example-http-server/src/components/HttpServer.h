@@ -1,71 +1,72 @@
 #pragma once
 
+// cpp-netlib
 #include <boost/network/protocol/http/server.hpp>
+// ciCMS
+#include "ctree/signal.hpp"
 
 namespace http = boost::network::http;
 
 class HttpServer {
 
-  private: // private (sub-types)
+  public: // private (sub-types)
 
     struct LambdaHandler;
     typedef http::server<LambdaHandler> LambdaHandlerServer;
     typedef std::function<void(LambdaHandlerServer::request const &request, LambdaHandlerServer::connection_ptr connection)> RequestHandlerFunc;
 
-    struct LambdaHandler {
-      void operator()(LambdaHandlerServer::request const &request, LambdaHandlerServer::connection_ptr connection) {
-        // if (func) func(request, connection);
+    using Request = LambdaHandlerServer::request;
+    using ConnectionPtr = LambdaHandlerServer::connection_ptr;
+    typedef std::function<bool(Request const &request, ConnectionPtr connection)> HttpHandlerFunc;
 
-        // get client info
-        HttpServer::LambdaHandlerServer::string_type ip = source(request);
-        unsigned int port = request.source_port;
+    class LambdaHandler {
+      public:
+        void operator()(LambdaHandlerServer::request const &request, LambdaHandlerServer::connection_ptr connection);
 
-        // response body
-        std::ostringstream data;
-        data << "Hello, " << ip << ':' << port << '!';
+      private:
+        void fallback(LambdaHandlerServer::request const &request, LambdaHandlerServer::connection_ptr connection);
 
-        // response headers
-        std::map<std::string, std::string> headers = {
-          {"Content-Length", "0"},
-          {"Content-Type", "text/plain"},
-        };
-
-        auto body = data.str();
-        headers["Content-Length"] = std::to_string(body.size());
-
-        // respond
-        connection->set_status(HttpServer::LambdaHandlerServer::connection::ok);
-        connection->set_headers(headers);
-        connection->write(body);
-
-        std::cout << "Responded to HTTP request with: " << body << std::endl;
-      };
-
-      RequestHandlerFunc func = nullptr;
+      public:
+        std::vector<HttpHandlerFunc> httpHandlerFuncs;
     };
 
-  public:
+  public: // API
 
+    HttpServer();
     ~HttpServer() { this->stop(); }
 
-    void setPort(int port) {
-      this->port = port;
-    }
+    void update();
 
     bool start(bool forceRestart=false);
     void stop();
 
-  private:
+    void setPort(int port) { this->port = port; }
+    void setQueue(bool queue) { this->bQueue = queue; }
+
+  public: // signals
+
+    // todo; put this signal in the our Handler class and give it a result collector that interrupts emits when a listener returns true
+    ctree::Signal<void(const LambdaHandlerServer::request&, LambdaHandlerServer::connection_ptr)> requestSignal;
+
+  private: // methods
 
     void serverThreadFunc();
+
+    void process(LambdaHandlerServer::request const &request, LambdaHandlerServer::connection_ptr connection) {
+      this->requestSignal.emit(request, connection);
+    }
 
   private: // attributes
 
     std::string acceptAddress = "0.0.0.0";
     int port = 80;
+    bool bQueue = false;
 
     LambdaHandler handler;
     std::shared_ptr<LambdaHandlerServer> serverRef = nullptr;
     bool bStarted = false;
     std::thread *thread = NULL;
+
+
+    std::vector<std::pair<const LambdaHandlerServer::request&, LambdaHandlerServer::connection_ptr>> queue;
 };
