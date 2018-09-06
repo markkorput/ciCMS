@@ -57,7 +57,14 @@ class Cfgr : public cms::cfg::Configurator {
 
     void cfg(syphonClient& obj, const std::map<string, string>& data){
       read(data)
-      .with("server", [&obj](const std::string& v){ obj.set("", v); });
+      .with("server", [this, &data, &obj](const std::string& v){
+        auto readr = this->read(data);
+        if (readr.has("channel")) {
+          obj.set(v, readr.at("channel"));
+        } else {
+          obj.set("", v);
+        }
+      });
     }
 
     void cfg(SyphonClientRenderer& obj, const std::map<string, string>& data){
