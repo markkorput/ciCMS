@@ -32,7 +32,18 @@ TEST_CASE("cms::cfg::Cfg", ""){
     // verify our original states map grew
     REQUIRE(states.size() == 3);
 
-    // signals["sigtest1"] = (void*)new ctree::Signal<void()>();
+    auto signal1 = new ctree::Signal<void()>();
+    signals["signal1"] = (void*)signal1;
+    signal1->connect([state1](){ state1->set(state1->val()+1); });
+    REQUIRE(state1->val() == 3);
+    cfg.getSignal<void()>("signal1").emit();
+    REQUIRE(state1->val() == 4);
+
+    cfg.getSignal<void(int)>("signal2");
+    cfg.getSignal<void(float)>("signal3");
+
+    // verify our original signals map grew
+    REQUIRE(signals.size() == 3);
   }
 
   SECTION(".set"){

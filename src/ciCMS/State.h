@@ -157,6 +157,10 @@ namespace cms {
 
     public: // writer methods
 
+        State<StateType>* set(const StateType val) {
+          return this->operator=(val);
+        }
+
         State<StateType>* operator=(const StateType &newValue){
             bool change = this->value != newValue;
             StateType prevValue = this->value;
