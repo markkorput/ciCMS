@@ -5,6 +5,7 @@
 using namespace cms;
 
 ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
+
     if(isLocked()){
         CI_LOG_V("model locked; queueing .set operation for attribute: " << attr);
         modQueueRefs.push_back(make_shared<Mod>(attr, value, notify));

@@ -67,9 +67,9 @@ namespace cms {
 
     public: // attribute conversions
 
-    ModelBase* set(const string &attr, bool val, bool notify = true) {
-        return this->set(attr, val ? "true" : "false", notify);
-    }
+        ModelBase* setBool(const string &attr, bool val, bool notify = true) {
+            return this->set(attr, (string)(val ? "true" : "false"), notify);
+        }
 
         ModelBase* set(const string &attr, const ci::vec2& val, bool notify = true) {
             return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y), notify);

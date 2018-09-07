@@ -143,7 +143,7 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.getFloat("x", 101.f) == 101.f);
     }
 
-    SECTION("getBool"){
+    SECTION("setBool getBool"){
         Model model;
         REQUIRE(model.getBool("x") == false);
         REQUIRE(model.getBool("x", true) == true);
@@ -153,6 +153,9 @@ TEST_CASE("cms::Model", ""){
         model.set("x", "Not-A-Bool");
         REQUIRE(model.getBool("x") == false);
         REQUIRE(model.getBool("x", true) == true);
+        model.setBool("x", true);
+        REQUIRE(model.getBool("x") == true);
+        REQUIRE(model.getBool("x", false) == true);
     }
 
     SECTION("with(bool)"){
