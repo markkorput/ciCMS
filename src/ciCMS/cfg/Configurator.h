@@ -12,8 +12,8 @@
 namespace cms { namespace cfg {
 
   class Configurator {
-    public: // types
 
+    public: // types
       typedef Model CfgData;
       typedef std::map<string, string> CfgDataRaw;
       typedef std::function<void*(const std::string&)> ObjectFetcherFunc;

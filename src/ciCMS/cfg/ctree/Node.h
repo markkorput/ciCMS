@@ -7,6 +7,10 @@
 
 namespace cms { namespace cfg { namespace ctree {
 
+  /**
+   * A ctree-based Node that creates an instance of any type of class when created,
+   * and provides ctree-based hierarchy abilities to that instance.
+   */
   class Node : public ::ctree::Node {
 
     public: // static methods

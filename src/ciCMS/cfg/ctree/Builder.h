@@ -19,6 +19,12 @@
 
 namespace cms { namespace cfg { namespace ctree {
 
+  /**
+   * A builder class that builds instances of a Node class which can have an
+   * instance of any desired class as flyweight, thus being able to build a
+   * hierarchy out of a mix of any class without imposing requirements on
+   * the used classes.
+   */
   template<typename CfgT>
   class Builder : public ::cms::cfg::Builder<Node> {
 
