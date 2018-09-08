@@ -46,6 +46,28 @@ TEST_CASE("cms::cfg::Cfg", ""){
     REQUIRE(signals.size() == 3);
   }
 
+  SECTION("destructor cleans up created states and signals"){
+    map<string, void*> states, signals, objects;
+    states["state1"] = new cms::State<int>();
+    signals["signal1"] = new ::ctree::Signal<void()>();
+
+    {
+      Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+      cfg.getSignal<void()>("signal2");
+      cfg.getSignal<void()>("signal3");
+      REQUIRE(signals.size() == 3);
+
+      cfg.getState<int>("state2");
+      cfg.getState<bool>("state3");
+      cfg.getState<string>("state4");
+      REQUIRE(states.size() == 4);
+    } // and of cfg scope; destructor invoked
+
+    REQUIRE(states.size() == 1);
+    REQUIRE(signals.size() == 1);
+  }
+
   SECTION(".set"){
 
     Cfg cfg({ {"name", "Bob"}, {"age", "34"}, {"male", "true"} });
@@ -218,6 +240,7 @@ TEST_CASE("cms::cfg::Cfg", ""){
   SECTION("compileScript:-3") {
     Cfg cfg;
     auto func = cfg.compileScript("-3:someInt");
+    cfg.getState<int>("someInt")->set(0);
     REQUIRE(cfg.getState<int>("someInt")->val() == 0);
     func();
     REQUIRE(cfg.getState<int>("someInt")->val() == -3);

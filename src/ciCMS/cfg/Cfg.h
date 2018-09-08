@@ -68,6 +68,7 @@ namespace cms { namespace cfg {
     std::map<std::string, void*>* signals = NULL;
     std::map<std::string, void*>* states = NULL;
 
+    vector<std::function<void()>> cleanupFuncs;
     ObjectFetcherFn objectFetcher = nullptr;
   };
 
@@ -95,6 +96,7 @@ namespace cms { namespace cfg {
 
     auto pp = new ::ctree::Signal<Signature>();
     (*this->signals)[id] = (void*)pp;
+    cleanupFuncs.push_back([this, id](){ delete (::ctree::Signal<Signature>*)(*this->signals)[id]; this->signals->erase(id); });
     return pp;
   }
 
@@ -106,6 +108,7 @@ namespace cms { namespace cfg {
 
     auto pp = new State<Typ>();
     (*this->states)[id] = (void*)pp;
+    cleanupFuncs.push_back([this, id](){ delete (State<Typ>*)(*this->states)[id]; this->states->erase(id); });
     return pp;
   }
 

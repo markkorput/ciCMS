@@ -30,10 +30,13 @@ Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, ObjectFetcherF
 }
 
 Cfg::~Cfg() {
+  for(auto fn : cleanupFuncs) fn();
+  cleanupFuncs.clear();
+
   if (signals && bPrivateSignals) {
     // for (auto it = signals.begin(); it != signals.end(); it++)
     //   delete it->second;
-    std::cout << "[cms::cfg::Cfg] TODO: deallocate all singals in" << std::endl;
+    // std::cout << "[cms::cfg::Cfg] TODO: deallocate all singals in" << std::endl;
     delete signals;
   }
 
@@ -42,7 +45,7 @@ Cfg::~Cfg() {
   if (states && bPrivateStates) {
     // for (auto it = states.begin(); it != states.end(); it++)
     //   delete it->second;
-    std::cout << "[cms::cfg::Cfg] TODO: deallocate all states in" << std::endl;
+    // std::cout << "[cms::cfg::Cfg] TODO: deallocate all states in" << std::endl;
     delete states;
   }
   states = NULL;
