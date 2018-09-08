@@ -1,4 +1,8 @@
 #include "Cfg.h"
+#include "ciCMS/deserialise.h"
+
+#include <regex>
+#include "boost/algorithm/string.hpp" // boost::is_any_of
 
 using namespace cms::cfg;
 
@@ -17,11 +21,12 @@ cms::cfg::Cfg::Cfg(const map<string, string> &data) {
   model.set(data);
 }
 
-cms::cfg::Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states) {
+cms::cfg::Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, ObjectFetcherFn objectFetcher ) {
   this->signals = &signals;
   this->bPrivateSignals = false;
   this->states = &states;
   this->bPrivateStates = false;
+  this->objectFetcher = objectFetcher;
 }
 
 cms::cfg::Cfg::~Cfg() {
@@ -46,3 +51,83 @@ cms::cfg::Cfg::~Cfg() {
 Cfg& cms::cfg::Cfg::set(const string& attr, string& var) { var = model.get(attr); return *this; }
 Cfg& cms::cfg::Cfg::set(const string& attr, int& var) { var = model.getInt(attr); return *this; }
 Cfg& cms::cfg::Cfg::set(const string& attr, bool& var) { var = model.getBool(attr); return *this; }
+
+void* cms::cfg::Cfg::getObjectPointer(const string& id) {
+  return this->objectFetcher ? this->objectFetcher(id) : NULL;
+}
+
+cms::cfg::Cfg::CompiledScriptFunc cms::cfg::Cfg::compileScript(const std::string& script) {
+  std::vector<std::string> scripts;
+  boost::split(scripts, script, boost::is_any_of(";"));
+
+  auto funcRefs = std::make_shared<std::vector<CompiledScriptFunc>>();
+  std::smatch match;
+
+  for(auto& src : scripts) {
+    { std::regex expr("^emit:(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        auto pSignal = this->getSignal<void()>(match[1]);
+        funcRefs->push_back( [pSignal](){ pSignal->emit(); } );
+      }
+    }
+
+    { std::regex expr("^toggle:(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        auto pState = this->getState<bool>(match[1]);
+        funcRefs->push_back( [pState](){
+          pState->operator=(!pState->val());
+        } );
+      }
+    }
+
+    { std::regex expr("^\\+(\\d+):(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        int delta = cms::deserialiseInt(match[1], 0);
+        auto pState = this->getState<int>(match[2]);
+
+        funcRefs->push_back( [pState, delta](){
+          pState->operator=(pState->val()+delta);
+        } );
+      }
+    }
+
+    { std::regex expr("^\\-(\\d+):(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        int delta = cms::deserialiseInt(match[1], 0);
+        auto pState = this->getState<int>(match[2]);
+
+        funcRefs->push_back( [pState, delta](){
+          pState->operator=(pState->val()-delta);
+        } );
+      }
+    }
+
+    { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        auto delta = cms::deserialiseFloat(match[1], 0.0f);
+        auto pState = this->getState<float>(match[2]);
+
+        funcRefs->push_back( [pState, delta](){
+          pState->operator=(pState->val()+delta);
+        } );
+      }
+    }
+
+    { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
+      if( std::regex_match(src, match, expr) ) {
+        auto delta = cms::deserialiseFloat(match[1], 0.0f);
+        auto pState = this->getState<float>(match[2]);
+
+        funcRefs->push_back( [pState, delta](){
+          pState->operator=(pState->val()-delta);
+        } );
+      }
+    }
+
+    // return [](){};
+  }
+
+  return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {
+    for(auto func : (*funcRefs)) { func(); }
+  };
+}

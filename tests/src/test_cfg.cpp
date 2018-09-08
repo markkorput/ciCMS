@@ -23,7 +23,7 @@ TEST_CASE("cms::cfg::Cfg", ""){
     (*state1) = 3;
     // verify it's available from our Cfg instance
     REQUIRE(state1->val() == 3);
-    REQUIRE(cfg.getState<int>("state1").val() == 3);
+    REQUIRE(cfg.getState<int>("state1")->val() == 3);
 
     // fetch (generate) some more state instances
     cfg.getState<float>("state2");
@@ -36,7 +36,7 @@ TEST_CASE("cms::cfg::Cfg", ""){
     signals["signal1"] = (void*)signal1;
     signal1->connect([state1](){ state1->set(state1->val()+1); });
     REQUIRE(state1->val() == 3);
-    cfg.getSignal<void()>("signal1").emit();
+    cfg.getSignal<void()>("signal1")->emit();
     REQUIRE(state1->val() == 4);
 
     cfg.getSignal<void(int)>("signal2");
@@ -71,11 +71,11 @@ TEST_CASE("cms::cfg::Cfg", ""){
 
     REQUIRE(signal1Counter == 0);
 
-    cfg.getSignal<void()>("signal1").emit();
+    cfg.getSignal<void()>("signal1")->emit();
     REQUIRE(signal1Counter == 1);
 
-    cfg.getSignal<void()>("signal1").emit();
-    cfg.getSignal<void()>("signal1").emit();
+    cfg.getSignal<void()>("signal1")->emit();
+    cfg.getSignal<void()>("signal1")->emit();
     REQUIRE(signal1Counter == 3);
   }
 
@@ -88,7 +88,7 @@ TEST_CASE("cms::cfg::Cfg", ""){
   //   int counter = 0;
   //   signalY.connect([&counter](){ counter += 1; });
   //   REQUIRE(counter == 0);
-  //   cfg.getSignal<void()>("signalX").emit();
+  //   cfg.getSignal<void()>("signalX")->emit();
   //   REQUIRE(counter == 1);
   // }
 
@@ -108,7 +108,120 @@ TEST_CASE("cms::cfg::Cfg", ""){
     std::cout << "TODO";
   }
 
-  SECTION(".withObjects") {
-    std::cout << "TODO";
+  SECTION("getObject getObjectPointer"){
+    map<string, void*> states, signals, objects;
+    objects["states"] = &states;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+    REQUIRE(cfg.getObject<Cfg>("foo.bar") == NULL);
+    REQUIRE(cfg.getObjectPointer("states") == &states);
+    REQUIRE((cfg.getObject<map<string, void*>>("states") == &states));
+    REQUIRE((cfg.getObject<map<string, void*>>("foostates") == NULL));
+  }
+
+  SECTION("withObject") {
+    std::cerr << "TODO" << std::endl;
+    map<string, void*> states, signals, objects;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+  }
+
+  SECTION("getObjects") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects_with_id") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("compileScript:toggle"){
+    Cfg cfg;
+    auto toggleFunc = cfg.compileScript("toggle:turnedOn");
+    cfg.getState<bool>("turnedOn")->set(false);
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    toggleFunc();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+    toggleFunc();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    toggleFunc(); toggleFunc();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+  }
+
+  SECTION("compileScript:+1") {
+    Cfg cfg;
+    auto func = cfg.compileScript("+1:someInt");
+    cfg.getState<int>("someInt")->set(1);
+    REQUIRE(cfg.getState<int>("someInt")->val() == 1);
+    func();
+    REQUIRE(cfg.getState<int>("someInt")->val() == 2);
+    func();func();
+    REQUIRE(cfg.getState<int>("someInt")->val() == 4);
+  }
+
+  SECTION("compileScript:-3") {
+    Cfg cfg;
+    auto func = cfg.compileScript("-3:someInt");
+    REQUIRE(cfg.getState<int>("someInt")->val() == 0);
+    func();
+    REQUIRE(cfg.getState<int>("someInt")->val() == -3);
+    func();
+    func();
+    REQUIRE(cfg.getState<int>("someInt")->val() == -9);
+  }
+
+  SECTION("compileScript:+4.6") {
+    Cfg cfg;
+    auto func = cfg.compileScript("+4.6:someFloat");
+    cfg.getState<float>("someFloat")->operator=(1.0f);
+    REQUIRE(cfg.getState<float>("someFloat")->val() == 1.0f);
+    func();
+    REQUIRE(cfg.getState<float>("someFloat")->val() == 5.6f);
+    func();func();
+    REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()-14.8f) < 0.0001f);
+  }
+
+  SECTION("compileScript:-3.2") {
+    Cfg cfg;
+    auto func = cfg.compileScript("-3.2:someFloat");
+    cfg.getState<float>("someFloat")->operator=(1.0f);
+    func();
+    REQUIRE(cfg.getState<float>("someFloat")->val() == -2.2f);
+    func();func();
+    REQUIRE(std::abs(cfg.getState<float>("someFloat")->val()+8.6f) < 0.0001f);
+  }
+
+  SECTION("compileScript:emit") {
+    Cfg cfg;
+    int count = 0;
+    cfg.getSignal<void()>("foobar")->connect([&count](){ count += 2; });
+    REQUIRE(count == 0);
+
+    auto func = cfg.compileScript("emit:foobar");
+    func();
+    REQUIRE(count == 2);
+    func(); func();
+    REQUIRE(count == 6);
+  }
+
+  SECTION("compileScript:emit;toggle") {
+    Cfg cfg;
+    int count1=0, count2=0;
+    cfg.getSignal<void()>("signaller")->connect([&count1](){ count1 += 1; });
+    cfg.getState<bool>("toggler")->push([&count2](const bool& v){ count2 += 1; });
+
+    REQUIRE(count1 == 0);
+    REQUIRE(count2 == 0);
+
+    auto func = cfg.compileScript("emit:signaller;toggle:toggler");
+    func();
+    REQUIRE(count1 == 1);
+    REQUIRE(count2 == 1);
+    func(); func();
+    REQUIRE(count1 == 3);
+    REQUIRE(count2 == 3);
   }
 }
