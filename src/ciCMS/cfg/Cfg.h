@@ -12,6 +12,12 @@ namespace cms { namespace cfg {
     typedef std::function<void*(const std::string&)> ObjectFetcherFn;
     typedef std::function<void()> CompiledScriptFunc;
 
+    struct ObjCallback {
+      std::string id;
+      std::function<void(void*)> func;
+      ObjCallback(std::string i, std::function<void(void*)> f) : id(i), func(f) {}
+    };
+
   public:
     Cfg();
     Cfg(const map<string, string> &data);
@@ -61,6 +67,8 @@ namespace cms { namespace cfg {
 
     CompiledScriptFunc compileScript(const std::string& script);
 
+    void notifyNewObject(const string& id, void* obj);
+
   private:
     ModelBase model;
 
@@ -70,6 +78,9 @@ namespace cms { namespace cfg {
 
     vector<std::function<void()>> cleanupFuncs;
     ObjectFetcherFn objectFetcher = nullptr;
+
+    // object callbacks
+    std::vector<ObjCallback> objCallbacks;
   };
 
 
@@ -138,15 +149,11 @@ namespace cms { namespace cfg {
       return;
     }
 
-    // register callback to get invoked later
 
-    // ObjCallback oc;
-    // oc.id = id;
-    // oc.func = [func](void* objPointer) {
-    //   func(*(ObjT*)objPointer);
-    // };
-
-    // this->objCallbacks.push_back(oc);
+    // register callback to get invoked when object appears
+    this->objCallbacks.push_back(ObjCallback(id, [func](void* objPointer) {
+      func(*(ObjT*)objPointer);
+    }));
   }
 
   template<typename ObjT>

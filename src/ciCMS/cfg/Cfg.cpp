@@ -134,3 +134,13 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
     for(auto func : (*funcRefs)) { func(); }
   };
 }
+
+void Cfg::notifyNewObject(const string& id, void* obj) {
+  for(int i=this->objCallbacks.size()-1; i>=0; i--) {
+    auto oc = this->objCallbacks[i];
+    if(oc.id == id) {
+      oc.func(obj);
+      this->objCallbacks.erase(objCallbacks.begin()+i);
+    }
+  }
+}

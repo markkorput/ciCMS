@@ -117,7 +117,6 @@ namespace cms { namespace cfg {
         }
 
         // register callback to get invoked later
-
         ObjCallback oc;
         oc.id = id;
         oc.func = [func](void* objPointer) {

@@ -202,14 +202,23 @@ TEST_CASE("cms::cfg::Cfg", ""){
   }
 
   SECTION("withObject:async") {
-    std::cerr << "TODO" << std::endl;
+    map<string, void*> states, signals, objects;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+    int counter = 0;
+    cfg.withObject<int>("CoolNewObject", [&counter](int& obj) {
+      counter += obj;
+    });
+
+    REQUIRE(counter == 0);
+    auto obj = new int(8);
+    objects["CoolNewObject"] = obj;
+    REQUIRE(counter == 0);
+    cfg.notifyNewObject("CoolNewObject", obj);
+    REQUIRE(counter == 8);
   }
 
   SECTION("withObjects:async") {
-    std::cerr << "TODO" << std::endl;
-  }
-
-  SECTION("withObjects_with_id") {
     std::cerr << "TODO" << std::endl;
   }
 
