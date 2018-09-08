@@ -1,5 +1,6 @@
 #include <map>
 
+#include "boost/algorithm/string.hpp" // boost::is_any_of
 #include "ctree/signal.hpp"
 #include "ciCMS/ModelBase.h"
 #include "ciCMS/State.h"
@@ -46,6 +47,18 @@ namespace cms { namespace cfg {
       return (Typ*)this->getObjectPointer(id);
     }
 
+    template<typename ObjT>
+    size_t getObjects(std::vector<ObjT*>& target, const std::string& ids, const std::string& delimiter=",");
+
+    template<typename ObjT>
+    void withObject(const std::string& id, std::function<void(ObjT&)> func);
+
+    template<typename ObjT>
+    void withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",");
+
+    template<typename ObjT>
+    void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
+
     CompiledScriptFunc compileScript(const std::string& script);
 
   private:
@@ -62,7 +75,7 @@ namespace cms { namespace cfg {
   // string get(string attr, string defaultVal="") { return model.get(attr, defaultVal); }
 
   template <typename Signature>
-  Cfg& cms::cfg::Cfg::connect(const string& attr, std::function<Signature> func) {
+  Cfg& Cfg::connect(const string& attr, std::function<Signature> func) {
     this->getSignal<Signature>(attr)->connect(func);
     return *this;
   }
@@ -75,7 +88,7 @@ namespace cms { namespace cfg {
 
 
   template <typename Signature>
-  ::ctree::Signal<Signature>* cms::cfg::Cfg::getSignal(const std::string& id) {
+  ::ctree::Signal<Signature>* Cfg::getSignal(const std::string& id) {
     auto p = (*this->signals)[id];
 
     if (p != NULL) return (::ctree::Signal<Signature>*)p;
@@ -86,7 +99,7 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
-  cms::State<Typ>* cms::cfg::Cfg::getState(const string& id) {
+  cms::State<Typ>* Cfg::getState(const string& id) {
     auto p = (*this->states)[id];
 
     if (p != NULL) return (State<Typ>*)p;
@@ -94,6 +107,65 @@ namespace cms { namespace cfg {
     auto pp = new State<Typ>();
     (*this->states)[id] = (void*)pp;
     return pp;
+  }
+
+  template<typename ObjT>
+  size_t Cfg::getObjects(std::vector<ObjT*>& target, const std::string& ids, const std::string& delimiter) {
+    std::vector<std::string> strings;
+    boost::split(strings, ids, boost::is_any_of(delimiter));
+
+    size_t count=0;
+    for(auto& id : strings) {
+      auto p = (ObjT*)this->getObjectPointer(id);
+      if (p) {
+        target.push_back(p);
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  template<typename ObjT>
+  void Cfg::withObject(const std::string& id, std::function<void(ObjT&)> func) {
+    auto p = this->getObject<ObjT>(id);
+
+    if(p) {
+      func(*p);
+      return;
+    }
+
+    // register callback to get invoked later
+
+    // ObjCallback oc;
+    // oc.id = id;
+    // oc.func = [func](void* objPointer) {
+    //   func(*(ObjT*)objPointer);
+    // };
+
+    // this->objCallbacks.push_back(oc);
+  }
+
+  template<typename ObjT>
+  void Cfg::withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter) {
+    std::vector<std::string> strings;
+    boost::split(strings, ids, boost::is_any_of(delimiter));
+
+    for(auto& id : strings) {
+      this->withObject<ObjT>(id, func);
+    }
+  }
+
+  template<typename ObjT>
+  void Cfg::withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter) {
+    std::vector<std::string> strings;
+    boost::split(strings, ids, boost::is_any_of(delimiter));
+
+    for(auto& id : strings) {
+      this->withObject<ObjT>(id, [func, id](ObjT& obj) {
+        func(obj, id);
+      });
+    }
   }
 
 }}

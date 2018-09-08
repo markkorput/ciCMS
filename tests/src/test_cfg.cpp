@@ -119,18 +119,71 @@ TEST_CASE("cms::cfg::Cfg", ""){
     REQUIRE((cfg.getObject<map<string, void*>>("foostates") == NULL));
   }
 
-  SECTION("withObject") {
-    std::cerr << "TODO" << std::endl;
+  SECTION("getObjects") {
     map<string, void*> states, signals, objects;
+    objects["states"] = &states;
+    objects["signals"] = &signals;
     Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
 
+    vector<map<string, void*>*> result;
+    REQUIRE((cfg.getObjects<map<string, void*>>(result, "signals,states,foobar") == 2));
+    REQUIRE(result.size() == 2);
+    REQUIRE(result[0] == &signals);
+    REQUIRE(result[1] == &states);
   }
 
-  SECTION("getObjects") {
-    std::cerr << "TODO" << std::endl;
+  SECTION("withObject") {
+    map<string, void*> states, signals, objects;
+    objects["objects"] = &objects;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+    int counter = 0;
+    cfg.withObject<map<string, void*>>("objects", [&counter](map<string, void*>& objs) {
+      counter += objs.size();
+    });
+
+    REQUIRE(counter == 1);
+
+    cfg.withObject<map<string, void*>>("states", [&counter](map<string, void*>& result) {
+      counter += 1;
+    });
+
+    REQUIRE(counter == 1);
   }
 
   SECTION("withObjects") {
+    map<string, void*> states, signals, objects;
+    objects["objects"] = &objects;
+    objects["states"] = &states;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+    int counter = 0;
+    cfg.withObjects<map<string, void*>>("objects,states,signals", [&counter](map<string, void*>& result) {
+      counter += 100 + result.size();
+    });
+
+    REQUIRE(counter == 202);
+  }
+
+  SECTION("withObjects:with_object_id_in_callback") {
+    map<string, void*> states, signals, objects;
+    objects["objects"] = &objects;
+    objects["states"] = &states;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+    int counter = 0;
+    cfg.withObjects<map<string, void*>>("objects,states,signals", [&counter](map<string, void*>& obj, const string& objId) {
+      counter += 100 + obj.size() * 10 + objId.size();
+    });
+
+    REQUIRE(counter == 233); // 100 + 2 * 10 + 7   +   100 + 0 * 10 + 6
+  }
+
+  SECTION("withObject:async") {
+    std::cerr << "TODO" << std::endl;
+  }
+
+  SECTION("withObjects:async") {
     std::cerr << "TODO" << std::endl;
   }
 

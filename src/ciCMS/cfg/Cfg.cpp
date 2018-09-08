@@ -6,14 +6,14 @@
 
 using namespace cms::cfg;
 
-cms::cfg::Cfg::Cfg() {
+Cfg::Cfg() {
   this->signals = new map<string, void*>();
   this->bPrivateSignals = true;
   this->states = new map<string, void*>();
   this->bPrivateStates = true;
 }
 
-cms::cfg::Cfg::Cfg(const map<string, string> &data) {
+Cfg::Cfg(const map<string, string> &data) {
   this->signals = new map<string, void*>();
   this->bPrivateSignals = true;
   this->states = new map<string, void*>();
@@ -21,7 +21,7 @@ cms::cfg::Cfg::Cfg(const map<string, string> &data) {
   model.set(data);
 }
 
-cms::cfg::Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, ObjectFetcherFn objectFetcher ) {
+Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, ObjectFetcherFn objectFetcher ) {
   this->signals = &signals;
   this->bPrivateSignals = false;
   this->states = &states;
@@ -29,7 +29,7 @@ cms::cfg::Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, Obje
   this->objectFetcher = objectFetcher;
 }
 
-cms::cfg::Cfg::~Cfg() {
+Cfg::~Cfg() {
   if (signals && bPrivateSignals) {
     // for (auto it = signals.begin(); it != signals.end(); it++)
     //   delete it->second;
@@ -48,15 +48,15 @@ cms::cfg::Cfg::~Cfg() {
   states = NULL;
 }
 
-Cfg& cms::cfg::Cfg::set(const string& attr, string& var) { var = model.get(attr); return *this; }
-Cfg& cms::cfg::Cfg::set(const string& attr, int& var) { var = model.getInt(attr); return *this; }
-Cfg& cms::cfg::Cfg::set(const string& attr, bool& var) { var = model.getBool(attr); return *this; }
+Cfg& Cfg::set(const string& attr, string& var) { var = model.get(attr); return *this; }
+Cfg& Cfg::set(const string& attr, int& var) { var = model.getInt(attr); return *this; }
+Cfg& Cfg::set(const string& attr, bool& var) { var = model.getBool(attr); return *this; }
 
-void* cms::cfg::Cfg::getObjectPointer(const string& id) {
+void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }
 
-cms::cfg::Cfg::CompiledScriptFunc cms::cfg::Cfg::compileScript(const std::string& script) {
+Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
   std::vector<std::string> scripts;
   boost::split(scripts, script, boost::is_any_of(";"));
 
