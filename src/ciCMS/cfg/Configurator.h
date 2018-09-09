@@ -275,7 +275,7 @@ namespace cms { namespace cfg {
         m.withBool("active", [&c](const bool& v){ c.setActive(v); });
       }
 
-      static const CfgReader& read(const CfgDataRaw& data) {
+      static const std::shared_ptr<CfgReader> read(const CfgDataRaw& data) {
         return CfgReader::read(data);
       }
 

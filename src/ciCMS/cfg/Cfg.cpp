@@ -1,5 +1,7 @@
 #include "Cfg.h"
+#include "CfgReader.hpp"
 #include "ciCMS/deserialise.h"
+
 
 #include <regex>
 #include "boost/algorithm/string.hpp" // boost::is_any_of
@@ -13,12 +15,11 @@ Cfg::Cfg() {
   this->bPrivateStates = true;
 }
 
-Cfg::Cfg(const map<string, string> &data) {
+Cfg::Cfg(const map<string, string> &data) : attributes(&data) {
   this->signals = new map<string, void*>();
   this->bPrivateSignals = true;
   this->states = new map<string, void*>();
   this->bPrivateStates = true;
-  model.set(data);
 }
 
 Cfg::Cfg(map<string, void*> &signals, map<string, void*> &states, ObjectFetcherFn objectFetcher ) {
@@ -51,9 +52,33 @@ Cfg::~Cfg() {
   states = NULL;
 }
 
-Cfg& Cfg::set(const string& attr, string& var) { var = model.get(attr); return *this; }
-Cfg& Cfg::set(const string& attr, int& var) { var = model.getInt(attr); return *this; }
-Cfg& Cfg::set(const string& attr, bool& var) { var = model.getBool(attr); return *this; }
+Cfg& Cfg::set(const string& attr, string& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->get(attr, "");
+  }
+  return *this; }
+
+Cfg& Cfg::setInt(const string& attr, int& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getInt(attr, 0);
+  }
+  return *this; }
+
+Cfg& Cfg::setBool(const string& attr, bool& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getBool(attr, false);
+  }
+  return *this; }
+
+Cfg& Cfg::setFloat(const string& attr, float& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getFloat(attr, 0.0f);
+  }
+  return *this; }
 
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;

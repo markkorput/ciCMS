@@ -26,10 +26,9 @@ namespace cms { namespace cfg {
     ~Cfg();
 
     Cfg& set(const string& attr, string& var);
-    Cfg& set(const string& attr, int& var);
-    Cfg& set(const string& attr, bool& var);
-
-    // string get(string attr, string defaultVal="") { return model.get(attr, defaultVal); }
+    Cfg& setInt(const string& attr, int& var);
+    Cfg& setBool(const string& attr, bool& var);
+    Cfg& setFloat(const string& attr, float& var);
 
     template <typename Signature>
     Cfg& connect(const string& attr, std::function<Signature> func);
@@ -70,7 +69,7 @@ namespace cms { namespace cfg {
     void notifyNewObject(const string& id, void* obj);
 
   private:
-    ModelBase model;
+    const map<string, string>* attributes;
 
     bool bPrivateSignals = false, bPrivateStates = false;
     std::map<std::string, void*>* signals = NULL;
@@ -82,9 +81,6 @@ namespace cms { namespace cfg {
     // object callbacks
     std::vector<ObjCallback> objCallbacks;
   };
-
-
-  // string get(string attr, string defaultVal="") { return model.get(attr, defaultVal); }
 
   template <typename Signature>
   Cfg& Cfg::connect(const string& attr, std::function<Signature> func) {
