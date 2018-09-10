@@ -11,7 +11,7 @@ using namespace cms;
 using namespace cms::cfg;
 
 TEST_CASE("cms::cfg::Cfg", ""){
-  SECTION(".ctor(signalsMap, statesMap)"){
+  SECTION("constructor(signalsMap, statesMap)"){
     // create our Cfg instance with external signals and states maps
     map<string, void*> signals;
     map<string, void*> states;
@@ -66,6 +66,20 @@ TEST_CASE("cms::cfg::Cfg", ""){
 
     REQUIRE(states.size() == 1);
     REQUIRE(signals.size() == 1);
+  }
+
+  SECTION(".withData"){
+    map<string, void*> states, signals, objects;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+    string name = "Bob";
+
+    map<string, string> attrs = {{"name", "Joe"}};
+    cfg.withData(attrs).set("name", name);
+    REQUIRE(name == "Joe");
+
+    attrs = {{"name", "Ash"}};
+    cfg.withData(attrs).set("name", name);
+    REQUIRE(name == "Ash");
   }
 
   SECTION(".set"){

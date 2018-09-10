@@ -5,6 +5,7 @@
 #include "boost/algorithm/string.hpp"
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
+#include "Cfg.h"
 #include "CfgReader.hpp"
 #include "ciCMS/State.h"
 #include "ciCMS/deserialise.h"
@@ -250,6 +251,10 @@ namespace cms { namespace cfg {
         return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {
           for(auto func : (*funcRefs)) { func(); }
         };
+      }
+
+      CfgRef getCfg() {
+        return std::make_shared<Cfg>(signals, states, objectFetcherFunc);
       }
 
     public: // cfgs

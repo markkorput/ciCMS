@@ -6,6 +6,9 @@
 #include "ciCMS/State.h"
 
 namespace cms { namespace cfg {
+  class Cfg;
+  typedef std::shared_ptr<Cfg> CfgRef;
+
   class Cfg {
 
   public:
@@ -29,6 +32,7 @@ namespace cms { namespace cfg {
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
     Cfg& setFloat(const string& attr, float& var);
+    Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
     template <typename Signature>
     Cfg& connect(const string& attr, std::function<Signature> func);
@@ -38,6 +42,10 @@ namespace cms { namespace cfg {
     //   getSignal<Signature>(attr).connect(&sig.emit);
     //   return *this;
     // }
+
+    //
+    // get* (signal/state/object) methods
+    //
 
     template <typename Signature>
     ::ctree::Signal<Signature>* getSignal(const std::string& id);
@@ -55,6 +63,10 @@ namespace cms { namespace cfg {
     template<typename ObjT>
     size_t getObjects(std::vector<ObjT*>& target, const std::string& ids, const std::string& delimiter=",");
 
+    //
+    // with* (signal/state/object) methods
+    //
+
     template<typename ObjT>
     void withObject(const std::string& id, std::function<void(ObjT&)> func);
 
@@ -64,6 +76,7 @@ namespace cms { namespace cfg {
     template<typename ObjT>
     void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
 
+    
     CompiledScriptFunc compileScript(const std::string& script);
 
     void notifyNewObject(const string& id, void* obj);

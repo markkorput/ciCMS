@@ -8,6 +8,7 @@
 #include "ciCMS/Model.h"
 
 using namespace cms;
+#define STRINGIFY(...) #__VA_ARGS__
 
 // some custom test-classes
 class Namer {
@@ -59,12 +60,19 @@ class Configer : public cms::cfg::Configurator {
     }
 };
 
-
-TEST_CASE("cms::cfg::ctree::Builder", ""){
+TEST_CASE("cms::cfg::ctree::Builder With Configurator", ""){
   SECTION("typical_usage"){
     // prepare your builder instance and populate with data
     cms::cfg::ctree::Builder<Configer> builder;
-    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
+    // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
+    builder.getModelCollection().loadJson(STRINGIFY([
+      {"id":"typical_usage.Namer", "type":"Namer", "name":"root"},
+      {"id":"typical_usage.Namer.Ager", "age":"10"},
+      {"id":"typical_usage.Namer.Ager.SubAger", "type":"Ager", "age":"3"},
+      {"id":"typical_usage.Namer.Ager2", "type":"Ager", "age":"20"},
+      {"id":"typical_usage.Ager3", "type":"Ager", "age":"30"},
+      {"id":"typical_usage.Ager3.Namer", "name":"child_of_30"}
+    ]));
 
     // configure your builder by registering instantiators
     // (map classes that can be "build" to a type identifier)
@@ -78,7 +86,7 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
     REQUIRE(builder.select(namer)->getNode()->size() == 2);
     REQUIRE(builder.select(namer)->getName() == "Namer");
 
-    // fetch an "child" item from the just created hierarchy
+    // fetch a "child" item from the just created hierarchy
     // of which names was the root element
     auto ager1 = builder.select(namer)->get<Ager>("Ager");
     REQUIRE(ager1->age == 10);
@@ -119,4 +127,55 @@ TEST_CASE("cms::cfg::ctree::Builder", ""){
   }
 }
 
+class ConfigurableNamer {
+  public:
+    string name;
+
+    void cfg(cfg::Cfg& cfg) {
+      cfg.set("name", name);
+    }
+};
+
+class ConfigurableAger {
+  public:
+    int age;
+
+    void cfg(cfg::Cfg& cfg) {
+      cfg.setInt("age", age);
+    }
+};
+
+
+TEST_CASE("cms::cfg::ctree::Builder With configurable objects", ""){
+    SECTION("typical_usage"){
+      // prepare a builder and populate with data
+      cms::cfg::ctree::Builder<Configer> builder;
+      // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
+      builder.getModelCollection().loadJson(STRINGIFY([
+        {"id":"ConfigurableObjects.ConfigurableNamer", "name":"Bob"},
+        {"id":"ConfigurableObjects.ConfigurableNamer.ConfigurableAger", "age":"46"}
+      ]));
+
+      // configure your builder by registering instantiators
+      // (map classes that can be "build" to a type identifier)
+      builder.addCfgObjectInstantiator<ConfigurableNamer>("ConfigurableNamer");
+      builder.addCfgObjectInstantiator<ConfigurableAger>("ConfigurableAger");
+
+      // build an item from the json data (identify by "id")
+      auto namer = builder.build<Namer>("ConfigurableObjects.ConfigurableNamer");
+      REQUIRE(namer != NULL);
+      REQUIRE(namer->name == "Bob");
+      REQUIRE(builder.select(namer)->getNode()->size() == 1);
+
+      auto ager = builder.select(namer)->get<ConfigurableAger>("ConfigurableAger");
+      REQUIRE(ager != NULL);
+      REQUIRE(ager->age == 46);
+    }
+}
+
+TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable objects", ""){
+  SECTION("typical usage") {
+    REQUIRE("TODO" == "make sure the Builder's Configurator uses its Cfg for all object/state/signal maintenance, especially for created object feedback");
+  }
+}
 #endif // CICMS_CTREE
