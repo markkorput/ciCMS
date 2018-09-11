@@ -4,6 +4,7 @@
 #include "ctree/signal.hpp"
 #include "ciCMS/ModelBase.h"
 #include "ciCMS/State.h"
+#include "ciCMS/cfg/CfgReader.hpp"
 
 namespace cms { namespace cfg {
   class Cfg;
@@ -76,7 +77,14 @@ namespace cms { namespace cfg {
     template<typename ObjT>
     void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
 
-    
+    template<typename ObjT>
+    void withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func);
+
+    template<typename ObjT>
+    void withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func);
+
+
+
     CompiledScriptFunc compileScript(const std::string& script);
 
     void notifyNewObject(const string& id, void* obj);
@@ -187,4 +195,19 @@ namespace cms { namespace cfg {
     }
   }
 
+  template<typename ObjT>
+  void Cfg::withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+    reader->with(id, [this, func](const std::string& val){
+      this->withObject<ObjT>(val, func);
+    });
+  }
+
+  template<typename ObjT>
+  void Cfg::withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+    reader->with(id, [this, func](const std::string& val){
+      this->withObjects<ObjT>(val, func);
+    });
+  }
 }}

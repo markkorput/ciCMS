@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 #include <regex>
 #include "ciCMS/deserialise.h"

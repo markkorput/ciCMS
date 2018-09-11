@@ -127,21 +127,25 @@ TEST_CASE("cms::cfg::ctree::Builder With Configurator", ""){
   }
 }
 
-class ConfigurableNamer {
-  public:
-    string name;
-
-    void cfg(cfg::Cfg& cfg) {
-      cfg.set("name", name);
-    }
-};
-
 class ConfigurableAger {
   public:
     int age;
 
     void cfg(cfg::Cfg& cfg) {
       cfg.setInt("age", age);
+    }
+};
+
+class ConfigurableNamer {
+  public:
+    string name;
+
+    void cfg(cfg::Cfg& cfg) {
+      cfg
+      .set("name", name)
+      .withObjectByAttr<ConfigurableAger>("AgerPostfix", [this](ConfigurableAger& ager) {
+        this->name += " ["+std::to_string(ager.age)+"]";
+      });
     }
 };
 
@@ -173,9 +177,62 @@ TEST_CASE("cms::cfg::ctree::Builder With configurable objects", ""){
     }
 }
 
+class Configer2 : public cms::cfg::Configurator {
+public:
+
+  Configer2() {
+  }
+
+  Configer2(ModelCollection& mc) : cms::cfg::Configurator(mc) {
+  }
+
+  // using cms::cfg::ctree::cfgWithModel;
+  void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
+    // TODO; take name from name attribute or otherwise default to last part
+    // (splitting by period (.) of the id)
+  }
+
+  void cfg(Namer& obj, const std::map<string, string>& data){
+    Model m;
+    m.set(data);
+
+    auto reader = read(data);
+    auto fnameRef = std::make_shared<string>();
+    fnameRef->operator=(reader->get("firstname", "<No firstname>"));
+    reader->with("Lastname", [this, &obj, fnameRef](const std::string& v){
+      this->withObject<ConfigurableNamer>(v, [&obj, fnameRef](ConfigurableNamer& lname){
+        obj.name = (*fnameRef) + " " + lname.name;
+      });
+    });
+  }
+};
+
 TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable objects", ""){
   SECTION("typical usage") {
-    REQUIRE("TODO" == "make sure the Builder's Configurator uses its Cfg for all object/state/signal maintenance, especially for created object feedback");
+    // prepare a builder and populate with data
+    cms::cfg::ctree::Builder<Configer2> builder;
+    // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
+    builder.getModelCollection().loadJson(STRINGIFY([
+      {"id":"MixedObjects.Namer", "firstname":"John", "Lastname": "MixedObjects.Namer.Lastname"},
+      {"id":"MixedObjects.Namer.Lastname", "type": "ConfigurableNamer", "name":"Doe", "AgerPostfix": "MixedObjects.Namer.ConfigurableAger"},
+      {"id":"MixedObjects.Namer.ConfigurableAger", "age":"88"}
+    ]));
+
+    // configure your builder by registering instantiators
+    // (map classes that can be "build" to a type identifier)
+    builder.addConfiguratorObjectInstantiator<Namer>("Namer");
+    builder.addCfgObjectInstantiator<ConfigurableNamer>("ConfigurableNamer");
+    builder.addCfgObjectInstantiator<ConfigurableAger>("ConfigurableAger");
+
+    // build an item from the json data (identify by "id")
+    auto namer = builder.build<Namer>("MixedObjects.Namer");
+    REQUIRE(namer != NULL);
+    REQUIRE(namer->name == "John Doe [88]");
+    REQUIRE(builder.select(namer)->getNode()->size() == 2);
+
+    auto lnameObj = builder.select(namer)->get<ConfigurableNamer>("Lastname");
+    REQUIRE(lnameObj != NULL);
+    REQUIRE(lnameObj->name == "Doe");
   }
 }
 #endif // CICMS_CTREE
