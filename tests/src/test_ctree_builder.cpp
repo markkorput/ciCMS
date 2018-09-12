@@ -14,6 +14,8 @@ using namespace cms;
 class Namer {
   public:
     string name;
+    string realtimeName() { return realtimeNameFunc ? realtimeNameFunc() : name; }
+    std::function<std::string()> realtimeNameFunc = nullptr;
 };
 
 class Ager {
@@ -136,15 +138,25 @@ class ConfigurableAger {
     }
 };
 
+// Configurable object which relies on an external Configurable Object
 class ConfigurableNamer {
+  private:
+    std::function<std::string()> realtimeNameFunc = nullptr;
+
   public:
     string name;
+    string realtimeName() { return realtimeNameFunc ? realtimeNameFunc() : name; }
 
     void cfg(cfg::Cfg& cfg) {
       cfg
       .set("name", name)
       .withObjectByAttr<ConfigurableAger>("AgerPostfix", [this](ConfigurableAger& ager) {
+        // configure name with configure-time value of the AgerPostfix object
         this->name += " ["+std::to_string(ager.age)+"]";
+        // create dynamic "link" which always a name with up-to-date AgerPostfix value
+        this->realtimeNameFunc = [this, &ager]() {
+          return (this->name + " ["+std::to_string(ager.age)+"]");
+        };
       });
     }
 };
@@ -166,7 +178,7 @@ TEST_CASE("cms::cfg::ctree::Builder With configurable objects", ""){
       builder.addCfgObjectInstantiator<ConfigurableAger>("ConfigurableAger");
 
       // build an item from the json data (identify by "id")
-      auto namer = builder.build<Namer>("ConfigurableObjects.ConfigurableNamer");
+      auto namer = builder.build<ConfigurableNamer>("ConfigurableObjects.ConfigurableNamer");
       REQUIRE(namer != NULL);
       REQUIRE(namer->name == "Bob");
       REQUIRE(builder.select(namer)->getNode()->size() == 1);
@@ -175,8 +187,9 @@ TEST_CASE("cms::cfg::ctree::Builder With configurable objects", ""){
       REQUIRE(ager != NULL);
       REQUIRE(ager->age == 46);
     }
-}
+};
 
+// Configurator which relies on an external Configurable Object
 class Configer2 : public cms::cfg::Configurator {
 public:
 
@@ -186,11 +199,11 @@ public:
   Configer2(ModelCollection& mc) : cms::cfg::Configurator(mc) {
   }
 
-  // using cms::cfg::ctree::cfgWithModel;
-  void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
-    // TODO; take name from name attribute or otherwise default to last part
-    // (splitting by period (.) of the id)
-  }
+  // // using cms::cfg::ctree::cfgWithModel;
+  // void cfg(cms::cfg::ctree::Node& n, const std::map<string, string>& data){
+  //   // TODO; take name from name attribute or otherwise default to last part
+  //   // (splitting by period (.) of the id)
+  // }
 
   void cfg(Namer& obj, const std::map<string, string>& data){
     Model m;
@@ -199,15 +212,17 @@ public:
     auto reader = read(data);
     auto fnameRef = std::make_shared<string>();
     fnameRef->operator=(reader->get("firstname", "<No firstname>"));
-    reader->with("Lastname", [this, &obj, fnameRef](const std::string& v){
-      this->withObject<ConfigurableNamer>(v, [&obj, fnameRef](ConfigurableNamer& lname){
-        obj.name = (*fnameRef) + " " + lname.name;
-      });
+
+    this->withObjectByAttr<ConfigurableNamer>("Lastname", [&obj, fnameRef](ConfigurableNamer& lastnamer) {
+      // configure-time value
+      obj.name = (*fnameRef) + " " + lastnamer.name;
+      // dynamic realtime value
+      obj.realtimeNameFunc = [&obj, &lastnamer](){ return obj.name + " " + lastnamer.realtimeName(); };
     });
   }
 };
 
-TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable objects", ""){
+TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable objects that rely on each other", ""){
   SECTION("typical usage") {
     // prepare a builder and populate with data
     cms::cfg::ctree::Builder<Configer2> builder;
@@ -227,12 +242,13 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     // build an item from the json data (identify by "id")
     auto namer = builder.build<Namer>("MixedObjects.Namer");
     REQUIRE(namer != NULL);
-    REQUIRE(namer->name == "John Doe [88]");
+    REQUIRE(namer->name == "John Doe"); // "John Doe [88]");
+    REQUIRE(namer->realtimeName() == "John Doe Doe [88] [88]");
     REQUIRE(builder.select(namer)->getNode()->size() == 2);
 
     auto lnameObj = builder.select(namer)->get<ConfigurableNamer>("Lastname");
     REQUIRE(lnameObj != NULL);
-    REQUIRE(lnameObj->name == "Doe");
+    REQUIRE(lnameObj->name == "Doe [88]");
   }
 }
 #endif // CICMS_CTREE

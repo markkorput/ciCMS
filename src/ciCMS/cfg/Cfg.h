@@ -19,7 +19,7 @@ namespace cms { namespace cfg {
     struct ObjCallback {
       std::string id;
       std::function<void(void*)> func;
-      ObjCallback(std::string i, std::function<void(void*)> f) : id(i), func(f) {}
+      ObjCallback(const std::string& _id, std::function<void(void*)> f) : id(_id), func(f) {}
     };
 
   public:
@@ -29,10 +29,16 @@ namespace cms { namespace cfg {
 
     ~Cfg();
 
+    void setObjectFetcher(ObjectFetcherFn func){
+      this->objectFetcher = func;
+    }
+
     Cfg& set(const string& attr, string& var);
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
     Cfg& setFloat(const string& attr, float& var);
+
+    Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
     template <typename Signature>
@@ -69,19 +75,19 @@ namespace cms { namespace cfg {
     //
 
     template<typename ObjT>
-    void withObject(const std::string& id, std::function<void(ObjT&)> func);
+    Cfg& withObject(const std::string& id, std::function<void(ObjT&)> func);
 
     template<typename ObjT>
-    void withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",");
+    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",");
 
     template<typename ObjT>
-    void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
+    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
 
     template<typename ObjT>
-    void withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func);
+    Cfg& withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func);
 
     template<typename ObjT>
-    void withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func);
+    Cfg& withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func);
 
 
 
@@ -90,7 +96,7 @@ namespace cms { namespace cfg {
     void notifyNewObject(const string& id, void* obj);
 
   private:
-    const map<string, string>* attributes;
+    const map<string, string>* attributes = NULL;
 
     bool bPrivateSignals = false, bPrivateStates = false;
     std::map<std::string, void*>* signals = NULL;
@@ -158,33 +164,36 @@ namespace cms { namespace cfg {
   }
 
   template<typename ObjT>
-  void Cfg::withObject(const std::string& id, std::function<void(ObjT&)> func) {
+  Cfg& Cfg::withObject(const std::string& id, std::function<void(ObjT&)> func) {
     auto p = this->getObject<ObjT>(id);
 
     if(p) {
       func(*p);
-      return;
+      return *this;
     }
 
-
     // register callback to get invoked when object appears
-    this->objCallbacks.push_back(ObjCallback(id, [func](void* objPointer) {
+    this->objCallbacks.push_back(ObjCallback(id, [id, func](void* objPointer) {
       func(*(ObjT*)objPointer);
     }));
+
+    return *this;
   }
 
   template<typename ObjT>
-  void Cfg::withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter) {
+  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter) {
     std::vector<std::string> strings;
     boost::split(strings, ids, boost::is_any_of(delimiter));
 
     for(auto& id : strings) {
       this->withObject<ObjT>(id, func);
     }
+
+    return *this;
   }
 
   template<typename ObjT>
-  void Cfg::withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter) {
+  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter) {
     std::vector<std::string> strings;
     boost::split(strings, ids, boost::is_any_of(delimiter));
 
@@ -193,21 +202,27 @@ namespace cms { namespace cfg {
         func(obj, id);
       });
     }
+
+    return *this;
   }
 
   template<typename ObjT>
-  void Cfg::withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func) {
+  Cfg& Cfg::withObjectByAttr(const std::string& attr, std::function<void(ObjT&)> func) {
     auto reader = CfgReader::read(*this->attributes);
-    reader->with(id, [this, func](const std::string& val){
+    reader->with(attr, [this, func](const std::string& val){
       this->withObject<ObjT>(val, func);
     });
+
+    return *this;
   }
 
   template<typename ObjT>
-  void Cfg::withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func) {
+  Cfg& Cfg::withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func) {
     auto reader = CfgReader::read(*this->attributes);
     reader->with(id, [this, func](const std::string& val){
       this->withObjects<ObjT>(val, func);
     });
+
+    return *this;
   }
 }}

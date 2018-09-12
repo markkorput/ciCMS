@@ -35,18 +35,12 @@ Cfg::~Cfg() {
   cleanupFuncs.clear();
 
   if (signals && bPrivateSignals) {
-    // for (auto it = signals.begin(); it != signals.end(); it++)
-    //   delete it->second;
-    // std::cout << "[cms::cfg::Cfg] TODO: deallocate all singals in" << std::endl;
     delete signals;
   }
 
   signals = NULL;
 
   if (states && bPrivateStates) {
-    // for (auto it = states.begin(); it != states.end(); it++)
-    //   delete it->second;
-    // std::cout << "[cms::cfg::Cfg] TODO: deallocate all states in" << std::endl;
     delete states;
   }
   states = NULL;
