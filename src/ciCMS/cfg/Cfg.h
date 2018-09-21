@@ -35,6 +35,10 @@ namespace cms { namespace cfg {
       this->objectFetcher = func;
     }
 
+    std::shared_ptr<CfgReader> reader() {
+      return CfgReader::read(*this->attributes);
+    }
+
     Cfg& set(const string& attr, string& var);
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
