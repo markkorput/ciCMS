@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 
 #include "boost/algorithm/string.hpp" // boost::is_any_of
@@ -89,6 +91,11 @@ namespace cms { namespace cfg {
     template<typename ObjT>
     Cfg& withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func);
 
+    template<typename Signature>
+    Cfg& withSignalByAttr(const std::string& id, std::function<void(::ctree::Signal<Signature>&)> func);
+
+    template<typename Typ>
+    Cfg& withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func);
 
 
     CompiledScriptFunc compileScript(const std::string& script);
@@ -221,6 +228,30 @@ namespace cms { namespace cfg {
     auto reader = CfgReader::read(*this->attributes);
     reader->with(id, [this, func](const std::string& val){
       this->withObjects<ObjT>(val, func);
+    });
+
+    return *this;
+  }
+
+  template<typename Signature>
+  Cfg& Cfg::withSignalByAttr(const std::string& id, std::function<void(::ctree::Signal<Signature>&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+
+    reader->with(id, [this, func](const std::string& signalId){
+      auto pSignal = this->getSignal<Signature>(signalId);
+      func(*pSignal);
+    });
+
+    return *this;
+  }
+
+  template<typename Typ>
+  Cfg& Cfg::withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+
+    reader->with(id, [this, func](const std::string& stateId){
+      auto pState = this->getState<Typ>(stateId);
+      func(*pState);
     });
 
     return *this;
