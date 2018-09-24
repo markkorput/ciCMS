@@ -2,6 +2,6 @@
   "Cfgr": {"active": true},
   "Runner": {"drawEmit": "draw", "drawState":"drawEnabled" },
   "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
-  "Runner.SyphonClient": {"server": "Simple Server"},
+  "Runner.SyphonClient": {"server": "Main Camera", "channel": "Unity"},
   "Runner.SyphonClientRenderer": {"client": "Runner.SyphonClient", "drawOn": "draw"}
 }

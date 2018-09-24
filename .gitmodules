@@ -1,3 +1,6 @@
 [submodule "lib/ctree"]
 	path = lib/ctree
 	url = git@github.com:markkorput/ctree.git
+[submodule "example-http-server/lib/cpp-netlib"]
+	path = example-http-server/lib/cpp-netlib
+	url = https://github.com/cpp-netlib/cpp-netlib
