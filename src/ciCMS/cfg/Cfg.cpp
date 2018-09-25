@@ -74,6 +74,13 @@ Cfg& Cfg::setFloat(const string& attr, float& var) {
   }
   return *this; }
 
+Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getVec3(attr, glm::vec3(0.0f));
+  }
+  return *this;
+}
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }

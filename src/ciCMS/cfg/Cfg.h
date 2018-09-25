@@ -43,12 +43,16 @@ namespace cms { namespace cfg {
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
     Cfg& setFloat(const string& attr, float& var);
+    Cfg& setVec3(const string& attr, glm::vec3& var);
 
     Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
     template <typename Signature>
     Cfg& connect(const string& attr, std::function<Signature> func);
+
+    template <typename Signature>
+    Cfg& connectAttr(const string& attr, std::function<Signature> func);
 
     // template <typename Signature>
     // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
@@ -123,6 +127,13 @@ namespace cms { namespace cfg {
   template <typename Signature>
   Cfg& Cfg::connect(const string& attr, std::function<Signature> func) {
     this->getSignal<Signature>(attr)->connect(func);
+    return *this;
+  }
+
+  template <typename Signature>
+  Cfg& Cfg::connectAttr(const string& attr, std::function<Signature> func) {
+    auto readr = reader();
+    if (readr->has(attr)) this->getSignal<Signature>(readr->get(attr))->connect(func);
     return *this;
   }
 
