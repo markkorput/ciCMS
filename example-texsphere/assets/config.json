@@ -1,0 +1,9 @@
+{
+  "Cfgr": {"active": true},
+  "Runner": {"drawEmit": "draw", "drawState":"drawEnabled"},
+
+  "Runner.Camera": {"on": "draw", "emit":"cam1", "pos": "0,2,5", "lookAt": "0,0,0", "ui":true},
+  "Runner.TexSphere": {"radius": 1, "pos": "0,0,0", "tex":"equi.jpg", "drawOn":"cam1"},
+
+  "Runner.Keyboard": {"key:d": "toggle:drawEnabled"}
+}
