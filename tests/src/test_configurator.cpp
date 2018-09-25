@@ -54,7 +54,7 @@ class CfgFlagFacade : public ConfigurableFacade<CustomFlagObject> {
     }
 };
 
-class Cfg : public Configurator, public CfgFacade, public CfgFlagFacade {
+class Cfger : public Configurator, public CfgFacade, public CfgFlagFacade {
   public:
 
     using Configurator::cfg;
@@ -113,7 +113,7 @@ TEST_CASE("", "[cms::cfg::Configurator]"){
 
   SECTION("active_configurator_with_configurable_facades"){
     CustomObject obj;
-    Cfg cfg;
+    Cfger cfg;
 
     std::map<string, string> data;
     data["name"] = "Jane Doe";
@@ -171,11 +171,11 @@ TEST_CASE("", "[cms::cfg::Configurator]"){
   }
 
   SECTION("getObject setObjectFetcher"){
-    Cfg cfg;
-    REQUIRE(cfg.getObject<Cfg>("foo.bar") == NULL);
+    Cfger cfg;
+    REQUIRE(cfg.getObject<Cfger>("foo.bar") == NULL);
     cfg.setObjectFetcher([&cfg](const std::string& id){ return &cfg; });
     REQUIRE(cfg.getObjectPointer("foo.bar") == &cfg);
-    REQUIRE(cfg.getObject<Cfg>("everything.returns.cfg") == &cfg);
+    REQUIRE(cfg.getObject<Cfger>("everything.returns.cfg") == &cfg);
   }
 
   SECTION("withObject") {

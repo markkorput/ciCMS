@@ -78,29 +78,67 @@ namespace cms { namespace cfg { namespace ctree {
         // TODO; make this optional for performance optimization?
         this->registry = std::shared_ptr<Registry>(new Registry(this));
 
-        // give our configurator an object fetcher which looks for objects in our Registry
-        configurator->setObjectFetcher([this](const std::string& id){
+        auto objectFetcher = [this](const std::string& id){
           return this->registry->getById(id);
-        });
+        };
+
+        // give our configurator an object fetcher which looks for objects in our Registry
+        configurator->setObjectFetcher(objectFetcher);
       }
 
     public: // configuration methods
 
+      
       template<typename T>
       void addDefaultInstantiator(const string& name){
+        this->addConfiguratorObjectInstantiator<T>(name);
+      }
+
+      template<typename T>
+      void addConfiguratorObjectInstantiator(const string& name) {
         this->addInstantiator(name, [this, &name](CfgData& data){
+          // create a node for in the hierarchy structure, with an
+          // instance of the specified type attached to it
           auto node = NodeT::create<T>(this->getName(data));
-          // create ouw object
+
+          // get the attached object from the node
           auto object = node->template getObject<T>();
+
+          // "configure" the object by passing it to our configurator
           this->configurator->apply(data, [this, object](ModelBase& mod){
             this->configurator->cfg(*object, mod.attributes());
           });
-          // attach it to a ctree node
-          // this->configurator->cfgWithModel(*node, data);
-          // emit signal
+
+          // notify observer signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
           this->configurator->notifyNewObject(object, data);
+
+          // return result
+          return node;
+        });
+      }
+
+      template<typename T>
+      void addCfgObjectInstantiator(const string& name) {
+        this->addInstantiator(name, [this, &name](CfgData& data){
+          // create a node for in the hierarchy structure, with an
+          // instance of the specified type attached to it
+          auto node = NodeT::create<T>(this->getName(data));
+
+          // get the attached object from the node
+          auto object = node->template getObject<T>();
+
+          // "configure" the object by calling its cfg method
+          this->configurator->apply(data, [this, object](ModelBase& mod){
+            object->cfg(configurator->getCfg()->withData(mod.attributes()));
+          });
+
+          // notify observer signal
+          BuildArgs args(node, object, &data);
+          buildSignal.emit(args);
+          this->configurator->notifyNewObject(object, data);
+
           // return result
           return node;
         });

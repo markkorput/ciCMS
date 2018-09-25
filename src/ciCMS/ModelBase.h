@@ -38,6 +38,7 @@ namespace cms {
         ModelBase() : lockCount(0){}
         ModelBase* set(const string &attr, const string &value, bool notify = true);
         ModelBase* set(const map<string, string> &attrs, bool notify=true);
+
         string get(const string &attr, string _default = "") const;
 
         string getId() const { return get("id", get("_id")); }
