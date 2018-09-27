@@ -54,6 +54,12 @@ namespace cms { namespace cfg {
     template <typename Signature>
     Cfg& connectAttr(const string& attr, std::function<Signature> func);
 
+    template <typename Typ>
+    Cfg& push(const string& attr, Typ& var);
+
+    template <typename Typ>
+    Cfg& pushRef(const string& attr, Typ& var);
+
     // template <typename Signature>
     // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
     //   getSignal<Signature>(attr).connect(&sig.emit);
@@ -68,7 +74,7 @@ namespace cms { namespace cfg {
     ::ctree::Signal<Signature>* getSignal(const std::string& id);
 
     template <typename Typ>
-    cms::State<Typ>* getState(const string& id);
+    cms::State<Typ>* getState(const string& id, const Typ* initialValue = NULL);
 
     void* getObjectPointer(const string& id);
 
@@ -143,6 +149,19 @@ namespace cms { namespace cfg {
   //   return *this;
   // }
 
+  template <typename Typ>
+  Cfg& Cfg::push(const string& attr, Typ& var) {
+    auto state = this->getState<Typ>(attr, &var);
+    state->push([&var](const Typ& val){ var = val; });
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::pushRef(const string& attr, Typ& var) {
+    auto readr = reader();
+    if (readr->has(attr)) this->push(readr->get(attr), var);
+    return *this;
+  }
 
   template <typename Signature>
   ::ctree::Signal<Signature>* Cfg::getSignal(const std::string& id) {
@@ -157,14 +176,20 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
-  cms::State<Typ>* Cfg::getState(const string& id) {
+  cms::State<Typ>* Cfg::getState(const string& id, const Typ* initialValue) {
+    // look for existing state
     auto p = (*this->states)[id];
-
+    // return existing state
     if (p != NULL) return (State<Typ>*)p;
-
+    // create new state
     auto pp = new State<Typ>();
+    // set initial value
+    if (initialValue != NULL) pp->set(*initialValue);
+    // save new state in our states map
     (*this->states)[id] = (void*)pp;
+    // make sure the state is removed by our destructor
     cleanupFuncs.push_back([this, id](){ delete (State<Typ>*)(*this->states)[id]; this->states->erase(id); });
+    // return new state
     return pp;
   }
 

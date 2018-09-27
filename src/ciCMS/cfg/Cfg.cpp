@@ -81,6 +81,7 @@ Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
   }
   return *this;
 }
+
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }
