@@ -74,6 +74,14 @@ Cfg& Cfg::setFloat(const string& attr, float& var) {
   }
   return *this; }
 
+Cfg& Cfg::setVec2(const string& attr, glm::vec2& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getVec2(attr, glm::vec2(0.0f));
+  }
+  return *this;
+}
+
 Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
   if (this->attributes != NULL) {
     auto reader = CfgReader::read(*this->attributes);

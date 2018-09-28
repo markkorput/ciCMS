@@ -43,6 +43,7 @@ namespace cms { namespace cfg {
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
     Cfg& setFloat(const string& attr, float& var);
+    Cfg& setVec2(const string& attr, glm::vec2& var);
     Cfg& setVec3(const string& attr, glm::vec3& var);
 
     Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
