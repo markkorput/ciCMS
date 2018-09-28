@@ -10,7 +10,7 @@ namespace component {
       void cfg(cms::cfg::Cfg& cfg);
 
     private:
-      void setup(const std::string& texAssetPath, const glm::vec3& pos, float radius);
+      void setup(const std::string& texAssetPath, const glm::vec3& pos, float radius, const glm::vec2& texOffset);
       void draw();
 
     private:

@@ -2,8 +2,8 @@
   "Cfgr": {"active": true},
   "Runner": {"drawEmit": "draw", "drawState":"drawEnabled"},
 
-  "Runner.Camera": {"on": "draw", "emit":"cam1", "pos": "0,0,0", "lookAt": "0,0,1", "ui":true},
-  "Runner.TexSphere": {"radius": 10, "pos": "0,0,0", "tex":"equi.jpg", "drawOn":"cam1"},
+  "Runner.Camera": {"on": "draw", "emit":"cam1", "pos": "0,0,0", "lookAt": "0,0,0.5", "ui":true},
+  "Runner.TexSphere": {"radius": 10, "pos": "0,0,0", "tex":"equi.jpg", "drawOn":"cam1", "texOffset":"0.8,0"},
 
   "Runner.Keyboard": {"key:d": "toggle:drawEnabled"}
 }
