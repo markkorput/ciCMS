@@ -1,0 +1,8 @@
+{
+  "Cfgr": {"active": true},
+  "Runner": {"drawEmit": "draw", "exitOn":"exit"},
+  "Runner.Keyboard": {"key:d": "toggle:drawEnabled", "key:q": "emit:exit"},
+
+  "Runner.Camera": {"on": "draw", "emit":"cam1", "pos": "0,0,0", "lookAt": "0,0,0.5", "ui":true},
+  "Runner.VrInterface": {"drawOn": "draw", "drawSceneEmit": "drawScene"}
+}
