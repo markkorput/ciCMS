@@ -1,74 +1,22 @@
-// stdlib
-#include <iostream>
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
-#include "cinder/gl/gl.h"
-#include "cinder/Log.h"
-#include "cinder/Rand.h"
-// blocks
-#include "ciCMS/cfg/ctree/Builder.h"
-#include "ciCMS/cfg/Configurator.h"
+// ciCMS
 #include "ciCMS/cfg/components/components.h"
-#include "ciCMS/Model.h"
 // local
-#include "Cfgr.h"
-// #include "component/Runner.h"
+#include "components/VrInterface.h"
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
-
-class MainApp : public App {
+class MainApp : public cms::cfg::components::App {
   public:
-    // MainApp();
     void setup() override;
-    void cleanup() override;
-    void update() override;
-    void draw() override;
-    void keyDown(KeyEvent event) override;
-
-  private:
-    cms::cfg::ctree::Builder<Cfgr> builder;
-    cms::cfg::components::Runner* pRunner;
 };
 
-void MainApp::setup(){
-  cms::cfg::components::addAllTo(builder);
+void MainApp::setup() {
+  cms::cfg::components::App::setup();
 
-  builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
-
-  // build our application hierarchy
-  pRunner = builder.build<cms::cfg::components::Runner>("Runner");
+  // TODO; add components to builder here
+  builder.addCfgObjectInstantiator<components::VrInterface>("VrInterface");
 }
 
-void MainApp::cleanup() {
-  if (this->pRunner) {
-      builder.destroy<cms::cfg::components::Runner>(this->pRunner);
-      this->pRunner = NULL;
-  }
-}
-
-void MainApp::update(){
-  if (!pRunner->update()) quit();
-}
-
-void MainApp::draw(){
-  ci::gl::clear(Color(0,0,0));
-  pRunner->draw();
-}
-
-void MainApp::keyDown(KeyEvent event){
-  switch(event.getChar()){
-    case 'l': {
-      std::cout << "Re-Loading json data" << std::endl;
-      builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-      std::cout << "JSON collection size: " << builder.getModelCollection().size() << std::endl;
-    }
-    case 's': {
-    }
-  }
-}
-
-CINDER_APP( MainApp, RendererGl )
+// CINDER_APP( cms::cfg::components::App, ci::app::RendererGl )
+CINDER_APP( MainApp, ci::app::RendererGl )
