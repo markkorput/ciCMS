@@ -7,5 +7,5 @@
 #include "Camera.h"
 
 namespace cms { namespace cfg { namespace components {
-  void addAllTo(::cms::cfg::ctree::Builder<Cfgr>& builder);
-}
+  void addAllTo(cms::cfg::ctree::TreeBuilder& builder);
+}}}

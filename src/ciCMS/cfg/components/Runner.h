@@ -12,7 +12,7 @@ namespace cms { namespace cfg { namespace components {
 
     private: // attributes
       bool bDone = false;
-      ctree::Signal<void()> updateSignal;
-      ctree::Signal<void()> drawSignal;
+      ::ctree::Signal<void()> updateSignal;
+      ::ctree::Signal<void()> drawSignal;
   };
 }}}

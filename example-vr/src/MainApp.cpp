@@ -9,7 +9,7 @@
 // blocks
 #include "ciCMS/cfg/ctree/Builder.h"
 #include "ciCMS/cfg/Configurator.h"
-#include "ciCMS/cfg/components.h"
+#include "ciCMS/cfg/components/components.h"
 #include "ciCMS/Model.h"
 // local
 #include "Cfgr.h"
@@ -30,7 +30,7 @@ class MainApp : public App {
 
   private:
     cms::cfg::ctree::Builder<Cfgr> builder;
-    component::Runner* pRunner;
+    cms::cfg::components::Runner* pRunner;
 };
 
 void MainApp::setup(){
@@ -40,12 +40,12 @@ void MainApp::setup(){
   builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
 
   // build our application hierarchy
-  pRunner = builder.build<component::Runner>("Runner");
+  pRunner = builder.build<cms::cfg::components::Runner>("Runner");
 }
 
 void MainApp::cleanup() {
   if (this->pRunner) {
-      builder.destroy<component::Runner>(this->pRunner);
+      builder.destroy<cms::cfg::components::Runner>(this->pRunner);
       this->pRunner = NULL;
   }
 }

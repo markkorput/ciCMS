@@ -1,6 +1,6 @@
 #include "components.h"
 
-cms::cfg::components::addAllTo(cms::cfg::ctree::Builder<Cfgr>& builder) {
+void cms::cfg::components::addAllTo(cms::cfg::ctree::TreeBuilder& builder) {
   // configure our builder and configurator
   // builder.addDefaultInstantiator<Runner>("Runner");
   builder.addCfgObjectInstantiator<cms::cfg::components::Runner>("Runner");
