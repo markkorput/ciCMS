@@ -17,7 +17,7 @@ namespace cms { namespace cfg { namespace ctree {
 
       template<typename T>
       static Node* fromObj(T* obj) {
-        return (Node*)((long)obj - sizeof(Node));
+        return (Node*)((uintptr_t)obj - sizeof(Node));
       }
 
       template<typename T>
@@ -68,9 +68,9 @@ namespace cms { namespace cfg { namespace ctree {
     public: // methods
 
       template<typename T>
-      T* getObject(){ return (T*)((long)this + sizeof(Node)); }
+      T* getObject(){ return (T*)((uintptr_t)this + sizeof(Node)); }
 
-      void* getObjectPointer(){ return (void*)((long)this + sizeof(Node)); }
+      void* getObjectPointer(){ return (void*)((uintptr_t)this + sizeof(Node)); }
 
     private:
       std::function<void()> destroyFunc = nullptr;
