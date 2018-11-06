@@ -77,7 +77,7 @@ namespace cms{
                 else
                     connection.disable();
 
-                return modelTransformerSignalConnections[owner].back();
+				return connection;
             }
 
             std::vector<ci::signals::Connection>& stopTransform(void* owner){
