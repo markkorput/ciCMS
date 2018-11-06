@@ -21,7 +21,9 @@ namespace cms {
         struct ChangeArgs {
             StateType previous;
             StateType current;
-            ChangeArgs(StateType p, StateType c) : previous(p), current(c) {}
+			bool previouslyInitialized;
+			
+            ChangeArgs(StateType p, StateType c, bool previnit) : previous(p), current(c), previouslyInitialized(previnit) {}
         };
 
     private: // extensions
@@ -166,6 +168,8 @@ namespace cms {
             StateType prevValue = this->value;
             this->value = newValue;
 
+			bool wasInit = bInitialized;
+
             if(!bInitialized){
                 bInitialized = true;
                 this->initializeSignal.emit(*this);
@@ -174,7 +178,7 @@ namespace cms {
             if(change){
                 // TODO; perform NULL check?
                 this->newValueSignal.emit(this->value);
-                ChangeArgs args(prevValue, this->value);
+                ChangeArgs args(prevValue, this->value, wasInit);
                 this->changeSignal.emit(args);
             }
 
