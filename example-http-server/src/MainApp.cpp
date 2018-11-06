@@ -45,7 +45,7 @@ void MainApp::setup(){
   builder.addDefaultInstantiator<Keyboard>("Keyboard");
   builder.addDefaultInstantiator<HttpServer>("HttpServer");
   this->loadCfgData();
-  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
+  builder.cfg("Cfgr");
 
   // build our application hierarchy
   pRunner = builder.build<Runner>("Runner");

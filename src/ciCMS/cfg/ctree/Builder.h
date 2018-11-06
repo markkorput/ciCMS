@@ -44,13 +44,35 @@ namespace cms { namespace cfg { namespace ctree {
       typedef Model CfgData;
       #include "builder/Selection.hpp"
 
-
     public:
 
-      TreeBuilder() {
+      TreeBuilder() : bPrivateConfigurator(true) {
+        this->configurator = new ::cms::cfg::Configurator(this->getModelCollection());
+
         this->setChilderFunc([](Node& parent, Node& child){
           parent.add(child);
         });
+      }
+
+      ~TreeBuilder() {
+        if (bPrivateConfigurator && this->configurator != NULL) {
+          delete this->configurator;
+          this->configurator = NULL;
+          bPrivateConfigurator = false;
+        }
+      }
+
+      /// Convenience which lets this builder configure itself
+      /// (and its configurator) using one of the models in it model collection
+      void cfg(const std::string& modelId) {
+        this->configurator->cfg(
+          *this->configurator,
+          getModelCollection().findById(modelId, true)->attributes());
+      }
+
+      void cfg(cms::cfg::Cfg& cfg) {
+        auto attrs = cfg.getAttributes();
+        if (attrs) this->configurator->cfg(*this->configurator, *attrs);
       }
 
     public: // configuration methods
@@ -66,14 +88,14 @@ namespace cms { namespace cfg { namespace ctree {
           auto object = node->template getObject<T>();
 
           // "configure" the object by calling its cfg method
-          this->defaultConfigurator.apply(data, [this, object](ModelBase& mod){
-            object->cfg(this->defaultConfigurator.getCfg()->withData(mod.attributes()));
+          this->configurator->apply(data, [this, object](ModelBase& mod){
+            object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
           });
 
           // notify observer signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
-          this->defaultConfigurator.notifyNewObject(object, data);
+          this->configurator->notifyNewObject(object, data);
 
           // return result
           return node;
@@ -140,7 +162,8 @@ namespace cms { namespace cfg { namespace ctree {
       ::ctree::Signal<void(DestroyArgs&)> destroySignal;
 
     private:
-      ::cms::cfg::Configurator defaultConfigurator;
+      ::cms::cfg::Configurator* configurator = NULL;
+      bool bPrivateConfigurator=false;
   };
 
   /**
@@ -220,7 +243,7 @@ namespace cms { namespace cfg { namespace ctree {
         });
       }
 
-      CfgT* getConfigurator() { return configurator; }
+      // CfgT* getConfigurator() { return configurator; }
 
     private: // attributes
       bool bPrivateConfigurator;

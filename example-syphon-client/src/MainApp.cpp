@@ -41,7 +41,7 @@ void MainApp::setup(){
   builder.addDefaultInstantiator<syphonClient>("SyphonClient");
   builder.addDefaultInstantiator<SyphonClientRenderer>("SyphonClientRenderer");
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
+  builder.cfg("Builder");
 
   // build our application hierarchy
   pRunner = builder.build<Runner>("Runner");
