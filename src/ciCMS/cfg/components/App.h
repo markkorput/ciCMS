@@ -17,7 +17,11 @@ namespace cms { namespace cfg { namespace components {
       void keyDown(ci::app::KeyEvent event) override;
 
     protected:
+      void configureBuilder(std::function<void(cms::cfg::ctree::TreeBuilder&)> func);
+
+    private:
       cms::cfg::ctree::TreeBuilder builder;
+    protected:
       cms::cfg::components::Runner* pRunner;
   };
 }}}

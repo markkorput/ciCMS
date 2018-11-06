@@ -45,3 +45,8 @@ void App::keyDown(ci::app::KeyEvent event){
     }
   }
 }
+
+
+void App::configureBuilder(std::function<void(cms::cfg::ctree::TreeBuilder&)> func) {
+  func(this->builder);
+}
