@@ -30,17 +30,20 @@ namespace cms {
             }
 
 			bool load() {
-				// check if file exists
-				//struct stat buffer;
-				//if (stat (filePath.c_str(), &buffer) != 0) {
-					// log file-not-exist warning?
-				//    return false;
-				//}
-				if (!std::experimental::filesystem::exists(filePath.c_str())) {
-				// if (access(filePath.c_str(), 0) != 0) {
-					// log file-not-exist warning?
-					return false;
-				}
+        // check if file exists
+        #ifdef CINDER_MSW
+          if (!std::experimental::filesystem::exists(filePath.c_str())) {
+          // if (access(filePath.c_str(), 0) != 0) {
+            // log file-not-exist warning?
+            return false;
+          }
+        #else
+			struct stat buffer;
+			if (stat (filePath.c_str(), &buffer) != 0) {
+				// log file-not-exist warning?
+			   return false;
+			}
+        #endif
 
                 auto dataSourceRef = ci::loadFile(filePath);
                 string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
