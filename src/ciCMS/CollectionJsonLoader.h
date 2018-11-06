@@ -1,11 +1,16 @@
 #pragma once
 
-// stdlib
-#include <sys/stat.h>
-#include <unistd.h>
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/Json.h"
+// stdlib
+#ifdef CINDER_MSW
+#include <io.h>
+#define access _access_s
+#else
+#include <unistd.h> // access/stat for file exist check
+#endif
+#include <sys/stat.h>
 // local
 #include "CollectionBase.h"
 
@@ -24,13 +29,18 @@ namespace cms {
                 this->filePath = filePath;
             }
 
-            bool load(){
-                // check if file exists
-                struct stat buffer;
-                if (stat (filePath.c_str(), &buffer) != 0) {
-                    // log file-not-exist warning?
-                    return false;
-                }
+			bool load() {
+				// check if file exists
+				//struct stat buffer;
+				//if (stat (filePath.c_str(), &buffer) != 0) {
+					// log file-not-exist warning?
+				//    return false;
+				//}
+				if (!std::experimental::filesystem::exists(filePath.c_str())) {
+				// if (access(filePath.c_str(), 0) != 0) {
+					// log file-not-exist warning?
+					return false;
+				}
 
                 auto dataSourceRef = ci::loadFile(filePath);
                 string fileContentString( static_cast<const char*>( dataSourceRef->getBuffer()->getData() ));
