@@ -95,7 +95,7 @@ namespace cms { namespace cfg { namespace ctree {
           // notify observer signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
-          this->configurator->notifyNewObject(object, data);
+          this->notifyNewObject(object, data);
 
           // return result
           return node;
@@ -155,6 +155,10 @@ namespace cms { namespace cfg { namespace ctree {
         std::string id = data.getId();
         boost::split(strs,id,boost::is_any_of("."));
         return strs.back();
+      }
+
+      virtual void notifyNewObject(void* obj, const CfgData& data) {
+        this->configurator->notifyNewObject(obj, data);
       }
 
     public: // signals
@@ -244,6 +248,13 @@ namespace cms { namespace cfg { namespace ctree {
       }
 
       // CfgT* getConfigurator() { return configurator; }
+
+    protected:
+
+      void notifyNewObject(void* obj, const CfgData& data) override {
+        TreeBuilder::notifyNewObject(obj, data);
+        this->configurator->notifyNewObject(obj, data);
+      }
 
     private: // attributes
       bool bPrivateConfigurator;
