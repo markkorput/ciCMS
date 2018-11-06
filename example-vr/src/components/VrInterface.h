@@ -27,21 +27,30 @@
 namespace components {
   class VrInterface {
 
-    public:
-      VrInterface();
+    const char DEFAULT_TOGGLE_UICAM_KEY = '/';
+    const char DEFAULT_MIRRORMODE1_KEY = '1';
+    const char DEFAULT_MIRRORMODE2_KEY = '2';
+    const char DEFAULT_MIRRORMODE3_KEY = '3';
+    const char DEFAULT_MIRRORMODE4_KEY = '4';
+    const char DEFAULT_MIRRORMODE5_KEY = '5';
+    const char DEFAULT_NO_MIRRORMODE_KEY = 'm';
+
+  public:
+    // VrInterface(){}
+    void cfg(cms::cfg::Cfg& cfg);
+
+  protected:
       void setup();
       void update();
       void draw();
-
-      void cfg(cms::cfg::Cfg& cfg);
 
       #ifdef VR_ENABLED
         void setMirroredMode(int mode);
       #endif
 
-      void mouseDown(ci::app::MouseEvent event);
-      void mouseDrag(ci::app::MouseEvent event);
-      void keyDown(ci::app::KeyEvent event);
+      void mouseDown(ci::app::MouseEvent& event);
+      void mouseDrag(ci::app::MouseEvent& event);
+      void keyDown(ci::app::KeyEvent& event);
 
       ci::Camera* getActiveCamera(){
         #ifdef VR_ENABLED
@@ -56,7 +65,7 @@ namespace components {
         return NULL;
       }
 
-    public: // signals
+    protected: // signals
 
       ci::signals::Signal<void(void)>
         renderSceneSignal,
@@ -65,10 +74,12 @@ namespace components {
 
     private: // attributes
 
+      bool bSetupDone = false;
+
       #ifdef VR_ENABLED
         vr::Context* mVrContext = nullptr;
         vr::Hmd* mHmd = nullptr;
-        const vr::Controller* pController = NULL;
+        // const vr::Controller* pController = NULL;
 
         // Only applies to HTC Vive with standing tracking origin
         bool mRecalcOrigin = false;
