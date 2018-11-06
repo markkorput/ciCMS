@@ -3,8 +3,6 @@
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
 
-
-#ifndef CINDER_MSW
 namespace cms {
 
   template<>
@@ -126,4 +124,3 @@ namespace cms {
     return defaultValue;
   }
 }
-#endif

@@ -1,5 +1,5 @@
 {
-  "Cfgr": {"active": true},
+  "Builder": {"active": true},
   "Runner": {"drawEmit": "draw", "exitEmit":"exit", "drawState":"drawEnabled", "exitSignal":"cmd-quit" },
   "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
 

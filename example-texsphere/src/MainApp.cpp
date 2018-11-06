@@ -45,7 +45,7 @@ void MainApp::setup(){
   builder.addCfgObjectInstantiator<component::Camera>("Camera");
 
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
+  builder.cfg("Builder");
 
   // build our application hierarchy
   pRunner = builder.build<component::Runner>("Runner");

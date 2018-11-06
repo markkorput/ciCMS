@@ -129,11 +129,24 @@ TEST_CASE("cms::cfg::Cfg", ""){
   // }
 
   SECTION(".getSignal"){
-    std::cout << "TODO";
+    Cfg cfg;
+    int counter = 0;
+    cfg.connect<void()>("signal2", [&counter](){ counter += 1; });
+
+    REQUIRE(counter == 0);
+
+    cfg.getSignal<void()>("signal1")->connect([&cfg](){ cfg.getSignal<void()>("signal2")->emit(); });
+    cfg.getSignal<void()>("signal1")->emit();
+
+    REQUIRE(counter == 1);
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(counter == 2);
   }
 
   SECTION(".getState") {
-    std::cout << "TODO";
+    Cfg cfg;
+    cfg.getState<int>("var1")->set(3);
+    REQUIRE(cfg.getState<int>("var1")->val() == 3);
   }
 
   SECTION(".withState") {

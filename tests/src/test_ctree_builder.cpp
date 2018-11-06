@@ -213,6 +213,10 @@ public:
     auto fnameRef = std::make_shared<string>();
     fnameRef->operator=(reader->get("firstname", "<No firstname>"));
 
+    // set firstname for now
+    obj.name = *fnameRef;
+
+    // complete the name with the last name when the Lastname object becomes available
     this->withObjectByAttr<ConfigurableNamer>("Lastname", [&obj, fnameRef](ConfigurableNamer& lastnamer) {
       // configure-time value
       obj.name = (*fnameRef) + " " + lastnamer.name;

@@ -10,6 +10,7 @@
 
 #include "ctree/signal.hpp"
 #include "Node.h"
+#include "../Configurator.h"
 #include "../Builder.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
@@ -19,19 +20,9 @@
 
 namespace cms { namespace cfg { namespace ctree {
 
-  /**
-   * A builder class that builds instances of a Node class which can have an
-   * instance of any desired class as flyweight, thus being able to build a
-   * hierarchy out of a mix of any class without imposing requirements on
-   * the used classes.
-   */
-  template<typename CfgT>
-  class Builder : public ::cms::cfg::Builder<Node> {
+  class TreeBuilder : public ::cms::cfg::Builder<Node> {
 
     public: // types
-      typedef Node NodeT;
-      typedef std::map<string, string> CfgDataRaw;
-      typedef Model CfgData;
 
       struct BuildArgs {
         ::ctree::Node* node;
@@ -49,102 +40,67 @@ namespace cms { namespace cfg { namespace ctree {
         DestroyArgs(::ctree::Node* n, void* o) : node(n), object(o) {}
       };
 
-      #include "builder/Registry.hpp"
+      typedef Node NodeT;
+      typedef Model CfgData;
       #include "builder/Selection.hpp"
 
-    public: // lifespan methods
+    public:
 
-      Builder() : bPrivateConfigurator(true) {
-        this->configurator = new CfgT(this->getModelCollection());
-        this->setup();
+      TreeBuilder() : bPrivateConfigurator(true) {
+        this->configurator = new ::cms::cfg::Configurator(this->getModelCollection());
+
+        this->setChilderFunc([](Node& parent, Node& child){
+          parent.add(child);
+        });
       }
 
-      Builder(CfgT& cfg) : bPrivateConfigurator(false), configurator(&cfg) {
-        this->setup();
-      }
-
-      ~Builder() {
-        if(this->configurator && this->bPrivateConfigurator){
+      ~TreeBuilder() {
+        if (bPrivateConfigurator && this->configurator != NULL) {
           delete this->configurator;
           this->configurator = NULL;
+          bPrivateConfigurator = false;
         }
       }
 
-      void setup(){
-        this->setChilderFunc([](NodeT& parent, NodeT& child){
-          parent.add(child);
-        });
+      /// Convenience which lets this builder configure itself
+      /// (and its configurator) using one of the models in it model collection
+      void cfg(const std::string& modelId) {
+        this->configurator->cfg(
+          *this->configurator,
+          getModelCollection().findById(modelId, true)->attributes());
+      }
 
-        // TODO; make this optional for performance optimization?
-        this->registry = std::shared_ptr<Registry>(new Registry(this));
-
-        auto objectFetcher = [this](const std::string& id){
-          return this->registry->getById(id);
-        };
-
-        // give our configurator an object fetcher which looks for objects in our Registry
-        configurator->setObjectFetcher(objectFetcher);
+      void cfg(cms::cfg::Cfg& cfg) {
+        auto attrs = cfg.getAttributes();
+        if (attrs) this->configurator->cfg(*this->configurator, *attrs);
       }
 
     public: // configuration methods
-
-      
-      template<typename T>
-      void addDefaultInstantiator(const string& name){
-        this->addConfiguratorObjectInstantiator<T>(name);
-      }
-
-      template<typename T>
-      void addConfiguratorObjectInstantiator(const string& name) {
-        this->addInstantiator(name, [this, &name](CfgData& data){
-          // create a node for in the hierarchy structure, with an
-          // instance of the specified type attached to it
-          auto node = NodeT::create<T>(this->getName(data));
-
-          // get the attached object from the node
-          auto object = node->template getObject<T>();
-
-          // "configure" the object by passing it to our configurator
-          this->configurator->apply(data, [this, object](ModelBase& mod){
-            this->configurator->cfg(*object, mod.attributes());
-          });
-
-          // notify observer signal
-          BuildArgs args(node, object, &data);
-          buildSignal.emit(args);
-          this->configurator->notifyNewObject(object, data);
-
-          // return result
-          return node;
-        });
-      }
 
       template<typename T>
       void addCfgObjectInstantiator(const string& name) {
         this->addInstantiator(name, [this, &name](CfgData& data){
           // create a node for in the hierarchy structure, with an
           // instance of the specified type attached to it
-          auto node = NodeT::create<T>(this->getName(data));
+          auto node = Node::create<T>(this->getName(data));
 
           // get the attached object from the node
           auto object = node->template getObject<T>();
 
           // "configure" the object by calling its cfg method
           this->configurator->apply(data, [this, object](ModelBase& mod){
-            object->cfg(configurator->getCfg()->withData(mod.attributes()));
+            object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
           });
 
           // notify observer signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
-          this->configurator->notifyNewObject(object, data);
+          this->notifyNewObject(object, data);
 
           // return result
           return node;
         });
       }
-
-      CfgT* getConfigurator() { return configurator; }
 
     public: // hierarchy operations
 
@@ -186,7 +142,7 @@ namespace cms { namespace cfg { namespace ctree {
       template<typename SourceT>
       std::shared_ptr<Selection> select(SourceT* origin){
         // convert origin into a NodeT pointer
-        return std::make_shared<Selection>(*NodeT::fromObj<SourceT>(origin));
+        return std::make_shared<Selection>(*Node::fromObj<SourceT>(origin));
       }
 
     protected: // helper methods
@@ -201,9 +157,104 @@ namespace cms { namespace cfg { namespace ctree {
         return strs.back();
       }
 
+      virtual void notifyNewObject(void* obj, const CfgData& data) {
+        this->configurator->notifyNewObject(obj, data);
+      }
+
     public: // signals
       ::ctree::Signal<void(BuildArgs&)> buildSignal;
       ::ctree::Signal<void(DestroyArgs&)> destroySignal;
+
+    private:
+      ::cms::cfg::Configurator* configurator = NULL;
+      bool bPrivateConfigurator=false;
+  };
+
+  /**
+   * A builder class that builds instances of a Node class which can have an
+   * instance of any desired class as flyweight, thus being able to build a
+   * hierarchy out of a mix of any class without imposing requirements on
+   * the used classes.
+   */
+  template<typename CfgT>
+  class Builder : public TreeBuilder {
+
+    public: // types
+
+      #include "builder/Registry.hpp"
+
+    public: // lifespan methods
+
+      Builder() : bPrivateConfigurator(true) {
+        this->configurator = new CfgT(this->getModelCollection());
+        this->init();
+      }
+
+      Builder(CfgT& cfg) : bPrivateConfigurator(false), configurator(&cfg) {
+        this->init();
+      }
+
+      ~Builder() {
+        if(this->configurator && this->bPrivateConfigurator){
+          delete this->configurator;
+          this->configurator = NULL;
+        }
+      }
+
+    private:
+
+      void init(){
+        // TODO; make this optional for performance optimization?
+        this->registry = std::shared_ptr<Registry>(new Registry(this));
+
+        auto objectFetcher = [this](const std::string& id){
+          return this->registry->getById(id);
+        };
+
+        // give our configurator an object fetcher which looks for objects in our Registry
+        configurator->setObjectFetcher(objectFetcher);
+      }
+
+    public: // configuration methods
+
+      template<typename T>
+      void addDefaultInstantiator(const string& name){
+        this->addConfiguratorObjectInstantiator<T>(name);
+      }
+
+      template<typename T>
+      void addConfiguratorObjectInstantiator(const string& name) {
+        this->addInstantiator(name, [this, &name](CfgData& data){
+          // create a node for in the hierarchy structure, with an
+          // instance of the specified type attached to it
+          auto node = NodeT::create<T>(this->getName(data));
+
+          // get the attached object from the node
+          auto object = node->template getObject<T>();
+
+          // "configure" the object by passing it to our configurator
+          this->configurator->apply(data, [this, object](ModelBase& mod){
+            this->configurator->cfg(*object, mod.attributes());
+          });
+
+          // notify observer signal
+          BuildArgs args(node, object, &data);
+          buildSignal.emit(args);
+          this->configurator->notifyNewObject(object, data);
+
+          // return result
+          return node;
+        });
+      }
+
+      // CfgT* getConfigurator() { return configurator; }
+
+    protected:
+
+      void notifyNewObject(void* obj, const CfgData& data) override {
+        TreeBuilder::notifyNewObject(obj, data);
+        this->configurator->notifyNewObject(obj, data);
+      }
 
     private: // attributes
       bool bPrivateConfigurator;

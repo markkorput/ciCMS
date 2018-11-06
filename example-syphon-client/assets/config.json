@@ -1,5 +1,5 @@
 {
-  "Cfgr": {"active": true},
+  "Builder": {"active": true},
   "Runner": {"drawEmit": "draw", "drawState":"drawEnabled" },
   "Runner.Keyboard": {"key:d": "toggle:drawEnabled"},
   "Runner.SyphonClient": {"server": "Main Camera", "channel": "Unity"},

@@ -17,7 +17,7 @@ namespace cms { namespace cfg { namespace ctree {
 
       template<typename T>
       static Node* fromObj(T* obj) {
-        return (Node*)((long)obj - sizeof(Node));
+        return (Node*)((uintptr_t)obj - sizeof(Node));
       }
 
       template<typename T>
@@ -26,9 +26,11 @@ namespace cms { namespace cfg { namespace ctree {
         // this way we can always calculate the Node's address from
         // the corresponding Object's address.
         void* mem = std::malloc(sizeof(Node) + sizeof(T));
+		T* objaddr = (T*)((uintptr_t)mem + sizeof(Node));
         // call the constructors of the Node and Object, but
         // assign memory address manually
-        T* obj = new ((void*)((long)mem + sizeof(Node)))T();
+        T* obj = new (objaddr) T();
+
         Node* n = new (mem) Node(name);
 
         // std::cout << "CREATED NODE with name '" << name << "' " << obj << std::endl;
@@ -66,9 +68,9 @@ namespace cms { namespace cfg { namespace ctree {
     public: // methods
 
       template<typename T>
-      T* getObject(){ return (T*)((long)this + sizeof(Node)); }
+      T* getObject(){ return (T*)((uintptr_t)this + sizeof(Node)); }
 
-      void* getObjectPointer(){ return (void*)((long)this + sizeof(Node)); }
+      void* getObjectPointer(){ return (void*)((uintptr_t)this + sizeof(Node)); }
 
     private:
       std::function<void()> destroyFunc = nullptr;

@@ -46,6 +46,7 @@ namespace cms { namespace cfg {
     Cfg& setVec2(const string& attr, glm::vec2& var);
     Cfg& setVec3(const string& attr, glm::vec3& var);
 
+    const std::map<std::string, std::string>* getAttributes() const { return this->attributes; }
     Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
