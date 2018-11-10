@@ -1,27 +1,18 @@
 #pragma once
 
-// cinder
-#include "cinder/app/App.h"
-// blocks
-#include "ciCMS/cfg/ctree/Builder.h"
-#include "ciCMS/cfg/components/Runner.h"
+#include "ctree/signal.hpp"
+#include "ciCMS/cfg/Cfg.h"
 
 namespace cms { namespace cfg { namespace components {
-  class App : public ci::app::App {
-    public:
-      // MainApp();
-      void setup() override;
-      void cleanup() override;
-      void update() override;
-      void draw() override;
-      void keyDown(ci::app::KeyEvent event) override;
+  class App {
+    public: // methods
+      bool update();
+      void draw();
+      void cfg(cms::cfg::Cfg& cfg);
 
-    protected:
-      void configureBuilder(std::function<void(cms::cfg::ctree::TreeBuilder&)> func);
-
-    private:
-      cms::cfg::ctree::TreeBuilder builder;
-    protected:
-      cms::cfg::components::Runner* pRunner;
+    private: // attributes
+      bool bDone = false;
+      ::ctree::Signal<void()> updateSignal;
+      ::ctree::Signal<void()> drawSignal;
   };
 }}}

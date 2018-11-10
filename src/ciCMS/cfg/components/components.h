@@ -6,7 +6,7 @@
 #include "Keyboard.h"
 #include "Camera.h"
 
-#include "App.h"
+#include "CinderApp.h"
 
 namespace cms { namespace cfg { namespace components {
   void addAllTo(cms::cfg::ctree::TreeBuilder& builder);
