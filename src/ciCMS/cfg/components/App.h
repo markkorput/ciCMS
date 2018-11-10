@@ -21,12 +21,15 @@ namespace cms { namespace cfg { namespace components {
           this->fileDropSignal.emit(event);
       }
 
+      void resize();
+
       void cfg(cms::cfg::Cfg& cfg);
 
     private: // attributes
       bool bDone = false;
       ::ctree::Signal<void()> updateSignal;
       ::ctree::Signal<void()> drawSignal;
+      ::ctree::Signal<void(const ci::Area&)> windowBoundsSignal;
       ::ctree::Signal<void(const cinder::app::FileDropEvent&)> fileDropSignal;
   };
 }}}

@@ -1,6 +1,8 @@
 #include "App.h"
+#include "cinder/app/App.h"
 
 using namespace cms::cfg::components;
+using namespace cinder;
 
 void App::cfg(cms::cfg::Cfg& cfg){
   cfg
@@ -25,5 +27,18 @@ void App::cfg(cms::cfg::Cfg& cfg){
           sig.emit(path);
         }
       });
+    })
+
+  .withSignalByAttr<void(const Area&)>("windowResizeBoundsEmit",
+    [this](::ctree::Signal<void(const Area&)>& sig){
+      this->windowBoundsSignal.connect([&sig](const Area& boundsArea) {
+        auto tmp = boundsArea;
+        sig.emit(tmp);
+      });
     });
+}
+
+void App::resize() {
+  auto area = app::getWindowBounds () ;
+  this->windowBoundsSignal.emit(area);
 }

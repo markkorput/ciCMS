@@ -6,6 +6,7 @@
 #include "Keyboard.h"
 #include "Camera.h"
 #include "Video.h"
+#include "TexDraw.h"
 
 #include "CinderApp.h"
 

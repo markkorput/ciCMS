@@ -40,6 +40,10 @@ void CinderApp::draw(){
   pAppComponent->draw();
 }
 
+void CinderApp::resize() {
+  if (this->pAppComponent) { this->pAppComponent->resize(); }
+}
+
 void CinderApp::keyDown(ci::app::KeyEvent event){
   switch(event.getChar()){
     case 'l': {

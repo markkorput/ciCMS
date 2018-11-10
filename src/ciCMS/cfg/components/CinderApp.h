@@ -14,6 +14,7 @@ namespace cms { namespace cfg { namespace components {
       void cleanup() override;
       void update() override;
       void draw() override;
+      void resize() override;
       void keyDown(ci::app::KeyEvent event) override;
       void fileDrop(ci::app::FileDropEvent event) override;
 
