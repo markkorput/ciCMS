@@ -29,7 +29,7 @@ void Video::cfg(cms::cfg::Cfg& cfg) {
       });
     });
 
-  if (justLoaded && cfg.getBool("autoStart", false) && this->mMovie) {
+  if (justLoaded && cfg.reader()->getBool("autoStart", false) && this->mMovie) {
     this->mMovie->play();
   }
 }
