@@ -25,7 +25,14 @@ void Camera::cfg(cms::cfg::Cfg& cfg) {
 void Camera::render() {
   // TODO; push matrix?
   if (drawSignal) {
+    ci::gl::pushViewMatrix();
+    ci::gl::pushProjectionMatrix();
+
     ci::gl::setMatrices(cam);
     drawSignal->emit();
+
+    ci::gl::popViewMatrix();
+    ci::gl::popProjectionMatrix();
+
   }
 }
