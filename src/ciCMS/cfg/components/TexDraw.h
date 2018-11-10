@@ -13,6 +13,8 @@ namespace cms { namespace cfg { namespace components {
       void draw();
 
     private: //attrs
+
+      bool verbose = false;
       // std::vector<ci::signals::Connection> connections;
       ci::gl::TextureRef mTex = nullptr;
       std::shared_ptr<ci::Rectf> rectRef = nullptr;

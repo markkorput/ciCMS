@@ -6,19 +6,28 @@ using namespace cinder;
 using namespace cms::cfg::components;
 
 void Video::cfg(cms::cfg::Cfg& cfg) {
-
-  bool justLoaded = false;
-
   cfg
+  .setBool("verbose", this->verbose)
+  .setBool("autoStart", this->bAutoStart)
 
-  .connectAttr<void(const fs::path&)>("loadFileOn", [this, &justLoaded](const fs::path& filePath){
+  .connectAttr<void(const fs::path&)>("loadFileOn", [this](const fs::path& filePath){
+    if (verbose) CI_LOG_I("Video.loadFileOn");
+
+    // load movie
     if (this->loadMovie(filePath)) {
-      justLoaded = true;
+      if (this->bAutoStart) {
+        if (verbose) CI_LOG_I("Video.autoStart");
+        this->mMovie->play();
+      }
     }
   })
 
   .connectAttr<void()>("playOn", [this](){
     if (this->mMovie) { this->mMovie->play(); }
+  })
+
+  .connectAttr<void()>("updateOn", [this](){
+    this->update();
   })
 
   .withSignalByAttr<void(ci::gl::TextureRef)>("frameTextureEmit",
@@ -28,19 +37,33 @@ void Video::cfg(cms::cfg::Cfg& cfg) {
         sig.emit(texref);
       });
     });
+}
 
-  if (justLoaded && cfg.reader()->getBool("autoStart", false) && this->mMovie) {
-    this->mMovie->play();
+void Video::update() {
+  if (verbose) CI_LOG_I("Video.update");
+
+  auto mov = this->mMovie;
+  if (mov) {
+    if (mov->checkNewFrame()) {
+      this->onFrame();
+    }
   }
 }
 
-
 bool Video::loadMovie(const ci::fs::path& moviePath) {
+  if (verbose) CI_LOG_I("Video.loadMovie: " << moviePath.string());
+
   bool success = true;
+
   try {
     // load up the movie, set it to loop, and begin playing
     mMovie = qtime::MovieGl::create( moviePath );
 
+    mMovie->getReadySignal().connect([this](){
+      if (verbose) CI_LOG_I("Video ready");
+    });
+
+    // THIS DOESN"T SEEM TO BE WORKING?!
     mMovie->getNewFrameSignal().connect([this](){
       this->onFrame();
     });
@@ -102,7 +125,7 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
     // console() << "Playing: " << mMovie->isPlaying() << std::endl;
   }
   catch( ci::Exception &exc ) {
-    app::console() << "Exception caught trying to load the movie from path: " << moviePath << ", what: " << exc.what() << std::endl;
+    if (verbose) app::console() << "Exception caught trying to load the movie from path: " << moviePath << ", what: " << exc.what() << std::endl;
     mMovie.reset();
     success = false;
   }
@@ -112,6 +135,7 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
 }
 
 void Video::onFrame() {
+  if (verbose) CI_LOG_I("Video.onFrame");
   auto texRef = mMovie->getTexture();
   this->frameTexSignal.emit(texRef);
 }

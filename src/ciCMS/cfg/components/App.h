@@ -27,6 +27,8 @@ namespace cms { namespace cfg { namespace components {
 
     private: // attributes
       bool bDone = false;
+      bool verbose = false;
+
       ::ctree::Signal<void()> updateSignal;
       ::ctree::Signal<void()> drawSignal;
       ::ctree::Signal<void(const ci::Area&)> windowBoundsSignal;

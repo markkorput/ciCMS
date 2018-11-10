@@ -20,11 +20,14 @@ namespace cms { namespace cfg { namespace components {
     private:
       bool loadMovie(const ci::fs::path& path);
 			void onFrame();
+			void update();
 
 		private: // signals
 			::ctree::Signal<void(ci::gl::TextureRef)> frameTexSignal;
 
     private: //attrs
+			bool verbose = false;
+      bool bAutoStart = false;
       // std::vector<ci::signals::Connection> connections;
       ci::gl::TextureRef			mFrameTexture = nullptr;
       ci::qtime::MovieGlRef		mMovie = nullptr;
