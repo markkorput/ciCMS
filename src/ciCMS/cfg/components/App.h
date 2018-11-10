@@ -6,13 +6,27 @@
 namespace cms { namespace cfg { namespace components {
   class App {
     public: // methods
-      bool update();
-      void draw();
+
+      inline bool update() {
+        if (bDone) return false;
+        this->updateSignal.emit();
+        return true;
+      }
+
+      inline void draw() {
+        this->drawSignal.emit();
+      }
+
+      inline void fileDrop( const cinder::app::FileDropEvent& event ) {
+          this->fileDropSignal.emit(event);
+      }
+
       void cfg(cms::cfg::Cfg& cfg);
 
     private: // attributes
       bool bDone = false;
       ::ctree::Signal<void()> updateSignal;
       ::ctree::Signal<void()> drawSignal;
+      ::ctree::Signal<void(const cinder::app::FileDropEvent&)> fileDropSignal;
   };
 }}}

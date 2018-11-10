@@ -5,6 +5,7 @@
 #include "Runner.h"
 #include "Keyboard.h"
 #include "Camera.h"
+#include "Video.h"
 
 #include "CinderApp.h"
 

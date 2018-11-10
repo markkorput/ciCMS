@@ -15,6 +15,7 @@ namespace cms { namespace cfg { namespace components {
       void update() override;
       void draw() override;
       void keyDown(ci::app::KeyEvent event) override;
+      void fileDrop(ci::app::FileDropEvent event) override;
 
     protected:
       void configureBuilder(std::function<void(cms::cfg::ctree::TreeBuilder&)> func);

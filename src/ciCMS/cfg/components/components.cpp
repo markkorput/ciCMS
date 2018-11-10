@@ -8,4 +8,5 @@ void cms::cfg::components::addAllTo(cms::cfg::ctree::TreeBuilder& builder) {
   // builder.addDefaultInstantiator<Keyboard>("Keyboard");
   builder.addCfgObjectInstantiator<cms::cfg::components::Keyboard>("Keyboard");
   builder.addCfgObjectInstantiator<cms::cfg::components::Camera>("Camera");
+  builder.addCfgObjectInstantiator<cms::cfg::components::Video>("Video");
 }

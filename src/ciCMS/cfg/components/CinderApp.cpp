@@ -36,7 +36,7 @@ void CinderApp::update(){
 }
 
 void CinderApp::draw(){
-  ci::gl::clear(ci::Color(0,0,0));
+  // ci::gl::clear(ci::Color(0,0,0));
   pAppComponent->draw();
 }
 
@@ -50,6 +50,10 @@ void CinderApp::keyDown(ci::app::KeyEvent event){
     case 's': {
     }
   }
+}
+
+void CinderApp::fileDrop( ci::app::FileDropEvent event ) {
+  if (this->pAppComponent) this->pAppComponent->fileDrop(event);
 }
 
 void CinderApp::configureBuilder(std::function<void(cms::cfg::ctree::TreeBuilder&)> func) {
