@@ -1,7 +1,8 @@
 // cinder
 #include "cinder/app/App.h"
 #include "cinder/gl/gl.h"
-// blocks
+#include "cinder/Log.h"
+// ciCMS
 #include "ciCMS/cfg/ctree/Builder.h"
 #include "ciCMS/cfg/components/components.h"
 
@@ -32,12 +33,12 @@ void CinderApp::cleanup() {
 }
 
 void CinderApp::update(){
-  if (!pAppComponent->update()) quit();
+  if (pAppComponent && !pAppComponent->update()) quit();
 }
 
 void CinderApp::draw(){
   // ci::gl::clear(ci::Color(0,0,0));
-  pAppComponent->draw();
+  if (pAppComponent) pAppComponent->draw();
 }
 
 void CinderApp::resize() {
@@ -52,6 +53,20 @@ void CinderApp::keyDown(ci::app::KeyEvent event){
       std::cout << "JSON collection size: " << builder.getModelCollection().size() << std::endl;
     }
     case 's': {
+    }
+    case 'r': {
+      if (event.isControlDown()) {
+        CI_LOG_I("RELOADING ROOT APP COMPONENT");
+        if (this->pAppComponent) builder.destroy(this->pAppComponent);
+
+        // build "App" as our application's hierarchy root component
+        pAppComponent = builder.build<App>("App");
+
+        if (pAppComponent == NULL) {
+          CI_LOG_E("Could not load \"App\" root component");
+          quit();
+        }
+      }
     }
   }
 }

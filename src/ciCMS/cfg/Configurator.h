@@ -55,6 +55,13 @@ namespace cms { namespace cfg {
         }
       }
 
+      void reset() {
+        if (this->cfgRef) this->cfgRef.reset();
+        CI_LOG_I("TODO: properly cleanup states and signals allocated self");
+        // this->signals.clear();
+        // this->states.clear();
+      }
+
     public: // getters and setters
 
       bool isActive() const { return this->bActive; }
@@ -157,6 +164,11 @@ namespace cms { namespace cfg {
       static const std::shared_ptr<CfgReader> read(const CfgDataRaw& data) {
         return CfgReader::read(data);
       }
+
+    public: // for testing
+
+      const std::map<std::string, void*>& getSignals() const { return signals; }
+      const std::map<std::string, void*>& getStates() const { return states; }
 
     private: // attributes
       bool bActive, bPrivateModelCollection;
