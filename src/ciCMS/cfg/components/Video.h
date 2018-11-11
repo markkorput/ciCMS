@@ -28,6 +28,8 @@ namespace cms { namespace cfg { namespace components {
     private: //attrs
 			bool verbose = false;
       bool bAutoStart = false;
+      bool bLoop = false;
+
       // std::vector<ci::signals::Connection> connections;
       ci::qtime::MovieGlRef		mMovie = nullptr;
   };

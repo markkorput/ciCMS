@@ -7,6 +7,7 @@ using namespace cinder;
 void App::cfg(cms::cfg::Cfg& cfg){
   cfg
   .setBool("verbose", this->verbose)
+  .setColor("clearColor", this->clearColor)
   .connectAttr<void()>("exitOn", [this](){ this->bDone = true; })
 
   // .pushRef("drawState", this->bDrawEnabled)

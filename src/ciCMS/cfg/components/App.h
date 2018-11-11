@@ -2,6 +2,7 @@
 
 #include "ctree/signal.hpp"
 #include "ciCMS/cfg/Cfg.h"
+#include "cinder/gl/gl.h"
 
 namespace cms { namespace cfg { namespace components {
   class App {
@@ -14,6 +15,7 @@ namespace cms { namespace cfg { namespace components {
       }
 
       inline void draw() {
+        if (bClear) ci::gl::clear(clearColor);
         this->drawSignal.emit();
       }
 
@@ -28,6 +30,9 @@ namespace cms { namespace cfg { namespace components {
     private: // attributes
       bool bDone = false;
       bool verbose = false;
+
+      bool bClear = true; // TODO: make configurable
+      ci::ColorA clearColor;
 
       ::ctree::Signal<void()> updateSignal;
       ::ctree::Signal<void()> drawSignal;

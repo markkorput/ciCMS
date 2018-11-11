@@ -90,6 +90,15 @@ Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
   return *this;
 }
 
+Cfg& Cfg::setColor(const string& attr, ci::ColorA& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getColor(attr, var);
+  }
+
+  return *this;
+}
+
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }
