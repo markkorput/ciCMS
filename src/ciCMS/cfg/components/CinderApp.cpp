@@ -56,9 +56,10 @@ void CinderApp::keyDown(ci::app::KeyEvent event){
     }
     case 'r': {
       if (event.isControlDown()) {
-        CI_LOG_I("RELOADING ROOT APP COMPONENT");
-        if (this->pAppComponent) builder.destroy(this->pAppComponent);
+        builder.reset();
+        builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
 
+        CI_LOG_I("RELOADING ROOT APP COMPONENT");
         // build "App" as our application's hierarchy root component
         pAppComponent = builder.build<App>("App");
 
