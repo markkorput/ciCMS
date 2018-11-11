@@ -4,6 +4,7 @@
 #include "ciCMS/cfg/Cfg.h"
 #include "Runner.h"
 #include "Keyboard.h"
+#include "Fbo.h"
 #include "Camera.h"
 #include "Video.h"
 #include "TexDraw.h"

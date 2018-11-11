@@ -19,5 +19,6 @@ namespace cms { namespace cfg { namespace components {
       ci::gl::TextureRef mTex = nullptr;
       std::shared_ptr<ci::Rectf> rectRef = nullptr;
       std::shared_ptr<ci::Area> fitCenteredAreaRef = nullptr;
+      std::shared_ptr<ci::Area> fillCenteredAreaRef = nullptr;
   };
 }}}

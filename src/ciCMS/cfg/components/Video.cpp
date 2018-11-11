@@ -30,10 +30,7 @@ void Video::cfg(cms::cfg::Cfg& cfg) {
 
   .withSignalByAttr<void(ci::gl::TextureRef)>("frameTextureEmit",
     [this](::ctree::Signal<void(ci::gl::TextureRef)>& sig){
-
-      frameTexSignal.connect([&sig](ci::gl::TextureRef texref){
-        sig.emit(texref);
-      });
+      frameTexSignal = &sig;
     });
 
   if (assetFile != "") {
@@ -89,5 +86,5 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
 void Video::onFrame() {
   if (verbose) CI_LOG_I("Video.onFrame");
   auto texRef = mMovie->getTexture();
-  this->frameTexSignal.emit(texRef);
+  if(this->frameTexSignal) this->frameTexSignal->emit(texRef);
 }

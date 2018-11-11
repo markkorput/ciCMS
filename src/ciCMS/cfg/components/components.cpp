@@ -10,4 +10,5 @@ void cms::cfg::components::addAllTo(cms::cfg::ctree::TreeBuilder& builder) {
   builder.addCfgObjectInstantiator<cms::cfg::components::Camera>("Camera");
   builder.addCfgObjectInstantiator<cms::cfg::components::Video>("Video");
   builder.addCfgObjectInstantiator<cms::cfg::components::TexDraw>("TexDraw");
+  builder.addCfgObjectInstantiator<cms::cfg::components::Fbo>("Fbo");
 }

@@ -23,7 +23,7 @@ namespace cms { namespace cfg { namespace components {
 			void update();
 
 		private: // signals
-			::ctree::Signal<void(ci::gl::TextureRef)> frameTexSignal;
+			::ctree::Signal<void(ci::gl::TextureRef)>* frameTexSignal = NULL;
 
     private: //attrs
 			bool verbose = false;

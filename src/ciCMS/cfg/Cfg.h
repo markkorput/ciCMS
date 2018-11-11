@@ -44,7 +44,10 @@ namespace cms { namespace cfg {
     Cfg& setBool(const string& attr, bool& var);
     Cfg& setFloat(const string& attr, float& var);
     Cfg& setVec2(const string& attr, glm::vec2& var);
+    Cfg& set_ivec2(const string& attr, glm::ivec2& var);
     Cfg& setVec3(const string& attr, glm::vec3& var);
+    Cfg& setVec4(const string& attr, glm::vec4& var);
+
     Cfg& setColor(const string& attr, ci::ColorAf& var);
 
     const std::map<std::string, std::string>* getAttributes() const { return this->attributes; }
