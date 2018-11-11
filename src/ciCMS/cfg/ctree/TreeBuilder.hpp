@@ -73,9 +73,10 @@ namespace cms { namespace cfg { namespace ctree {
       }
 
       void reset() {
-        // while(registry->size() > 0) {
-          // destroy();
-        // }
+        while(registry->size() > 0) {
+          auto node = registry->getNodeByIndex(0);
+          this->destroyNode(node);
+        }
       }
 
       /// Convenience which lets this builder configure itself
