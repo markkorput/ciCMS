@@ -55,6 +55,13 @@ namespace cms { namespace cfg {
         }
       }
 
+      void reset() {
+        if (this->cfgRef) this->cfgRef.reset();
+        CI_LOG_I("TODO: properly cleanup states and signals allocated self");
+        // this->signals.clear();
+        // this->states.clear();
+      }
+
     public: // getters and setters
 
       bool isActive() const { return this->bActive; }
