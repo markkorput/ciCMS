@@ -1,3 +1,0 @@
-[
-  {"id": "Object", "emitOn":"signal1", "executeOn":"signal2", "state":"someState"}
-]

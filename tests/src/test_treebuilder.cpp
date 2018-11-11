@@ -29,8 +29,9 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
   SECTION("reset"){
     cfg::ctree::TreeBuilder builder;
     builder.addCfgObjectInstantiator<Object>("Object");
-    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctreebuilder.json"));
+    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_treebuilder.json"));
 
+    REQUIRE(builder.getRegistry()->size() == 0);
     REQUIRE(builder.getConfigurator()->getStates().size() == 0);
     REQUIRE(builder.getConfigurator()->getSignals().size() == 0);
 
