@@ -29,7 +29,6 @@ namespace cms { namespace cfg { namespace components {
 			bool verbose = false;
       bool bAutoStart = false;
       // std::vector<ci::signals::Connection> connections;
-      ci::gl::TextureRef			mFrameTexture = nullptr;
       ci::qtime::MovieGlRef		mMovie = nullptr;
   };
 

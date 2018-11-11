@@ -6,20 +6,17 @@ using namespace cinder;
 using namespace cms::cfg::components;
 
 void Video::cfg(cms::cfg::Cfg& cfg) {
+
+  std::string assetFile = "";
+
   cfg
   .setBool("verbose", this->verbose)
   .setBool("autoStart", this->bAutoStart)
+  .set("assetFile", assetFile)
 
   .connectAttr<void(const fs::path&)>("loadFileOn", [this](const fs::path& filePath){
     if (verbose) CI_LOG_I("Video.loadFileOn");
-
-    // load movie
-    if (this->loadMovie(filePath)) {
-      if (this->bAutoStart) {
-        if (verbose) CI_LOG_I("Video.autoStart");
-        this->mMovie->play();
-      }
-    }
+    this->loadMovie(app::getAssetPath(filePath));
   })
 
   .connectAttr<void()>("playOn", [this](){
@@ -37,6 +34,11 @@ void Video::cfg(cms::cfg::Cfg& cfg) {
         sig.emit(texref);
       });
     });
+
+  if (assetFile != "") {
+    if (verbose) CI_LOG_I("loading asset file");
+    this->loadMovie(assetFile);
+  }
 }
 
 void Video::update() {
@@ -130,7 +132,13 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
     success = false;
   }
 
-  mFrameTexture.reset();
+  if (success) {
+    if (this->bAutoStart) {
+      if (verbose) CI_LOG_I("Video.autoStart");
+      this->mMovie->play();
+    }
+  }
+
   return success;
 }
 
