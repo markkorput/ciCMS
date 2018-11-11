@@ -158,6 +158,11 @@ namespace cms { namespace cfg {
         return CfgReader::read(data);
       }
 
+    public: // for testing
+
+      const std::map<std::string, void*>& getSignals() const { return signals; }
+      const std::map<std::string, void*>& getStates() const { return states; }
+
     private: // attributes
       bool bActive, bPrivateModelCollection;
       ModelCollection* modelCollection;

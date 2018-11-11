@@ -243,16 +243,6 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     builder.addCfgObjectInstantiator<ConfigurableNamer>("ConfigurableNamer");
     builder.addCfgObjectInstantiator<ConfigurableAger>("ConfigurableAger");
 
-    // build an item from the json data (identify by "id")
-    auto namer = builder.build<Namer>("MixedObjects.Namer");
-    REQUIRE(namer != NULL);
-    REQUIRE(namer->name == "John Doe"); // "John Doe [88]");
-    REQUIRE(namer->realtimeName() == "John Doe Doe [88] [88]");
-    REQUIRE(builder.select(namer)->getNode()->size() == 2);
-
-    auto lnameObj = builder.select(namer)->get<ConfigurableNamer>("Lastname");
-    REQUIRE(lnameObj != NULL);
-    REQUIRE(lnameObj->name == "Doe [88]");
   }
 }
 #endif // CICMS_CTREE
