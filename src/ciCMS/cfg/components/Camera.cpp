@@ -6,6 +6,8 @@ using namespace cms::cfg::components;
 void Camera::cfg(cms::cfg::Cfg& cfg) {
   cfg
   .connectAttr<void()>("on", [this](){ this->render(); })
+  .connectAttr<void(ci::quat&)>("orientationOn", [this](ci::quat& orientation){
+    this->cam.setOrientation(orientation); })
   .withSignalByAttr<void()>("emit", [this](ci::signals::Signal<void()>& sig) {
     this->drawSignal = &sig;
   })
