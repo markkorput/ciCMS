@@ -17,6 +17,11 @@ namespace cms { namespace cfg { namespace components {
     private:
 
       bool verbose =false;
+      bool bClear = false;
+      bool bSetMatricesWindow = false;
+      bool bSetViewport = true;
+
+      ci::ColorA clearColor = ci::ColorA(0,0,0,0);
       ci::gl::FboRef fboRef = nullptr;
 
       ::ctree::Signal<void()>* drawSignal = NULL;

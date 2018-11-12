@@ -7,14 +7,15 @@ void TexDraw::cfg(cms::cfg::Cfg& cfg) {
 
   cfg
   .setBool("verbose", this->verbose)
+  .setBool("fillViewport", this->bFillViewport)
   .connectAttr<void(ci::gl::TextureRef)>("textureOn", [this](ci::gl::TextureRef texref){
     if (verbose) CI_LOG_I("TexDraw.textureOn");
     this->mTex = texref;
   })
 
   .connectAttr<void()>("drawOn", [this](){ this->draw(); })
-  .connectAttr<void(const Area&)>("fillOn", [this](const Area& area){
-    if (verbose) CI_LOG_I("TexDraw.fillOn");
+  .connectAttr<void(const Area&)>("fillBoundsOn", [this](const Area& area){
+    if (verbose) CI_LOG_I("TexDraw.fillBoundsOn");
     this->rectRef = std::make_shared<Rectf>(area);
     this->fitCenteredAreaRef = nullptr;
     this->fillCenteredAreaRef = nullptr;
@@ -41,6 +42,13 @@ void TexDraw::draw() {
 
   // make configurable?
   gl::ScopedColor clrScp(1,1,1);
+
+  if (this->bFillViewport) {
+    auto viewport = gl::getViewport();
+    Rectf rect(viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y);
+    gl::draw(mTex, rect);
+    return;
+  }
 
   if (this->fitCenteredAreaRef) {
     if (verbose) CI_LOG_I("TexDraw.draw.fitCenteredAreaRef texbounds:" << mTex->getBounds() <<", area: "<< *fitCenteredAreaRef);

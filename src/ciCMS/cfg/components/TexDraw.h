@@ -15,6 +15,7 @@ namespace cms { namespace cfg { namespace components {
     private: //attrs
 
       bool verbose = false;
+      bool bFillViewport = false;
       // std::vector<ci::signals::Connection> connections;
       ci::gl::TextureRef mTex = nullptr;
       std::shared_ptr<ci::Rectf> rectRef = nullptr;
