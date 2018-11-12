@@ -17,4 +17,8 @@ if( NOT TARGET ciCMS )
 		        "$ENV{CINDER_PATH}/${CINDER_LIB_DIRECTORY}" )
 	endif()
 	target_link_libraries( ciCMS PRIVATE cinder )
+
+	if(WIN32) # TODO: make optional
+		target_link_libraries( ciCMS PRIVATE Cinder-WMFVideo )
+	endif(WIN32)
 endif()

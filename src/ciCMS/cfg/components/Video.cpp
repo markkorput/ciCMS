@@ -55,7 +55,11 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
 
   try {
     // load up the movie, set it to loop, and begin playing
+#if defined(_WIN64)
+	mMovie = ciWMFVideoPlayer::create(moviePath);
+#else
     mMovie = qtime::MovieGl::create( moviePath );
+#endif
   }
   catch( ci::Exception &exc ) {
     CI_LOG_E("Exception caught trying to load the movie from path: " << moviePath << ", what: " << exc.what());
@@ -69,9 +73,9 @@ bool Video::loadMovie(const ci::fs::path& moviePath) {
   });
 
   // THIS DOESN'"'T SEEM TO BE WORKING?! (make sure update is called every cycle?)
-  mMovie->getNewFrameSignal().connect([this](){
-    this->onFrame();
-  });
+  //mMovie->getNewFrameSignal().connect([this](){
+  //  this->onFrame();
+  //});
 
   mMovie->setLoop(this->bLoop);
 

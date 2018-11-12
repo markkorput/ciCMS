@@ -1,11 +1,16 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+
 //#if defined( CINDER_ANDROID )
 //	#include "cinder/android/video/MovieGl.h"
 //#else
 	#include "cinder/qtime/QuickTimeGl.h"
 //#endif
+
+#if defined(_WIN64)
+#include "ciWMFVideoPlayer.h"
+#endif
 
 #include "ctree/signal.hpp"
 #include "ciCMS/cfg/Cfg.h"
@@ -31,7 +36,12 @@ namespace cms { namespace cfg { namespace components {
       bool bLoop = false;
 
       // std::vector<ci::signals::Connection> connections;
+
+#if defined(_WIN64)
+	  std::shared_ptr<ciWMFVideoPlayer>			mMovie = nullptr;
+#else
       ci::qtime::MovieGlRef		mMovie = nullptr;
+#endif
   };
 
 }}}

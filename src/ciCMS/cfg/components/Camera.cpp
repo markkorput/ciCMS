@@ -1,13 +1,16 @@
 #include "Camera.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Log.h"
 
 using namespace cms::cfg::components;
 
 void Camera::cfg(cms::cfg::Cfg& cfg) {
   cfg
   .connectAttr<void()>("on", [this](){ this->render(); })
-  .connectAttr<void(ci::quat&)>("orientationOn", [this](ci::quat& orientation){
-    this->cam.setOrientation(orientation); })
+	  .connectAttr<void(ci::quat&)>("orientationOn", [this](ci::quat& orientation) {
+	     this->cam.setOrientation(orientation);
+	      // CI_LOG_I(orientation);
+    })
   .withSignalByAttr<void()>("emit", [this](ci::signals::Signal<void()>& sig) {
     this->drawSignal = &sig;
   })
