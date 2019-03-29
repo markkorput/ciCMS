@@ -102,17 +102,21 @@ TEST_CASE("cms::cfg::Cfg", ""){
 
   SECTION(".connect(str, func)") {
     Cfg cfg;
-    int signal1Counter = 0;
-    cfg.connect<void()>("signal1", [&signal1Counter](){ signal1Counter += 1; });
+    int signalCounter = 0;
+    cfg.connect<void()>("signal1,signal2", [&signalCounter](){ signalCounter += 1; });
 
-    REQUIRE(signal1Counter == 0);
-
-    cfg.getSignal<void()>("signal1")->emit();
-    REQUIRE(signal1Counter == 1);
+    REQUIRE(signalCounter == 0);
 
     cfg.getSignal<void()>("signal1")->emit();
+    REQUIRE(signalCounter == 1);
+
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(signalCounter == 2);
+
     cfg.getSignal<void()>("signal1")->emit();
-    REQUIRE(signal1Counter == 3);
+    cfg.getSignal<void()>("signal1")->emit();
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(signalCounter == 5);
   }
 
   // SECTION(".connect(signal)") {

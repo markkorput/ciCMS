@@ -55,7 +55,7 @@ namespace cms { namespace cfg {
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
     template <typename Signature>
-    Cfg& connect(const string& attr, std::function<Signature> func);
+    Cfg& connect(const string& signalIds, std::function<Signature> func);
 
     template <typename Signature>
     Cfg& connectAttr(const string& attr, std::function<Signature> func);
@@ -137,15 +137,30 @@ namespace cms { namespace cfg {
   };
 
   template <typename Signature>
-  Cfg& Cfg::connect(const string& attr, std::function<Signature> func) {
-    this->getSignal<Signature>(attr)->connect(func);
+  Cfg& Cfg::connect(const string& signalIds, std::function<Signature> func) {
+    // this->getSignal<Signature>(attr)->connect(func);
+    std::vector<std::string> ids;
+    boost::split(ids, signalIds, boost::is_any_of(","));
+    for(auto& id : ids)
+      this->getSignal<Signature>(id)->connect(func);
+
     return *this;
   }
 
   template <typename Signature>
   Cfg& Cfg::connectAttr(const string& attr, std::function<Signature> func) {
     auto readr = reader();
-    if (readr->has(attr)) this->getSignal<Signature>(readr->get(attr))->connect(func);
+
+    if (readr->has(attr)) {
+      // this->getSignal<Signature>(readr->get(attr))->connect(func);
+      std::string value = readr->get(attr);
+      std::vector<std::string> ids;  
+      boost::split(ids, value, boost::is_any_of(","));
+
+      for(auto& id : ids)
+        this->getSignal<Signature>(id)->connect(func);
+    }
+
     return *this;
   }
 
