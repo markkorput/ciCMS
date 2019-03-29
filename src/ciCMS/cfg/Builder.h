@@ -102,7 +102,7 @@ namespace cms { namespace cfg {
         if(result)
           return result;
       }
-      std::cerr << "Could not find instantiator for type: " << typ;
+      std::cerr << "Could not find instantiator for type: " << typ << std::endl;
       return NULL;
     }
 
