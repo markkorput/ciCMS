@@ -42,6 +42,7 @@ namespace cms { namespace cfg {
     Cfg& set(const string& attr, string& var);
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
+    Cfg& setBool(const string& attr, State<bool>& var);
     Cfg& setFloat(const string& attr, float& var);
     Cfg& setVec2(const string& attr, glm::vec2& var);
     Cfg& set_ivec2(const string& attr, glm::ivec2& var);
@@ -64,7 +65,13 @@ namespace cms { namespace cfg {
     Cfg& push(const string& attr, Typ& var);
 
     template <typename Typ>
+    Cfg& push(const string& attr, State<Typ>& targetState);
+
+    template <typename Typ>
     Cfg& pushRef(const string& attr, Typ& var);
+
+    template <typename Typ>
+    Cfg& pushRef(const string& attr, State<Typ>& targetState);
 
     // template <typename Signature>
     // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
@@ -178,9 +185,24 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
+  Cfg& Cfg::push(const string& attr, State<Typ>& targetState) {
+    auto existingVal = targetState.val();
+    auto state = this->getState<Typ>(attr, &existingVal);
+    state->push(targetState);
+    return *this;
+  }
+
+  template <typename Typ>
   Cfg& Cfg::pushRef(const string& attr, Typ& var) {
     auto readr = reader();
     if (readr->has(attr)) this->push(readr->get(attr), var);
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::pushRef(const string& attr, State<Typ>& targetState) {
+    auto readr = reader();
+    if (readr->has(attr)) this->push(readr->get(attr), targetState);
     return *this;
   }
 

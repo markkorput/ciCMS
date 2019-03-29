@@ -67,6 +67,13 @@ Cfg& Cfg::setBool(const string& attr, bool& var) {
   }
   return *this; }
 
+Cfg& Cfg::setBool(const string& attr, State<bool>& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getBool(attr, false);
+  }
+  return *this; }
+
 Cfg& Cfg::setFloat(const string& attr, float& var) {
   if (this->attributes != NULL) {
     auto reader = CfgReader::read(*this->attributes);
