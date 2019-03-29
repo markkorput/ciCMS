@@ -164,7 +164,7 @@ namespace cms { namespace cfg { namespace ctree {
         return std::make_shared<Selection>(*Node::fromObj<SourceT>(origin));
       }
 
-      const ::cms::cfg::Configurator* getConfigurator() const { return configurator; }
+      ::cms::cfg::Configurator* getConfigurator() const { return configurator; }
 
     protected: // helper methods
 
