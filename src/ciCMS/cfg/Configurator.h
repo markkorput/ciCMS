@@ -97,7 +97,7 @@ namespace cms { namespace cfg {
 
       template<typename ObjT>
       void withObject(const std::string& id, std::function<void(ObjT&)> func) {
-        getCfg()->withObjects<ObjT>(id, func);
+        getCfg()->withObject<ObjT>(id, func);
       }
 
       template<typename ObjT>

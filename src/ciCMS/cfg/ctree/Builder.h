@@ -81,7 +81,7 @@ namespace cms { namespace cfg { namespace ctree {
         });
       }
 
-      // CfgT* getConfigurator() { return configurator; }
+      CfgT* getConfigurator() { return configurator; }
 
     protected:
 

@@ -37,7 +37,7 @@ class Registry {
 
     inline void* getById(const std::string& id) {
       auto node = this->nodesById[id];
-      return node->getObject<void>();
+      return node ? node->getObject<void>() : NULL;
     }
 
     template<typename ObjT>

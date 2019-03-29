@@ -45,6 +45,13 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
     REQUIRE(builder.getConfigurator()->getStates().size() == 0);
     REQUIRE(builder.getConfigurator()->getSignals().size() == 0);
   }
+
+  SECTION("Registry"){
+    SECTION("getById for non-existing id") {
+      cfg::ctree::TreeBuilder builder;
+      REQUIRE(builder.getRegistry()->getById("foobar") == NULL);
+    }
+  }
 }
 
 #endif
