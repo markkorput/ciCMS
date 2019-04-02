@@ -24,6 +24,7 @@ namespace cms { namespace cfg { namespace ctree {
 
       Builder() : bPrivateConfigurator(true) {
         this->configurator = new CfgT(this->getModelCollection());
+        TreeBuilder::setConfigurator(*this->configurator);
         this->init();
       }
 

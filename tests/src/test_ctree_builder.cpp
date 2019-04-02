@@ -257,11 +257,13 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     // prepare a builder and populate with data
     cms::cfg::ctree::Builder<Configer2> builder;
     // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
-    builder.getModelCollection().loadJson(STRINGIFY([
+    auto& col = builder.getModelCollection();
+    col.loadJson(STRINGIFY([
       {"id":"MixedObjects.Namer", "firstname":"John", "Lastname": "MixedObjects.Namer.Lastname", "nameOn": "changeName"},
       {"id":"MixedObjects.Namer.Lastname", "type": "ConfigurableNamer", "name":"Doe", "AgerPostfix": "MixedObjects.Namer.ConfigurableAger", "nameEmit": "changeName"},
       {"id":"MixedObjects.Namer.ConfigurableAger", "age":"88"}
     ]));
+    REQUIRE(col.size() == 3);
 
     // configure your builder by registering instantiators
     // (map classes that can be "build" to a type identifier)
@@ -276,7 +278,7 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     lastname->nameSignal.emit("Newman");
     REQUIRE(lastname->nameEmitHistory.size() == 1);
     REQUIRE(lastname->nameEmitHistory[0] == "Newman");
-    REQUIRE(namer->name == "Newman");
+    REQUIRE(namer->name == "nameOn: Newman");
   }
 }
 #endif // CICMS_CTREE

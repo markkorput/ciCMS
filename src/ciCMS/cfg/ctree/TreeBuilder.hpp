@@ -46,22 +46,25 @@ namespace cms { namespace cfg { namespace ctree {
 
     public:
 
-      TreeBuilder() : bPrivateConfigurator(true) {
-        this->configurator = new ::cms::cfg::Configurator(this->getModelCollection());
-
+      TreeBuilder(::cms::cfg::Configurator* configurator = NULL) {
+        this->bPrivateConfigurator = (configurator == NULL);
+        this->configurator = (configurator == NULL
+          ? new ::cms::cfg::Configurator(this->getModelCollection())
+          : configurator);
+        
         this->setChilderFunc([](Node& parent, Node& child){
           parent.add(child);
         });
-
+        
         // TODO; make this optional for performance optimization?
         this->registry = std::shared_ptr<Registry>(new Registry(this));
-
+        
         auto objectFetcher = [this](const std::string& id){
           return this->registry->getById(id);
         };
-
+        
         // give our configurator an object fetcher which looks for objects in our Registry
-        configurator->setObjectFetcher(objectFetcher);
+        this->configurator->setObjectFetcher(objectFetcher);
       }
 
       ~TreeBuilder() {
@@ -119,6 +122,15 @@ namespace cms { namespace cfg { namespace ctree {
           // return result
           return node;
         });
+      }
+
+      void setConfigurator(::cms::cfg::Configurator& configurator) {
+        if (bPrivateConfigurator && this->configurator != NULL) {
+          delete this->configurator;
+        }
+
+        this->configurator = &configurator;
+        bPrivateConfigurator = false;
       }
 
     public: // hierarchy operations
