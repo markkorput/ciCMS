@@ -16,6 +16,8 @@ class Namer {
     string name;
     string realtimeName() { return realtimeNameFunc ? realtimeNameFunc() : name; }
     std::function<std::string()> realtimeNameFunc = nullptr;
+
+    ctree::Signal<void(const std::string&)> nameSignal;
 };
 
 class Ager {
@@ -143,12 +145,26 @@ class ConfigurableNamer {
   private:
     std::function<std::string()> realtimeNameFunc = nullptr;
 
+
   public:
+    ctree::Signal<void(const std::string&)> nameSignal;
+    std::vector<std::string> nameEmitHistory;
+
     string name;
     string realtimeName() { return realtimeNameFunc ? realtimeNameFunc() : name; }
 
     void cfg(cfg::Cfg& cfg) {
       cfg
+      .withSignalByAttr<void(const std::string&)>("nameEmit", [this](auto &sig) {
+        nameSignal.connect([this, &sig](const std::string& v) { 
+          this->nameEmitHistory.push_back(v);
+          sig.emit(v);
+        });
+      })
+      .connectAttr<void(const std::string&)>("nameOn", [this](const std::string& val){
+        this->name = val;
+        // this->nameSignal.emit(this->name);
+      })
       .set("name", name)
       .withObjectByAttr<ConfigurableAger>("AgerPostfix", [this](ConfigurableAger& ager) {
         // configure name with configure-time value of the AgerPostfix object
@@ -168,7 +184,7 @@ TEST_CASE("cms::cfg::ctree::Builder With configurable objects", ""){
       cms::cfg::ctree::Builder<Configer> builder;
       // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
       builder.getModelCollection().loadJson(STRINGIFY([
-        {"id":"ConfigurableObjects.ConfigurableNamer", "name":"Bob"},
+        {"id":"ConfigurableObjects.ConfigurableNamer", "name":"Bob", "nameOn":"setName"},
         {"id":"ConfigurableObjects.ConfigurableNamer.ConfigurableAger", "age":"46"}
       ]));
 
@@ -223,6 +239,16 @@ public:
       // dynamic realtime value
       obj.realtimeNameFunc = [&obj, &lastnamer](){ return obj.name + " " + lastnamer.realtimeName(); };
     });
+
+    read(data)
+    ->with("nameEmit", [this, &obj](const std::string& v){
+      auto sig = this->getSignal<void(const std::string&)>(v);
+      obj.nameSignal.connect([sig](const std::string& v) { sig->emit(v); });
+    })
+    .with("nameOn", [this, &obj](const std::string& v){
+      auto sig = this->getSignal<void(const std::string&)>(v);
+      sig->connect([&obj](const std::string& v){ obj.name = "nameOn: "+v; });
+    });
   }
 };
 
@@ -232,8 +258,8 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     cms::cfg::ctree::Builder<Configer2> builder;
     // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("test_ctree_builder.json"));
     builder.getModelCollection().loadJson(STRINGIFY([
-      {"id":"MixedObjects.Namer", "firstname":"John", "Lastname": "MixedObjects.Namer.Lastname"},
-      {"id":"MixedObjects.Namer.Lastname", "type": "ConfigurableNamer", "name":"Doe", "AgerPostfix": "MixedObjects.Namer.ConfigurableAger"},
+      {"id":"MixedObjects.Namer", "firstname":"John", "Lastname": "MixedObjects.Namer.Lastname", "nameOn": "changeName"},
+      {"id":"MixedObjects.Namer.Lastname", "type": "ConfigurableNamer", "name":"Doe", "AgerPostfix": "MixedObjects.Namer.ConfigurableAger", "nameEmit": "changeName"},
       {"id":"MixedObjects.Namer.ConfigurableAger", "age":"88"}
     ]));
 
@@ -243,6 +269,14 @@ TEST_CASE("cms::cfg::ctree::Builder With both configurator and configurable obje
     builder.addCfgObjectInstantiator<ConfigurableNamer>("ConfigurableNamer");
     builder.addCfgObjectInstantiator<ConfigurableAger>("ConfigurableAger");
 
+    auto namer = builder.build<Namer>("MixedObjects.Namer");
+    REQUIRE(namer->name == "John Doe");
+    auto lastname = builder.select(namer)->get<ConfigurableNamer>("Lastname");
+    REQUIRE(lastname->name == "Doe [88]");
+    lastname->nameSignal.emit("Newman");
+    REQUIRE(lastname->nameEmitHistory.size() == 1);
+    REQUIRE(lastname->nameEmitHistory[0] == "Newman");
+    REQUIRE(namer->name == "Newman");
   }
 }
 #endif // CICMS_CTREE
