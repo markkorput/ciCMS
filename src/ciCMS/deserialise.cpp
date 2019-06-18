@@ -104,6 +104,25 @@ namespace cms {
       return defaultValue;
   }
 
+  glm::vec4 deserialiseVec4(const std::string& str, const glm::vec4& defaultValue) {
+    std::vector<std::string> strings;
+    boost::split(strings, str, boost::is_any_of(","));
+
+    try{
+        if(strings.size() == 4)
+            return glm::vec4(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]), std::stof(strings[3]));
+
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            return glm::vec4(val, val, val, val);
+        }
+    } catch(std::invalid_argument exc){
+        // std::cerr << exc.what();
+    }
+
+    return defaultValue;
+  }
+
   cinder::ColorAf deserialiseColor(const std::string& str, const ci::ColorAf& defaultValue){
     std::vector<std::string> strings;
     boost::split(strings, str, boost::is_any_of(","));

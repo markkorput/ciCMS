@@ -51,6 +51,13 @@ namespace cms { namespace cfg {
       return *this;
     }
 
+    const CfgReader& withVec4(const string& attr, function<void(const glm::vec4&)> func) const {
+      if(this->has(attr))
+        func(cms::deserialiseVec4(this->at(attr), glm::vec4(0.0f)));
+      return *this;
+    }
+
+
     const CfgReader& withColor(const string& attr, function<void(const ci::ColorAf&)> func) const {
       if(this->has(attr))
         func(cms::deserialiseColor(this->at(attr), ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f)));
