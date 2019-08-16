@@ -3,8 +3,6 @@
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
 
-
-#ifndef CINDER_MSW
 namespace cms {
 
   template<>
@@ -24,6 +22,9 @@ namespace cms {
 
   template<>
   glm::vec3 deserialise<glm::vec3>(const std::string& str){ return cms::deserialiseVec3(str, glm::vec3(0.0f, 0.0f, 0.0f)); }
+
+  template<>
+  glm::vec4 deserialise<glm::vec4>(const std::string& str){ return cms::deserialiseVec4(str, glm::vec4(0.0f)); }
 
   template<>
   cinder::ColorAf deserialise<cinder::ColorAf>(const std::string& str){ return cms::deserialiseColor(str, ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f)); }
@@ -104,6 +105,50 @@ namespace cms {
       return defaultValue;
   }
 
+  glm::vec4 deserialiseVec4(const std::string& str, const glm::vec4& defaultValue){
+      std::vector<std::string> strings;
+      boost::split(strings, str, boost::is_any_of(","));
+
+      try{
+        if(strings.size() == 4)
+          return glm::vec4(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]), std::stof(strings[3]));
+
+        if(strings.size() == 3)
+            return glm::vec4(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]), 0.0f);
+
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            return glm::vec4(val, val, val, val);
+        }
+      } catch(std::invalid_argument exc){
+          // std::cerr << exc.what();
+      }
+
+      return defaultValue;
+  }
+
+  glm::ivec2 deserialise_ivec2(const std::string& str, const glm::ivec2& defaultValue){
+    std::vector<std::string> strings;
+
+    boost::split(strings, str, boost::is_any_of(","));
+
+    try {
+      if(strings.size() == 2)
+        return glm::ivec2(std::stoi(strings[0]), std::stoi(strings[1]));
+
+      if(strings.size() == 1 && strings[0] != ""){
+        float val = std::stoi(strings[0]);
+        return glm::ivec2(val, val);
+      }
+    } catch(std::invalid_argument exc){
+      // std::cerr << exc.what();
+    }
+
+    return defaultValue;
+  }
+
+
+
   cinder::ColorAf deserialiseColor(const std::string& str, const ci::ColorAf& defaultValue){
     std::vector<std::string> strings;
     boost::split(strings, str, boost::is_any_of(","));
@@ -126,4 +171,3 @@ namespace cms {
     return defaultValue;
   }
 }
-#endif

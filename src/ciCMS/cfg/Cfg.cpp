@@ -67,12 +67,35 @@ Cfg& Cfg::setBool(const string& attr, bool& var) {
   }
   return *this; }
 
+Cfg& Cfg::setBool(const string& attr, State<bool>& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getBool(attr, false);
+  }
+  return *this; }
+
 Cfg& Cfg::setFloat(const string& attr, float& var) {
   if (this->attributes != NULL) {
     auto reader = CfgReader::read(*this->attributes);
     if (reader->has(attr)) var = reader->getFloat(attr, 0.0f);
   }
   return *this; }
+
+Cfg& Cfg::setVec2(const string& attr, glm::vec2& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getVec2(attr, glm::vec2(0.0f));
+  }
+  return *this;
+}
+
+Cfg& Cfg::set_ivec2(const string& attr, glm::ivec2& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->get_ivec2(attr, glm::ivec2(0));
+  }
+  return *this;
+}
 
 Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
   if (this->attributes != NULL) {
@@ -81,6 +104,24 @@ Cfg& Cfg::setVec3(const string& attr, glm::vec3& var) {
   }
   return *this;
 }
+
+Cfg& Cfg::setVec4(const string& attr, glm::vec4& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getVec4(attr, glm::vec4(0.0f));
+  }
+  return *this;
+}
+
+Cfg& Cfg::setColor(const string& attr, ci::ColorA& var) {
+  if (this->attributes != NULL) {
+    auto reader = CfgReader::read(*this->attributes);
+    if (reader->has(attr)) var = reader->getColor(attr, var);
+  }
+
+  return *this;
+}
+
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }

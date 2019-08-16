@@ -42,17 +42,36 @@ namespace cms { namespace cfg {
     Cfg& set(const string& attr, string& var);
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
+    Cfg& setBool(const string& attr, State<bool>& var);
     Cfg& setFloat(const string& attr, float& var);
+    Cfg& setVec2(const string& attr, glm::vec2& var);
+    Cfg& set_ivec2(const string& attr, glm::ivec2& var);
     Cfg& setVec3(const string& attr, glm::vec3& var);
+    Cfg& setVec4(const string& attr, glm::vec4& var);
 
+    Cfg& setColor(const string& attr, ci::ColorAf& var);
+
+    const std::map<std::string, std::string>* getAttributes() const { return this->attributes; }
     Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
     template <typename Signature>
-    Cfg& connect(const string& attr, std::function<Signature> func);
+    Cfg& connect(const string& signalIds, std::function<Signature> func);
 
     template <typename Signature>
     Cfg& connectAttr(const string& attr, std::function<Signature> func);
+
+    template <typename Typ>
+    Cfg& push(const string& attr, Typ& var);
+
+    template <typename Typ>
+    Cfg& push(const string& attr, State<Typ>& targetState);
+
+    template <typename Typ>
+    Cfg& pushRef(const string& attr, Typ& var);
+
+    template <typename Typ>
+    Cfg& pushRef(const string& attr, State<Typ>& targetState);
 
     // template <typename Signature>
     // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
@@ -68,7 +87,7 @@ namespace cms { namespace cfg {
     ::ctree::Signal<Signature>* getSignal(const std::string& id);
 
     template <typename Typ>
-    cms::State<Typ>* getState(const string& id);
+    cms::State<Typ>* getState(const string& id, const Typ* initialValue = NULL);
 
     void* getObjectPointer(const string& id);
 
@@ -125,15 +144,30 @@ namespace cms { namespace cfg {
   };
 
   template <typename Signature>
-  Cfg& Cfg::connect(const string& attr, std::function<Signature> func) {
-    this->getSignal<Signature>(attr)->connect(func);
+  Cfg& Cfg::connect(const string& signalIds, std::function<Signature> func) {
+    // this->getSignal<Signature>(attr)->connect(func);
+    std::vector<std::string> ids;
+    boost::split(ids, signalIds, boost::is_any_of(","));
+    for(auto& id : ids)
+      this->getSignal<Signature>(id)->connect(func);
+
     return *this;
   }
 
   template <typename Signature>
   Cfg& Cfg::connectAttr(const string& attr, std::function<Signature> func) {
     auto readr = reader();
-    if (readr->has(attr)) this->getSignal<Signature>(readr->get(attr))->connect(func);
+
+    if (readr->has(attr)) {
+      // this->getSignal<Signature>(readr->get(attr))->connect(func);
+      std::string value = readr->get(attr);
+      std::vector<std::string> ids;  
+      boost::split(ids, value, boost::is_any_of(","));
+
+      for(auto& id : ids)
+        this->getSignal<Signature>(id)->connect(func);
+    }
+
     return *this;
   }
 
@@ -143,6 +177,34 @@ namespace cms { namespace cfg {
   //   return *this;
   // }
 
+  template <typename Typ>
+  Cfg& Cfg::push(const string& attr, Typ& var) {
+    auto state = this->getState<Typ>(attr, &var);
+    state->push([&var](const Typ& val){ var = val; });
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::push(const string& attr, State<Typ>& targetState) {
+    auto existingVal = targetState.val();
+    auto state = this->getState<Typ>(attr, &existingVal);
+    state->push(targetState);
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::pushRef(const string& attr, Typ& var) {
+    auto readr = reader();
+    if (readr->has(attr)) this->push(readr->get(attr), var);
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::pushRef(const string& attr, State<Typ>& targetState) {
+    auto readr = reader();
+    if (readr->has(attr)) this->push(readr->get(attr), targetState);
+    return *this;
+  }
 
   template <typename Signature>
   ::ctree::Signal<Signature>* Cfg::getSignal(const std::string& id) {
@@ -157,14 +219,20 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
-  cms::State<Typ>* Cfg::getState(const string& id) {
+  cms::State<Typ>* Cfg::getState(const string& id, const Typ* initialValue) {
+    // look for existing state
     auto p = (*this->states)[id];
-
+    // return existing state
     if (p != NULL) return (State<Typ>*)p;
-
+    // create new state
     auto pp = new State<Typ>();
+    // set initial value
+    if (initialValue != NULL) pp->set(*initialValue);
+    // save new state in our states map
     (*this->states)[id] = (void*)pp;
+    // make sure the state is removed by our destructor
     cleanupFuncs.push_back([this, id](){ delete (State<Typ>*)(*this->states)[id]; this->states->erase(id); });
+    // return new state
     return pp;
   }
 

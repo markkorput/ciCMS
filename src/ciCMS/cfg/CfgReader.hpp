@@ -43,6 +43,12 @@ namespace cms { namespace cfg {
       return *this;
     }
 
+    // const CfgReader& withVec2i(const string& attr, function<void(const glm::vec2i&)> func) const {
+    //   if(this->has(attr))
+    //     func(cms::deserialiseVec2i(attrs->at(attr), glm::vec2(0.0f)));
+    //   return *this;
+    // }
+
     const CfgReader& withVec2(const string& attr, function<void(const glm::vec2&)> func) const {
       if(this->has(attr))
         func(cms::deserialiseVec2(attrs->at(attr), glm::vec2(0.0f)));
@@ -52,6 +58,12 @@ namespace cms { namespace cfg {
     const CfgReader& withVec3(const string& attr, function<void(const glm::vec3&)> func) const {
       if(this->has(attr))
         func(cms::deserialiseVec3(attrs->at(attr), glm::vec3(0.0f)));
+      return *this;
+    }
+
+    const CfgReader& withVec4(const string& attr, function<void(const glm::vec4&)> func) const {
+      if(this->has(attr))
+        func(cms::deserialiseVec4(attrs->at(attr), glm::vec4(0.0f)));
       return *this;
     }
 
@@ -97,8 +109,16 @@ namespace cms { namespace cfg {
       return has(attr) ? cms::deserialiseVec2(attrs->at(attr), defaultValue) : defaultValue;
     }
 
+    glm::ivec2 get_ivec2(const string& attr, const glm::ivec2& defaultValue) const {
+      return has(attr) ? cms::deserialise_ivec2(attrs->at(attr), defaultValue) : defaultValue;
+    }
+
     glm::vec3 getVec3(const string& attr, const glm::vec3& defaultValue) const {
       return has(attr) ? cms::deserialiseVec3(attrs->at(attr), defaultValue) : defaultValue;
+    }
+
+    glm::vec4 getVec4(const string& attr, const glm::vec4& defaultValue) const {
+      return has(attr) ? cms::deserialiseVec4(attrs->at(attr), defaultValue) : defaultValue;
     }
 
     ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue) const {

@@ -12,9 +12,9 @@
 #include "ciCMS/Model.h"
 // local
 #include "Cfgr.h"
-#include "Runner.h"
-#include "Keyboard.h"
-#include "TexSphere.h"
+#include "component/Runner.h"
+#include "component/Keyboard.h"
+#include "component/TexSphere.h"
 #include "component/Camera.h"
 
 using namespace ci;
@@ -32,28 +32,28 @@ class MainApp : public App {
 
   private:
     cms::cfg::ctree::Builder<Cfgr> builder;
-    Runner* pRunner;
+    component::Runner* pRunner;
 };
 
 void MainApp::setup(){
   // configure our builder and configurator
   // builder.addDefaultInstantiator<Runner>("Runner");
-  builder.addCfgObjectInstantiator<Runner>("Runner");
+  builder.addCfgObjectInstantiator<component::Runner>("Runner");
   // builder.addDefaultInstantiator<Keyboard>("Keyboard");
-  builder.addCfgObjectInstantiator<Keyboard>("Keyboard");
-  builder.addCfgObjectInstantiator<TexSphere>("TexSphere");
+  builder.addCfgObjectInstantiator<component::Keyboard>("Keyboard");
+  builder.addCfgObjectInstantiator<component::TexSphere>("TexSphere");
   builder.addCfgObjectInstantiator<component::Camera>("Camera");
 
   builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("config.json"));
-  builder.getConfigurator()->cfg(*builder.getConfigurator(), "Cfgr");
+  builder.cfg("Builder");
 
   // build our application hierarchy
-  pRunner = builder.build<Runner>("Runner");
+  pRunner = builder.build<component::Runner>("Runner");
 }
 
 void MainApp::cleanup() {
   if (this->pRunner) {
-      builder.destroy<Runner>(this->pRunner);
+      builder.destroy<component::Runner>(this->pRunner);
       this->pRunner = NULL;
   }
 }

@@ -15,5 +15,9 @@ add_definitions(-DCICMS_CTREE)
 ci_make_app(
 	SOURCES     ${APP_SOURCES}
 	CINDER_PATH ${CINDER_PATH}
-	BLOCKS ctree ciCMS 
+	BLOCKS ctree ciCMS
 )
+
+if(WIN32)
+	set_target_properties(ciCMSTests PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+endif(WIN32)

@@ -89,7 +89,7 @@ TEST_CASE("cms::cfg::Cfg", ""){
     string name="";
     int age = 0;
     bool male = false;
-    
+
     cfg
     .set("name", name)
     .setInt("age", age)
@@ -102,17 +102,21 @@ TEST_CASE("cms::cfg::Cfg", ""){
 
   SECTION(".connect(str, func)") {
     Cfg cfg;
-    int signal1Counter = 0;
-    cfg.connect<void()>("signal1", [&signal1Counter](){ signal1Counter += 1; });
+    int signalCounter = 0;
+    cfg.connect<void()>("signal1,signal2", [&signalCounter](){ signalCounter += 1; });
 
-    REQUIRE(signal1Counter == 0);
-
-    cfg.getSignal<void()>("signal1")->emit();
-    REQUIRE(signal1Counter == 1);
+    REQUIRE(signalCounter == 0);
 
     cfg.getSignal<void()>("signal1")->emit();
+    REQUIRE(signalCounter == 1);
+
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(signalCounter == 2);
+
     cfg.getSignal<void()>("signal1")->emit();
-    REQUIRE(signal1Counter == 3);
+    cfg.getSignal<void()>("signal1")->emit();
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(signalCounter == 5);
   }
 
   // SECTION(".connect(signal)") {
@@ -129,11 +133,24 @@ TEST_CASE("cms::cfg::Cfg", ""){
   // }
 
   SECTION(".getSignal"){
-    std::cout << "TODO";
+    Cfg cfg;
+    int counter = 0;
+    cfg.connect<void()>("signal2", [&counter](){ counter += 1; });
+
+    REQUIRE(counter == 0);
+
+    cfg.getSignal<void()>("signal1")->connect([&cfg](){ cfg.getSignal<void()>("signal2")->emit(); });
+    cfg.getSignal<void()>("signal1")->emit();
+
+    REQUIRE(counter == 1);
+    cfg.getSignal<void()>("signal2")->emit();
+    REQUIRE(counter == 2);
   }
 
   SECTION(".getState") {
-    std::cout << "TODO";
+    Cfg cfg;
+    cfg.getState<int>("var1")->set(3);
+    REQUIRE(cfg.getState<int>("var1")->val() == 3);
   }
 
   SECTION(".withState") {
@@ -322,5 +339,36 @@ TEST_CASE("cms::cfg::Cfg", ""){
     func(); func();
     REQUIRE(count1 == 3);
     REQUIRE(count2 == 3);
+  }
+
+  SECTION("push") {
+    Cfg cfg;
+    int someInt = 44;
+
+    cfg.getState<int>("someInt")->set(33);
+    cfg.push("someInt", someInt);
+    REQUIRE(someInt == 33);
+
+    cfg.getState<int>("someInt")->set(55);
+    REQUIRE(someInt == 55);
+  }
+
+  SECTION("pushRef") {
+    map<string, void*> states, signals, objects;
+    Cfg cfg(signals, states, [&objects](const string& id){ return objects[id]; });
+
+
+    map<string, string> attrs = {{"ageState", "ResultAge"}};
+    cfg.setAttributes(attrs);
+
+    cfg.getState<int>("ageState")->set(50); // NOT USED
+    cfg.getState<int>("ResultAge")->set(60); // <-- USED
+
+    int someInt = 40;
+    cfg.pushRef("ageState", someInt);
+    REQUIRE(someInt == 60);
+
+    cfg.getState<int>("ResultAge")->set(70);
+    REQUIRE(someInt == 70);
   }
 }

@@ -1,16 +1,8 @@
 #pragma once
 
-#include <map>
-#include <iostream>
-#include <regex>
-// blocks
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/Model.h"
 #include "ciCMS/ModelCollection.h"
-
-// local
-#include "Runner.h"
-#include "Keyboard.h"
 
 using namespace cms;
 

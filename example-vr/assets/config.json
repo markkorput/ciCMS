@@ -1,0 +1,8 @@
+{
+  "Builder": {"active": true},
+  "App": {"drawEmit": "draw", "exitOn":"exit"},
+  "App.Keyboard": {"key:d": "toggle:drawEnabled", "key:q": "emit:exit"},
+
+  "App.Camera": {"on": "draw", "emit":"cam1", "pos": "0,0,0", "lookAt": "0,0,0.5", "ui":true},
+  "App.VrInterface": {"drawOn": "draw", "drawSceneEmit": "drawScene"}
+}

@@ -12,7 +12,9 @@ TEST_CASE("cms::State"){
     REQUIRE(value.isInitialized() == false);
     // REQUIRE(value.val() == 0.0f); // not guaranteed
     value.push([&target](const float &val){ target = val; }, &target);
-    value.changeSignal.connect([&delta](State<float>::ChangeArgs& args){ delta = args.current - args.previous; });
+    value.changeSignal.connect([&delta](State<float>::ChangeArgs& args){
+		delta = args.current - (args.previouslyInitialized ? args.previous : 0.0f);
+	});
     REQUIRE(target == 0.0f);
     value = 5.0f;
     REQUIRE(value.val() == 5.0f);
