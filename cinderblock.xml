@@ -7,7 +7,7 @@
 		author="ShortNotion"
 		summary="Content Management System; classes for managing the M part of MVC"
 		license="MIT"
-		version="1.0"
+		version="0.1"
 		url="http://github.com/markkorput/ciCMS">
 
 		<supports os="macosx" />
