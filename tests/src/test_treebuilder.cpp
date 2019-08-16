@@ -68,6 +68,7 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
               });
 
             builder.output<bool>("HasKeyDown");
+            builder.attr<bool>("enabled");
           });
         }
 
@@ -95,7 +96,7 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
     // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
 
     // verify we can extract outputs information from info interface
-    std::vector<std::string> ids = {"KeyCode", "HasKeyDown"};
+    std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
     for(int i=0; i<ids.size(); i++) {
       REQUIRE(ids[i] == info.getOutputs()[i]->getId());
     }

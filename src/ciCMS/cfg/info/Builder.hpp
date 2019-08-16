@@ -42,8 +42,14 @@ namespace cms { namespace cfg { namespace info {
     public:
 
       template<typename V>
-      BuilderPort<V>& output(const std::string& id) {
-        auto output = new BuilderPort<V>(id, Port::FLAG_OUT);
+      BuilderPort<V>& attr(const std::string& id) { return addPort<V>(id, Port::FLAG_INOUT); }
+
+      template<typename V>
+      BuilderPort<V>& output(const std::string& id) { return addPort<V>(id, Port::FLAG_OUT); }
+
+      template<typename V>
+      BuilderPort<V>& addPort(const std::string& id, int flags) {
+        auto output = new BuilderPort<V>(id, flags);
         outputs.push_back((BuilderBasePort*)output);
         return *output;
       }
