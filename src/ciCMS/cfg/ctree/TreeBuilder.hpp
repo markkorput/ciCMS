@@ -101,8 +101,10 @@ namespace cms { namespace cfg { namespace ctree {
     public: // configuration methods
 
       template<typename T>
-      void addInfoObjectInstantiator(const string& name) {
-        this->addInstantiator(name, [this, &name](CfgData& data){
+      std::shared_ptr<info::Interface> addInfoObjectInstantiator(const string& name) {
+        std::shared_ptr<info::Interface> result;
+
+        this->addInstantiator(name, [this, &result, &name](CfgData& data){
           // create a node for in the hierarchy structure, with an
           // instance of the specified type attached to it
           auto node = Node::create<T>(this->getName(data));
@@ -110,8 +112,8 @@ namespace cms { namespace cfg { namespace ctree {
           // get the attached object from the node
           auto object = node->template getObject<T>();
 
-
           auto interfaceRef = std::shared_ptr<info::Interface>(object->createInfoInterface());
+          result = interfaceRef;
 
           // "configure" the object by calling its cfg method
           this->configurator->apply(data, [this, interfaceRef](ModelBase& mod){
@@ -127,6 +129,8 @@ namespace cms { namespace cfg { namespace ctree {
           // return result
           return node;
         });
+
+        return result;
       }
 
       template<typename T>

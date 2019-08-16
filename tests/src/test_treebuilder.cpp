@@ -77,18 +77,27 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
           // if(key.size() != 1) return;
           // char chr = key[0];
 
-          this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
-            func(event.getChar());
-          }));
+          // this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
+          //   func(event.getChar());
+          // }));
+
+          this->connections.push_back(this->keySignal.connect(func));
         }
 
       private:
         std::vector<ci::signals::Connection> connections;
+      public:
+        ctree::Signal<void(char)> keySignal;
     };
 
     cfg::ctree::TreeBuilder builder;
-    builder.addInfoObjectInstantiator<InfoKeyboard>("Keyboard");
+    auto info = builder.addInfoObjectInstantiator<InfoKeyboard>("Keyboard");
     builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
+
+    std::vector<std::string> ids = {"KeyCode"};
+    for(int i=0; i<ids.size(); i++) {
+      REQUIRE(ids[i] == info->getOutputs()[i]->getId());
+    }
   }
 }
 

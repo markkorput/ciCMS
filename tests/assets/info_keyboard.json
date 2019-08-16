@@ -1,6 +1,6 @@
 {
   "Keyboard": {
-    "key": "lastPressedKey",
+    "key": "toggle:on",
     "key:d":"toggle:draw"
   }
 }

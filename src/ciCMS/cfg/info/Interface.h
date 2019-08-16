@@ -9,6 +9,8 @@ namespace cms { namespace cfg { namespace info {
       BaseOutput(const std::string& id) : id(id) {
       }
   
+    public:
+      const std::string& getId() const { return id; }
 
     private:
       std::string id;
@@ -34,6 +36,11 @@ namespace cms { namespace cfg { namespace info {
         auto output = new Output<T>(id);
         outputs.push_back(output);
         return *output;
+      }
+
+    public:
+      const std::vector<BaseOutput*>& getOutputs() const {
+        return outputs;
       }
 
     private:
