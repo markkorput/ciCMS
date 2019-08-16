@@ -66,6 +66,8 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
                   out(keycode);
                 });
               });
+
+            builder.output<bool>("HasKeyDown");
           });
         }
 
@@ -98,10 +100,10 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
       REQUIRE(ids[i] == info.getOutputs()[i]->getId());
     }
 
-    // std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
-    // for(int i=0; i<types.size(); i++) {
-    //   REQUIRE(types[i] == info.getOutputs()[i]->getType());
-    // }
+    std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
+    for(int i=0; i<types.size(); i++) {
+      REQUIRE(types[i] == info.getOutputs()[i]->getType());
+    }
   }
 }
 

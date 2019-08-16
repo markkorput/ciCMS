@@ -22,11 +22,6 @@ namespace cms { namespace cfg { namespace info {
   class Output : public BaseOutput {
     public:
       Output(const std::string& id) : BaseOutput(id, typeid(T).name()) {}
-
-    public:
-      void push(const T& val) {
-
-      }
   };
 
   template<typename T>
@@ -37,14 +32,11 @@ namespace cms { namespace cfg { namespace info {
         BuilderBaseOutput(const std::string& id, const std::string& type) : id(id), type(type) {
         }
     
-      public:
-        const std::string& getId() const { return id; }
-        const std::string& getType() const { return type; }
+        BaseOutput* create() {
+          return new BaseOutput(id, type);
+        }
 
-      protected:
         std::vector<std::function<void(void*, std::function<void(const void*)>)>> applyFuncs;
-
-      private:
         std::string id;
         std::string type;
     };
@@ -64,40 +56,36 @@ namespace cms { namespace cfg { namespace info {
             });
           });
         }
-
-      private:
-        std::vector<BuilderBaseOutput*> outputs;
     };
 
     public:
+
       template<typename V>
       BuilderOutput<V>& output(const std::string& id) {
         auto output = new BuilderOutput<V>(id);
         outputs.push_back((BuilderBaseOutput*)output);
+
         return *output;
       }
 
-    private:
+    public:
       std::vector<BuilderBaseOutput*> outputs;
   };
 
   class Interface {
     public:
-      // get/define an output
-      // template<typename T>
-      // Output<T>& output(const std::string& id) {
-      //   auto output = new Output<T>(id);
-      //   outputs.push_back(output);
-      //   return *output;
-      // }
 
       template<class T>
       static cfg::info::Interface* create(std::function<void(Builder<T>&)> func) {
         auto builder = new Builder<T>();
-        func(*builder);
-        
         auto interface = new Interface();
-        // do stuff with builder
+
+        func(*builder);
+
+        for(auto& builderOutput : builder->outputs) {
+          interface->outputs.push_back(std::shared_ptr<BaseOutput>(builderOutput->create()));
+        }
+
         return interface;
       }
 
@@ -113,7 +101,7 @@ namespace cms { namespace cfg { namespace info {
       }
 
     public:
-      const std::vector<BaseOutput*>& getOutputs() const {
+      const std::vector<std::shared_ptr<BaseOutput>>& getOutputs() const {
         return outputs;
       }
 
@@ -126,7 +114,7 @@ namespace cms { namespace cfg { namespace info {
       }
 
     private:
-      std::vector<BaseOutput*> outputs;
+      std::vector<std::shared_ptr<BaseOutput>> outputs;
       std::vector<std::function<void(void*)>> instanceFuncs;
   };
 
