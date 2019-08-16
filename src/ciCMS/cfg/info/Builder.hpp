@@ -1,30 +1,31 @@
 #pragma once
 
-#include "Output.hpp"
+#include "Port.hpp"
 
 namespace cms { namespace cfg { namespace info {
 
   template<typename T>
   class Builder {
 
-    class BuilderBaseOutput {
+    class BuilderBasePort {
       public:
-        BuilderBaseOutput(const std::string& id, const std::string& type) : id(id), type(type) {
+        BuilderBasePort(const std::string& id, const std::string& type, int flags) : id(id), type(type), flags(flags) {
         }
     
-        BaseOutput* create() {
-          return new BaseOutput(id, type);
+        Port* create() {
+          return new Port(id, type, flags);
         }
 
         std::vector<std::function<void(void*, std::function<void(const void*)>)>> applyFuncs;
         std::string id;
         std::string type;
+        int flags;
     };
 
     template<typename V>
-    class BuilderOutput : protected BuilderBaseOutput {
+    class BuilderPort : protected BuilderBasePort {
       public:
-        BuilderOutput(const std::string& id) : BuilderBaseOutput(id, typeid(V).name()) {}
+        BuilderPort(const std::string& id, int flags) : BuilderBasePort(id, typeid(V).name(), flags) {}
 
       public:
 
@@ -41,14 +42,13 @@ namespace cms { namespace cfg { namespace info {
     public:
 
       template<typename V>
-      BuilderOutput<V>& output(const std::string& id) {
-        auto output = new BuilderOutput<V>(id);
-        outputs.push_back((BuilderBaseOutput*)output);
-
+      BuilderPort<V>& output(const std::string& id) {
+        auto output = new BuilderPort<V>(id, Port::FLAG_OUT);
+        outputs.push_back((BuilderBasePort*)output);
         return *output;
       }
 
     public:
-      std::vector<BuilderBaseOutput*> outputs;
+      std::vector<BuilderBasePort*> outputs;
   };
 }}}

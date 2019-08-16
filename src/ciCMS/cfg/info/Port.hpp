@@ -5,9 +5,15 @@
 
 namespace cms { namespace cfg { namespace info {
 
-  class BaseOutput {
+  class Port {
     public:
-      BaseOutput(const std::string& id, const std::string& type) : id(id), type(type) {
+      const static int FLAG_IN = 1;
+      const static int FLAG_OUT = (1 >> 1);
+      const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
+
+    public:
+
+      Port(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
       }
   
     public:
@@ -21,13 +27,7 @@ namespace cms { namespace cfg { namespace info {
     private:
       std::string id;
       std::string type;
+      int flags;
       ::ctree::Signal<void(void)> signal;
   };
-
-  // template<typename T>
-  // class Output : public BaseOutput {
-  //   public:
-  //     Output(const std::string& id) : BaseOutput(id, typeid(T).name()) {}
-  // };
-
 }}}

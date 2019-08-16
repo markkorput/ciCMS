@@ -2,7 +2,7 @@
 
 #include "ctree/signal.hpp"
 #include "ciCMS/cfg/Cfg.h"
-#include "Output.hpp"
+#include "Port.hpp"
 #include "Builder.hpp"
 
 namespace cms { namespace cfg { namespace info {
@@ -19,7 +19,7 @@ namespace cms { namespace cfg { namespace info {
         func(*builder);
 
         for(auto& builderOutput : builder->outputs) {
-          auto output = std::shared_ptr<BaseOutput>(builderOutput->create());
+          auto output = std::shared_ptr<Port>(builderOutput->create());
 
           /// add output to the interface based on the output definitions added to the builder
           interface->outputs.push_back(output);
@@ -49,12 +49,12 @@ namespace cms { namespace cfg { namespace info {
       }
 
     public:
-      const std::vector<std::shared_ptr<BaseOutput>>& getOutputs() const {
+      const std::vector<std::shared_ptr<Port>>& getOutputs() const {
         return outputs;
       }
 
     private:
-      std::vector<std::shared_ptr<BaseOutput>> outputs;
+      std::vector<std::shared_ptr<Port>> outputs;
       std::vector<std::function<void(void*)>> instanceFuncs;
   };
 
