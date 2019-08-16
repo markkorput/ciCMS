@@ -62,28 +62,20 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
           auto info = new cfg::info::Interface();
 
           { // create output with type char
-            
             auto& output = info->output<char>("KeyCode");
             info->output<bool>("HasKeyDown");
+
             // invoke output when a key is pressed
             // this->onKeyDown([&output](char keycode){ output.push(keycode); });
+            info->withInstance<InfoKeyboard>([&output](InfoKeyboard& instance) {
+              instance.onKeyDown([&output](char keycode){ output.push(keycode); });
+            });
+
+            // info.behaviour([](InfoKeyboard& instance, ))
           }
 
           return info;
         }
-
-        // cfg::info::Interface* createInfoInterface() {
-        //   auto info = new cfg::info::Interface();
-
-        //   { // create output with type char
-        //     auto& output = info->output<char>("KeyCode");
-        //     // invoke output when a key is pressed
-        //     this->onKeyDown([&output](char keycode){ output.push(keycode); });
-        //   }
-
-        //   return info;
-        // }
-
 
       protected:
 

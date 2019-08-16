@@ -113,20 +113,18 @@ namespace cms { namespace cfg { namespace ctree {
           // get the attached object from the node
           auto object = node->template getObject<T>();
 
-          // auto interfaceRef = std::shared_ptr<info::Interface>(object->createInfoInterface());
-
           // "configure" the object by calling its cfg method
-          this->configurator->apply(data, [this, interfaceRef](ModelBase& mod){
+          this->configurator->apply(data, [this, interfaceRef, object](ModelBase& mod){
             // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
             // interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            // interfaceRef->cfg
+            interfaceRef->configureInstance(*object);
+            interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
           });
 
           // notify observer signal
           BuildArgs args(node, object, &data);
           buildSignal.emit(args);
           this->notifyNewObject(object, data);
-
 
           // return result
           return node;

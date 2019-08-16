@@ -31,8 +31,7 @@ namespace cms { namespace cfg { namespace info {
 
   class Interface {
     public:
-      void cfg(cms::cfg::Cfg& cfg){}
-
+      // get/define an output
       template<typename T>
       Output<T>& output(const std::string& id) {
         auto output = new Output<T>(id);
@@ -40,12 +39,33 @@ namespace cms { namespace cfg { namespace info {
         return *output;
       }
 
+      // configure an instance with the given Cfg
+      template<class T>
+      void configureInstance(T& instance) { 
+        for(auto& func : instanceFuncs)
+          func((void*)&instance);
+      }
+
+      void cfg(cms::cfg::Cfg& cfg) {
+        
+      }
+
     public:
       const std::vector<BaseOutput*>& getOutputs() const {
         return outputs;
       }
 
+    public:
+      template<class T>
+      void withInstance(std::function<void(T&)> func) {
+        instanceFuncs.push_back([func](void* t){
+          func(*(T*)t);
+        });
+      }
+
     private:
       std::vector<BaseOutput*> outputs;
+      std::vector<std::function<void(void*)>> instanceFuncs;
   };
+
 }}}
