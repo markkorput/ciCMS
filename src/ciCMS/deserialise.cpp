@@ -147,8 +147,6 @@ namespace cms {
     return defaultValue;
   }
 
-
-
   cinder::ColorAf deserialiseColor(const std::string& str, const ci::ColorAf& defaultValue){
     std::vector<std::string> strings;
     boost::split(strings, str, boost::is_any_of(","));
