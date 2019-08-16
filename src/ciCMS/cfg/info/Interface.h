@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ctree/signal.hpp"
 #include "ciCMS/cfg/Cfg.h"
 
 namespace cms { namespace cfg { namespace info {
@@ -13,9 +14,14 @@ namespace cms { namespace cfg { namespace info {
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
 
+      void invokeMethod(const void* arg){
+        signal.emit();
+      }
+
     private:
       std::string id;
       std::string type;
+      ::ctree::Signal<void(void)> signal;
   };
 
   template<typename T>
@@ -80,10 +86,23 @@ namespace cms { namespace cfg { namespace info {
         auto builder = new Builder<T>();
         auto interface = new Interface();
 
+        // let caller configure our builder
         func(*builder);
 
         for(auto& builderOutput : builder->outputs) {
-          interface->outputs.push_back(std::shared_ptr<BaseOutput>(builderOutput->create()));
+          auto output = std::shared_ptr<BaseOutput>(builderOutput->create());
+
+          /// add output to the interface based on the output definitions added to the builder
+          interface->outputs.push_back(output);
+
+          /// add instance configuration logic to our interface based on definitions in the builder
+          for(auto& func : builderOutput->applyFuncs) {
+            interface->instanceFuncs.push_back([func, output](void* instance){
+              func(instance, [output](const void* arg){
+                output->invokeMethod(arg);
+              });
+            });
+          }
         }
 
         return interface;
@@ -103,14 +122,6 @@ namespace cms { namespace cfg { namespace info {
     public:
       const std::vector<std::shared_ptr<BaseOutput>>& getOutputs() const {
         return outputs;
-      }
-
-    public:
-      template<class T>
-      void withInstance(std::function<void(T&)> func) {
-        instanceFuncs.push_back([func](void* t){
-          func(*(T*)t);
-        });
       }
 
     private:
