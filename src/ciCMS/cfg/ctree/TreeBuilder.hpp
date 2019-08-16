@@ -101,10 +101,11 @@ namespace cms { namespace cfg { namespace ctree {
     public: // configuration methods
 
       template<typename T>
-      std::shared_ptr<info::Interface> addInfoObjectInstantiator(const string& name) {
-        std::shared_ptr<info::Interface> result;
+      info::Interface& addInfoObjectInstantiator(const string& name) {
+        auto interfaceRef = std::shared_ptr<info::Interface>(T::createInfoInterface());
+        infoInterfaceRefs.push_back(interfaceRef);
 
-        this->addInstantiator(name, [this, &result, &name](CfgData& data){
+        this->addInstantiator(name, [this, interfaceRef, &name](CfgData& data){
           // create a node for in the hierarchy structure, with an
           // instance of the specified type attached to it
           auto node = Node::create<T>(this->getName(data));
@@ -112,13 +113,13 @@ namespace cms { namespace cfg { namespace ctree {
           // get the attached object from the node
           auto object = node->template getObject<T>();
 
-          auto interfaceRef = std::shared_ptr<info::Interface>(object->createInfoInterface());
-          result = interfaceRef;
+          // auto interfaceRef = std::shared_ptr<info::Interface>(object->createInfoInterface());
 
           // "configure" the object by calling its cfg method
           this->configurator->apply(data, [this, interfaceRef](ModelBase& mod){
             // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
+            // interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
+            // interfaceRef->cfg
           });
 
           // notify observer signal
@@ -126,11 +127,12 @@ namespace cms { namespace cfg { namespace ctree {
           buildSignal.emit(args);
           this->notifyNewObject(object, data);
 
+
           // return result
           return node;
         });
 
-        return result;
+        return *interfaceRef;
       }
 
       template<typename T>
@@ -237,6 +239,7 @@ namespace cms { namespace cfg { namespace ctree {
 
     protected:
       std::shared_ptr<Registry> registry;
+      std::vector<std::shared_ptr<info::Interface>> infoInterfaceRefs;
 
     private:
       ::cms::cfg::Configurator* configurator = NULL;

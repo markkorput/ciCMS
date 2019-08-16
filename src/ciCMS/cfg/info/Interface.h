@@ -6,20 +6,22 @@ namespace cms { namespace cfg { namespace info {
 
   class BaseOutput {
     public:
-      BaseOutput(const std::string& id) : id(id) {
+      BaseOutput(const std::string& id, const std::string& type) : id(id), type(type) {
       }
   
     public:
       const std::string& getId() const { return id; }
+      const std::string& getType() const { return type; }
 
     private:
       std::string id;
+      std::string type;
   };
 
   template<typename T>
   class Output : public BaseOutput {
     public:
-      Output(const std::string& id) : BaseOutput(id) {}
+      Output(const std::string& id) : BaseOutput(id, typeid(T).name()) {}
 
     public:
       void push(const T& val) {

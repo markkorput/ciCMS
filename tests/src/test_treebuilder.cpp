@@ -58,17 +58,31 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
 
     class InfoKeyboard {
       public:
-        cfg::info::Interface* createInfoInterface() {
+        static cfg::info::Interface* createInfoInterface() {
           auto info = new cfg::info::Interface();
 
           { // create output with type char
+            
             auto& output = info->output<char>("KeyCode");
+            info->output<bool>("HasKeyDown");
             // invoke output when a key is pressed
-            this->onKeyDown([&output](char keycode){ output.push(keycode); });
+            // this->onKeyDown([&output](char keycode){ output.push(keycode); });
           }
 
           return info;
         }
+
+        // cfg::info::Interface* createInfoInterface() {
+        //   auto info = new cfg::info::Interface();
+
+        //   { // create output with type char
+        //     auto& output = info->output<char>("KeyCode");
+        //     // invoke output when a key is pressed
+        //     this->onKeyDown([&output](char keycode){ output.push(keycode); });
+        //   }
+
+        //   return info;
+        // }
 
 
       protected:
@@ -92,11 +106,17 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
 
     cfg::ctree::TreeBuilder builder;
     auto info = builder.addInfoObjectInstantiator<InfoKeyboard>("Keyboard");
-    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
+    // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
 
-    std::vector<std::string> ids = {"KeyCode"};
+    // verify we can extract outputs information from info interface
+    std::vector<std::string> ids = {"KeyCode", "HasKeyDown"};
     for(int i=0; i<ids.size(); i++) {
-      REQUIRE(ids[i] == info->getOutputs()[i]->getId());
+      REQUIRE(ids[i] == info.getOutputs()[i]->getId());
+    }
+
+    std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
+    for(int i=0; i<types.size(); i++) {
+      REQUIRE(types[i] == info.getOutputs()[i]->getType());
     }
   }
 }
