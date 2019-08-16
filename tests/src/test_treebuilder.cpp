@@ -60,8 +60,30 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
       public:
         cfg::info::Interface* createInfoInterface() {
           auto info = new cfg::info::Interface();
+
+          { // create output with type char
+            auto& output = info->output<char>("KeyCode");
+            // invoke output when a key is pressed
+            this->onKeyDown([&output](char keycode){ output.push(keycode); });
+          }
+
           return info;
         }
+
+
+      protected:
+
+        void onKeyDown(std::function<void(char)> func) {
+          // if(key.size() != 1) return;
+          // char chr = key[0];
+
+          this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
+            func(event.getChar());
+          }));
+        }
+
+      private:
+        std::vector<ci::signals::Connection> connections;
     };
 
     cfg::ctree::TreeBuilder builder;
