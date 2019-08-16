@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "../Configurator.h"
 #include "../Builder.h"
+#include "../info/Interface.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
 // ‎#define ADD_TYPE(name, type) this->add_default_instantiator<type>(name)
@@ -98,6 +99,35 @@ namespace cms { namespace cfg { namespace ctree {
       }
 
     public: // configuration methods
+
+      template<typename T>
+      void addInfoObjectInstantiator(const string& name) {
+        this->addInstantiator(name, [this, &name](CfgData& data){
+          // create a node for in the hierarchy structure, with an
+          // instance of the specified type attached to it
+          auto node = Node::create<T>(this->getName(data));
+
+          // get the attached object from the node
+          auto object = node->template getObject<T>();
+
+
+          auto interfaceRef = std::shared_ptr<info::Interface>(object->createInfoInterface());
+
+          // "configure" the object by calling its cfg method
+          this->configurator->apply(data, [this, interfaceRef](ModelBase& mod){
+            // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
+            interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
+          });
+
+          // notify observer signal
+          BuildArgs args(node, object, &data);
+          buildSignal.emit(args);
+          this->notifyNewObject(object, data);
+
+          // return result
+          return node;
+        });
+      }
 
       template<typename T>
       void addCfgObjectInstantiator(const string& name) {

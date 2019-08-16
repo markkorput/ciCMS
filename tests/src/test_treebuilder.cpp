@@ -6,6 +6,7 @@
 #include "ciCMS/cfg/ctree/Builder.h"
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/Model.h"
+#include "ciCMS/cfg/info/Interface.h"
 
 using namespace cms;
 
@@ -51,6 +52,21 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
       cfg::ctree::TreeBuilder builder;
       REQUIRE(builder.getRegistry()->getById("foobar") == NULL);
     }
+  }
+
+  SECTION("addInfoObjectInstantiator"){
+
+    class InfoKeyboard {
+      public:
+        cfg::info::Interface* createInfoInterface() {
+          auto info = new cfg::info::Interface();
+          return info;
+        }
+    };
+
+    cfg::ctree::TreeBuilder builder;
+    builder.addInfoObjectInstantiator<InfoKeyboard>("Keyboard");
+    builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
   }
 }
 
