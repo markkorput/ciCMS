@@ -8,8 +8,13 @@ if( NOT TARGET ciCMS )
 	add_library( ciCMS ${ciCMS_SOURCES} )
 
 	target_include_directories( ciCMS PUBLIC "${ciCMS_SOURCE_PATH}" "${lib_PATH}/ctree/include")
-	target_include_directories( ciCMS PUBLIC "${ciCMS_SOURCE_PATH}" "${lib_PATH}/info/include")
 	target_include_directories( ciCMS SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
+
+
+	# if( ciInfo_FOUND )
+    add_dependencies( ciCMS ciInfo )
+    target_link_libraries( ciCMS PUBLIC ciInfo )
+	# endif()
 
 	if( NOT TARGET cinder )
 		    include( "${CINDER_PATH}/proj/cmake/configure.cmake" )

@@ -119,7 +119,7 @@ namespace cms { namespace cfg { namespace ctree {
           this->configurator->apply(data, [this, &infoInstance, object](ModelBase& mod){
             // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
             // interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            infoInstance.cfg(this->configurator->getCfg()->withData(mod.attributes()));
+            // infoInstance.cfg(this->configurator->getCfg()->withData(mod.attributes()));
           });
 
           // notify observer signal

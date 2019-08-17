@@ -56,13 +56,13 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
 
   SECTION("addInfoObjectInstantiator"){
 
-    class InfoKeyboard {
+    class Keyboard {
       public:
-        static info::Interface* createInfoInterface() {
-          return info::Interface::create<InfoKeyboard>([](info::Builder<InfoKeyboard>& builder){
+        static std::shared_ptr<info::Interface> createInfoInterface() {
+          return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
             builder.output<char>("KeyCode")
-              .apply([](InfoKeyboard& instance, std::function<void(const char&)> out) {
-                instance.onKeyDown([&out](char keycode){
+              ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
+                instance.keySignal.connect([out](char keycode){
                   out(keycode);
                 });
               });
@@ -70,45 +70,40 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
             builder.output<bool>("HasKeyDown");
             
             builder.attr<bool>("enabled")
-              .apply([](InfoKeyboard& instance, info::TypedPort<bool>& port) {
-                
+              ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
 
+                port.onDataIn([&instance](const bool& val){
+                  instance.enabled = val;
+                });
+
+              });
+            
+            builder.signal("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
+                instance.keySignal.connect([&port](char keycode){
+                  port.signalOut();
+                });
               });
           });
         }
-
-      protected:
-
-        void onKeyDown(std::function<void(char)> func) {
-          // if(key.size() != 1) return;
-          // char chr = key[0];
-
-          // this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
-          //   func(event.getChar());
-          // }));
-
-          this->connections.push_back(this->keySignal.connect(func));
-        }
-
-      private:
-        std::vector<ci::signals::Connection> connections;
-      public:
-        ctree::Signal<void(char)> keySignal;
+    
+        cinder::signals::Signal<void(char)> keySignal;
+        bool enabled = false;
     };
 
+
     cfg::ctree::TreeBuilder builder;
-    auto info = builder.addInfoObjectInstantiator<InfoKeyboard>("Keyboard");
+    auto info = builder.addInfoObjectInstantiator<Keyboard>("Keyboard");
     // builder.getModelCollection().loadJsonFromFile(ci::app::getAssetPath("info_keyboard.json"));
 
     // verify we can extract outputs information from info interface
     std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
     for(int i=0; i<ids.size(); i++) {
-      REQUIRE(ids[i] == info.getOutputs()[i]->getId());
+      REQUIRE(ids[i] == info.getPorts()[i]->getId());
     }
 
     std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
     for(int i=0; i<types.size(); i++) {
-      REQUIRE(types[i] == info.getOutputs()[i]->getType());
+      REQUIRE(types[i] == info.getPorts()[i]->getType());
     }
   }
 }
