@@ -1,18 +1,16 @@
 #pragma once
 
-#include "ctree/signal.hpp"
-#include "ciCMS/cfg/Cfg.h"
 #include "Port.hpp"
 #include "Builder.hpp"
 #include "Instance.h"
 
-namespace cms { namespace cfg { namespace info {
+namespace info {
 
   class Interface {
     public:
 
       template<class T>
-      static cfg::info::Interface* create(std::function<void(Builder<T>&)> func) {
+      static Interface* create(std::function<void(Builder<T>&)> func) {
         auto builder = new Builder<T>();
         auto interface = new Interface();
 
@@ -59,4 +57,4 @@ namespace cms { namespace cfg { namespace info {
       std::vector<std::function<void(void*)>> instanceFuncs;
   };
 
-}}}
+}

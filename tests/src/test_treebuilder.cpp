@@ -6,7 +6,7 @@
 #include "ciCMS/cfg/ctree/Builder.h"
 #include "ciCMS/cfg/Configurator.h"
 #include "ciCMS/Model.h"
-#include "ciCMS/cfg/info/Interface.h"
+#include "info/Interface.h"
 
 using namespace cms;
 
@@ -58,8 +58,8 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
 
     class InfoKeyboard {
       public:
-        static cfg::info::Interface* createInfoInterface() {
-          return cfg::info::Interface::create<InfoKeyboard>([](cfg::info::Builder<InfoKeyboard>& builder){
+        static info::Interface* createInfoInterface() {
+          return info::Interface::create<InfoKeyboard>([](info::Builder<InfoKeyboard>& builder){
             builder.output<char>("KeyCode")
               .apply([](InfoKeyboard& instance, std::function<void(const char&)> out) {
                 instance.onKeyDown([&out](char keycode){
@@ -70,7 +70,7 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
             builder.output<bool>("HasKeyDown");
             
             builder.attr<bool>("enabled")
-              .apply([](InfoKeyboard& instance, cfg::info::TypedPort<bool>& port) {
+              .apply([](InfoKeyboard& instance, info::TypedPort<bool>& port) {
                 
 
               });

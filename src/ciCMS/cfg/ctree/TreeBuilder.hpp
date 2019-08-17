@@ -11,7 +11,7 @@
 #include "Node.h"
 #include "../Configurator.h"
 #include "../Builder.h"
-#include "../info/Interface.h"
+#include "info/Interface.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
 // ‎#define ADD_TYPE(name, type) this->add_default_instantiator<type>(name)

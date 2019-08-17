@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ctree/signal.hpp"
-#include "ciCMS/cfg/Cfg.h"
+// #include "ctree/signal.hpp"
+// #include "ciCMS/cfg/Cfg.h"
 
-namespace cms { namespace cfg { namespace info {
+namespace info {
 
   class Port {
     public:
@@ -21,18 +21,18 @@ namespace cms { namespace cfg { namespace info {
       const std::string& getType() const { return type; }
 
       void invokeMethod(const void* arg){
-        signal.emit();
+        // signal.emit();
       }
 
     private:
       std::string id;
       std::string type;
       int flags;
-      ::ctree::Signal<void(void)> signal;
+      // ::ctree::Signal<void(void)> signal;
   };
 
   template<typename V>
   class TypedPort : public Port {
   };
 
-}}}
+}

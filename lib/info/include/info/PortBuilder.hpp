@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Port.hpp"
-#include "PortBuilder.hpp"
 
-namespace cms { namespace cfg { namespace info {
+namespace info {
 
   class PortBuilderBase {
     public:
@@ -40,4 +39,4 @@ namespace cms { namespace cfg { namespace info {
         
       }
   };
-}}}
+}

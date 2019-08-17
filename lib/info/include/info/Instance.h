@@ -2,8 +2,7 @@
 
 #include "ciCMS/cfg/Cfg.h"
 
-
-namespace cms { namespace cfg { namespace info {
+namespace info {
 
   class Instance {
 
@@ -19,4 +18,4 @@ namespace cms { namespace cfg { namespace info {
       // cfg methods
   };
 
-}}}
+}

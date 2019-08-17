@@ -3,7 +3,7 @@
 #include "Port.hpp"
 #include "PortBuilder.hpp"
 
-namespace cms { namespace cfg { namespace info {
+namespace info {
 
   template<typename T>
   class Builder {
@@ -26,4 +26,4 @@ namespace cms { namespace cfg { namespace info {
     public:
       std::vector<PortBuilderBase*> outputs;
   };
-}}}
+}
