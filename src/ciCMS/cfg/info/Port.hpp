@@ -30,4 +30,9 @@ namespace cms { namespace cfg { namespace info {
       int flags;
       ::ctree::Signal<void(void)> signal;
   };
+
+  template<typename V>
+  class TypedPort : public Port {
+  };
+
 }}}

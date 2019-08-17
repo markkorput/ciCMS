@@ -68,7 +68,12 @@ TEST_CASE("cms::cfg::ctree::TreeBuilder", ""){
               });
 
             builder.output<bool>("HasKeyDown");
-            builder.attr<bool>("enabled");
+            
+            builder.attr<bool>("enabled")
+              .apply([](InfoKeyboard& instance, cfg::info::TypedPort<bool>& port) {
+                
+
+              });
           });
         }
 

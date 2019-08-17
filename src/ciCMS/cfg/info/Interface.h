@@ -4,6 +4,7 @@
 #include "ciCMS/cfg/Cfg.h"
 #include "Port.hpp"
 #include "Builder.hpp"
+#include "Instance.h"
 
 namespace cms { namespace cfg { namespace info {
 
@@ -39,13 +40,13 @@ namespace cms { namespace cfg { namespace info {
 
       // configure an instance with the given Cfg
       template<class T>
-      void configureInstance(T& instance) { 
-        for(auto& func : instanceFuncs)
-          func((void*)&instance);
-      }
+      Instance& createInstance(T& instance) { 
+        auto inst = new Instance();
 
-      void cfg(cms::cfg::Cfg& cfg) {
+        // for(auto& func : instanceFuncs)
+          //   func((void*)&instance);
 
+        return *inst;
       }
 
     public:

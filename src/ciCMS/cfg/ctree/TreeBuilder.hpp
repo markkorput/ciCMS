@@ -113,12 +113,13 @@ namespace cms { namespace cfg { namespace ctree {
           // get the attached object from the node
           auto object = node->template getObject<T>();
 
+          auto infoInstance = interfaceRef->createInstance(*object);
+
           // "configure" the object by calling its cfg method
-          this->configurator->apply(data, [this, interfaceRef, object](ModelBase& mod){
+          this->configurator->apply(data, [this, &infoInstance, object](ModelBase& mod){
             // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
             // interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            interfaceRef->configureInstance(*object);
-            interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
+            infoInstance.cfg(this->configurator->getCfg()->withData(mod.attributes()));
           });
 
           // notify observer signal
