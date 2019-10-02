@@ -3,18 +3,12 @@ if( NOT TARGET ciCMS )
 	get_filename_component( CINDER_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE )
 	get_filename_component( lib_PATH "${CMAKE_CURRENT_LIST_DIR}/../../lib" ABSOLUTE )
 
-	FILE(GLOB ciCMS_SOURCES ${ciCMS_SOURCE_PATH}/ciCMS/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/**/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/**/**/*.cpp ${lib_PATH}/ctree/src/**/*.cpp ${lib_PATH}/info/src/**/*.cpp)
+	FILE(GLOB ciCMS_SOURCES ${ciCMS_SOURCE_PATH}/ciCMS/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/**/*.cpp ${ciCMS_SOURCE_PATH}/ciCMS/**/**/**/*.cpp ${lib_PATH}/ctree/src/**/*.cpp)
 
 	add_library( ciCMS ${ciCMS_SOURCES} )
 
 	target_include_directories( ciCMS PUBLIC "${ciCMS_SOURCE_PATH}" "${lib_PATH}/ctree/include")
 	target_include_directories( ciCMS SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
-
-
-	# if( ciInfo_FOUND )
-    add_dependencies( ciCMS ciInfo )
-    target_link_libraries( ciCMS PUBLIC ciInfo )
-	# endif()
 
 	if( NOT TARGET cinder )
 		    include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
