@@ -11,7 +11,6 @@
 #include "Node.h"
 #include "../Configurator.h"
 #include "../Builder.h"
-#include "info/Interface.h"
 
 // ‎#define ADD_TYPE(name) ADD_TYPE("name", name)
 // ‎#define ADD_TYPE(name, type) this->add_default_instantiator<type>(name)
@@ -99,40 +98,6 @@ namespace cms { namespace cfg { namespace ctree {
       }
 
     public: // configuration methods
-
-      template<typename T>
-      info::Interface& addInfoObjectInstantiator(const string& name) {
-        auto interfaceRef = std::shared_ptr<info::Interface>(T::createInfoInterface());
-        infoInterfaceRefs.push_back(interfaceRef);
-
-        this->addInstantiator(name, [this, interfaceRef, &name](CfgData& data){
-          // create a node for in the hierarchy structure, with an
-          // instance of the specified type attached to it
-          auto node = Node::create<T>(this->getName(data));
-
-          // get the attached object from the node
-          auto object = node->template getObject<T>();
-
-          auto infoInstance = interfaceRef->createInstance(*object);
-
-          // "configure" the object by calling its cfg method
-          this->configurator->apply(data, [this, &infoInstance, object](ModelBase& mod){
-            // object->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            // interfaceRef->cfg(this->configurator->getCfg()->withData(mod.attributes()));
-            // infoInstance.cfg(this->configurator->getCfg()->withData(mod.attributes()));
-          });
-
-          // notify observer signal
-          BuildArgs args(node, object, &data);
-          buildSignal.emit(args);
-          this->notifyNewObject(object, data);
-
-          // return result
-          return node;
-        });
-
-        return *interfaceRef;
-      }
 
       template<typename T>
       void addCfgObjectInstantiator(const string& name) {
@@ -238,7 +203,6 @@ namespace cms { namespace cfg { namespace ctree {
 
     protected:
       std::shared_ptr<Registry> registry;
-      std::vector<std::shared_ptr<info::Interface>> infoInterfaceRefs;
 
     private:
       ::cms::cfg::Configurator* configurator = NULL;
