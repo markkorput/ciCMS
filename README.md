@@ -16,6 +16,10 @@ Originally this method was developed specifically for UI-specific purposes with 
 
 What [started](https://github.com/fusefactory/JavaLibUiBuilder) as an effort to "configure" classes based on json data (inspired by how CSS stylesheets style an HTML document) evolved into a system that lets you instantiate entire (pieces of) applications from a configuration file. This approach is very much inspired by VPLs like [MaxMSP](https://cycling74.com/products/max) and [Touch Designer](https://derivative.ca/) that have highly modular and independent building blocks that can be wired together to perform complex tasks.
 
+### Disclaimer
+
+This implementation is made as part of exploratory research into different ways of creating and organising logic and data. Though parts of it have actually been used in practice, in its current (immature) form it introduces more problems (for most cases) than it solves. Specifically it fails to provide clear insight in the interactions and dependencies between the components that make up the application and creating new components that are ready to be used in this systems proofs fairly cumbersome and counter-intuitive.
+
 ### Example
 
 What do you need?
