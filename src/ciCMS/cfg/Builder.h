@@ -108,6 +108,7 @@ namespace cms { namespace cfg {
 
     // std::cout << " - building: " << id << std::endl;
 
+    // instantiate the requested component
     auto instance = instantiator->func(*model);
     this->instantiateSignal.emit(*instance, *model);
 
@@ -117,6 +118,8 @@ namespace cms { namespace cfg {
         auto childmodel = this->modelCollection->findById(childId, true);
         auto extender = this->findExtender(this->getType(*childmodel));
 
+        // look for extended of childer logic to connect this
+        // sub-components to its parent
         if(extender) {
           extender->func(*instance, *childmodel);
         } else {

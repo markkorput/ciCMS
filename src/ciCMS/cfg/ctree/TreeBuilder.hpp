@@ -52,6 +52,7 @@ namespace cms { namespace cfg { namespace ctree {
           ? new ::cms::cfg::Configurator(this->getModelCollection())
           : configurator);
         
+        // The Builder parent class lets caller define custom logic for defining child 
         this->setChilderFunc([](Node& parent, Node& child){
           parent.add(child);
         });
@@ -84,7 +85,7 @@ namespace cms { namespace cfg { namespace ctree {
         if (this->configurator) this->configurator->reset();
       }
 
-      /// Convenience which lets this builder configure itself
+      /// Convenience function which lets this builder configure itself
       /// (and its configurator) using one of the models in it model collection
       void cfg(const std::string& modelId) {
         this->configurator->cfg(
@@ -99,6 +100,7 @@ namespace cms { namespace cfg { namespace ctree {
 
     public: // configuration methods
 
+      // Method to register a component class that has its own 'cfg' method
       template<typename T>
       void addCfgObjectInstantiator(const string& name) {
         this->addInstantiator(name, [this, &name](CfgData& data){

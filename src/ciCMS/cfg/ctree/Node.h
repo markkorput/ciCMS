@@ -26,7 +26,7 @@ namespace cms { namespace cfg { namespace ctree {
         // this way we can always calculate the Node's address from
         // the corresponding Object's address.
         void* mem = std::malloc(sizeof(Node) + sizeof(T));
-		T* objaddr = (T*)((uintptr_t)mem + sizeof(Node));
+        T* objaddr = (T*)((uintptr_t)mem + sizeof(Node));
         // call the constructors of the Node and Object, but
         // assign memory address manually
         T* obj = new (objaddr) T();
