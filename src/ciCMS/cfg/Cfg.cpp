@@ -1,10 +1,7 @@
 #include "Cfg.h"
 #include "CfgReader.hpp"
 #include "ciCMS/deserialise.h"
-
-
 #include <regex>
-#include "boost/algorithm/string.hpp" // boost::is_any_of
 
 using namespace cms::cfg;
 
@@ -128,7 +125,7 @@ void* Cfg::getObjectPointer(const string& id) {
 
 Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
   std::vector<std::string> scripts;
-  boost::split(scripts, script, boost::is_any_of(";"));
+  split(scripts, script, ';');
 
   auto funcRefs = std::make_shared<std::vector<CompiledScriptFunc>>();
   std::smatch match;

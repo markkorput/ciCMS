@@ -1,8 +1,5 @@
 #include "catch.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp> // for is_any_of
-
+#include "ciCMS/cfg/utils.h"
 #include "ciCMS/Model.h"
 
 using namespace cms;
@@ -14,12 +11,13 @@ TEST_CASE("cms::Model", ""){
         model.set("name", "John");
         model.set("age", "32");
 
-        REQUIRE(boost::algorithm::join(result, ",") == "");
+
+        REQUIRE(cfg::join(result, ",") == "");
         model.each([&result](const string& attr, const string& val){
             result.push_back(attr+"="+val);
         });
 
-        REQUIRE(boost::algorithm::join(result, ",") == "age=32,name=John");
+        REQUIRE(cfg::join(result, ",") == "age=32,name=John");
     }
 
     SECTION("each lock; modifying operations during i"){
@@ -32,7 +30,7 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.get("age_copy") == "");
 
         std::vector<string> result;
-        REQUIRE(boost::algorithm::join(result, ",") == "");
+        REQUIRE(cfg::join(result, ",") == "");
 
         model.each([&model, &result](const string& attr, const string& val){
             // add copy attribute
@@ -43,7 +41,7 @@ TEST_CASE("cms::Model", ""){
         });
 
         // during the iterations, the model didn't change
-        REQUIRE(boost::algorithm::join(result, ",") == "age=32(size:2),name=John(size:2)");
+        REQUIRE(cfg::join(result, ",") == "age=32(size:2),name=John(size:2)");
         // immediately after the iterations finished, all changes were effected
         REQUIRE(model.size() == 4);
         REQUIRE(model.get("name") == "John_updated");
@@ -95,7 +93,7 @@ TEST_CASE("cms::Model", ""){
         int result=0;
 
         vector<string> strs;
-        boost::split(strs,"attrA,attrC",boost::is_any_of(","));
+        cfg::split(strs, "attrA,attrC", ',');
 
         // register transformer that counts two-out-of-three attributes
         auto signalConnection = model.transformAttributes(strs, [&result](const string& value){

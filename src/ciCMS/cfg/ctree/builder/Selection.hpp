@@ -12,7 +12,7 @@ class Selection {
     template<typename ObjT>
     ObjT* get(const string& path){
       std::vector<string> strs;
-      boost::split(strs,path,boost::is_any_of("."));
+      split(strs,path,'.');
 
       auto parentNode = this->getNode();
 

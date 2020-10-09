@@ -1,7 +1,10 @@
 #include <vector>
+#include <sstream>
 #include "deserialise.h"
-#include "boost/lexical_cast.hpp"
-#include "boost/algorithm/string.hpp"
+// #include "boost/lexical_cast.hpp"
+#include "cfg/utils.h"
+
+using namespace cms::cfg;
 
 namespace cms {
 
@@ -52,15 +55,18 @@ namespace cms {
 
   bool deserialiseBool(const std::string& str, bool defaultValue){
     std::string s = str;
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    std::istringstream is(str);
+    is >> std::boolalpha >> defaultValue;
 
-    if(s == "true")
-      return true;
+    // if(s == "true")
+    //   return true;
 
-    try {
-      return boost::lexical_cast<bool>(s);
-    } catch(boost::bad_lexical_cast exc){
-      // std::cerr << exc.what();
-    }
+    // try {
+    //   return boost::lexical_cast<bool>(s);
+    // } catch(boost::bad_lexical_cast exc){
+    //   // std::cerr << exc.what();
+    // }
 
     return defaultValue;
   }
@@ -69,7 +75,7 @@ namespace cms {
   glm::vec2 deserialiseVec2(const std::string& str, const glm::vec2& defaultValue){
     std::vector<std::string> strings;
 
-    boost::split(strings, str, boost::is_any_of(","));
+    split(strings, str, ',');
 
     try {
       if(strings.size() == 2)
@@ -88,7 +94,7 @@ namespace cms {
 
   glm::vec3 deserialiseVec3(const std::string& str, const glm::vec3& defaultValue){
       std::vector<std::string> strings;
-      boost::split(strings, str, boost::is_any_of(","));
+      split(strings, str, ',');
 
       try{
           if(strings.size() == 3)
@@ -107,7 +113,7 @@ namespace cms {
 
   glm::vec4 deserialiseVec4(const std::string& str, const glm::vec4& defaultValue){
       std::vector<std::string> strings;
-      boost::split(strings, str, boost::is_any_of(","));
+      split(strings, str, ',');
 
       try{
         if(strings.size() == 4)
@@ -130,7 +136,7 @@ namespace cms {
   glm::ivec2 deserialise_ivec2(const std::string& str, const glm::ivec2& defaultValue){
     std::vector<std::string> strings;
 
-    boost::split(strings, str, boost::is_any_of(","));
+    split(strings, str, ',');
 
     try {
       if(strings.size() == 2)
@@ -149,7 +155,7 @@ namespace cms {
 
   cinder::ColorAf deserialiseColor(const std::string& str, const ci::ColorAf& defaultValue){
     std::vector<std::string> strings;
-    boost::split(strings, str, boost::is_any_of(","));
+    split(strings, str, ',');
 
     try{
         if(strings.size() == 3)

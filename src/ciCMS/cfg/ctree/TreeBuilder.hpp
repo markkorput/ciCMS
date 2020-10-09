@@ -4,11 +4,9 @@
 
 #include <iostream>
 #include <vector>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp> // for is_any_of
-
 #include "ctree/signal.hpp"
 #include "Node.h"
+#include "../utils.h"
 #include "../Configurator.h"
 #include "../Builder.h"
 
@@ -188,7 +186,7 @@ namespace cms { namespace cfg { namespace ctree {
 
         std::vector<string> strs;
         std::string id = data.getId();
-        boost::split(strs,id,boost::is_any_of("."));
+        split(strs,id,'.');
         return strs.back();
       }
 

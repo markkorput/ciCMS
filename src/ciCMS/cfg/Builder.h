@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp> // for is_any_of
+#include "utils.h"
 #include "cinder/app/App.h"
 #include "ciCMS/ModelCollection.h"
 
@@ -143,7 +142,7 @@ namespace cms { namespace cfg {
 
     std::vector<string> strs;
     std::string id = data.getId();
-    boost::split(strs,id,boost::is_any_of("."));
+    split(strs,id,'.');
     return strs.back();
   }
 

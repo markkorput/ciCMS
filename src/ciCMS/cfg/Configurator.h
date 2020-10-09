@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <regex>
-#include "boost/algorithm/string.hpp"
 #include "ciCMS/ModelCollection.h"
 #include "ctree/signal.hpp"
 #include "Cfg.h"
@@ -91,7 +90,7 @@ namespace cms { namespace cfg {
       }
 
       template<typename ObjT>
-      size_t getObjects(std::vector<ObjT*> target, const std::string& ids, const std::string& delimiter=",") {
+      size_t getObjects(std::vector<ObjT*> target, const std::string& ids, char delimiter=',') {
         return getCfg()->getObjects<ObjT>(target, ids, delimiter);
       }
 
@@ -101,12 +100,12 @@ namespace cms { namespace cfg {
       }
 
       template<typename ObjT>
-      void withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",") {
+      void withObjects(const std::string& ids, std::function<void(ObjT&)> func, char delimiter=',') {
         getCfg()->withObjects<ObjT>(ids, func, delimiter);
       }
 
       template<typename ObjT>
-      void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",") {
+      void withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, char delimiter=',') {
         getCfg()->withObjects<ObjT>(ids, func, delimiter);
       }
 

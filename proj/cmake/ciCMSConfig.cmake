@@ -10,6 +10,7 @@ if( NOT TARGET ciCMS )
 	target_include_directories( ciCMS PUBLIC "${ciCMS_SOURCE_PATH}" "${lib_PATH}/ctree/include")
 	target_include_directories( ciCMS SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
 
+
 	if( NOT TARGET cinder )
 		    include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
 		    find_package( cinder REQUIRED PATHS

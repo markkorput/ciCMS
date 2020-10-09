@@ -1,14 +1,14 @@
 #pragma once
 
 #include <map>
-
-#include "boost/algorithm/string.hpp" // boost::is_any_of
+#include "utils.h"
 #include "ctree/signal.hpp"
 #include "ciCMS/ModelBase.h"
 #include "ciCMS/State.h"
 #include "ciCMS/cfg/CfgReader.hpp"
 
 namespace cms { namespace cfg {
+
   class Cfg;
   typedef std::shared_ptr<Cfg> CfgRef;
 
@@ -97,7 +97,7 @@ namespace cms { namespace cfg {
     }
 
     template<typename ObjT>
-    size_t getObjects(std::vector<ObjT*>& target, const std::string& ids, const std::string& delimiter=",");
+    size_t getObjects(std::vector<ObjT*>& target, const std::string& ids, char delimiter=',');
 
     //
     // with* (signal/state/object) methods
@@ -107,10 +107,10 @@ namespace cms { namespace cfg {
     Cfg& withObject(const std::string& id, std::function<void(ObjT&)> func);
 
     template<typename ObjT>
-    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter=",");
+    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&)> func, char delimiter=',');
 
     template<typename ObjT>
-    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter=",");
+    Cfg& withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, char delimiter=',');
 
     template<typename ObjT>
     Cfg& withObjectByAttr(const std::string& id, std::function<void(ObjT&)> func);
@@ -147,7 +147,8 @@ namespace cms { namespace cfg {
   Cfg& Cfg::connect(const string& signalIds, std::function<Signature> func) {
     // this->getSignal<Signature>(attr)->connect(func);
     std::vector<std::string> ids;
-    boost::split(ids, signalIds, boost::is_any_of(","));
+    split(ids, signalIds, ',');
+
     for(auto& id : ids)
       this->getSignal<Signature>(id)->connect(func);
 
@@ -162,7 +163,7 @@ namespace cms { namespace cfg {
       // this->getSignal<Signature>(readr->get(attr))->connect(func);
       std::string value = readr->get(attr);
       std::vector<std::string> ids;  
-      boost::split(ids, value, boost::is_any_of(","));
+      split(ids, value, ',');
 
       for(auto& id : ids)
         this->getSignal<Signature>(id)->connect(func);
@@ -237,9 +238,9 @@ namespace cms { namespace cfg {
   }
 
   template<typename ObjT>
-  size_t Cfg::getObjects(std::vector<ObjT*>& target, const std::string& ids, const std::string& delimiter) {
+  size_t Cfg::getObjects(std::vector<ObjT*>& target, const std::string& ids, char delimiter) {
     std::vector<std::string> strings;
-    boost::split(strings, ids, boost::is_any_of(delimiter));
+    split(strings, ids, delimiter);
 
     size_t count=0;
     for(auto& id : strings) {
@@ -271,9 +272,9 @@ namespace cms { namespace cfg {
   }
 
   template<typename ObjT>
-  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&)> func, std::string delimiter) {
+  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&)> func, char delimiter) {
     std::vector<std::string> strings;
-    boost::split(strings, ids, boost::is_any_of(delimiter));
+    split(strings, ids, delimiter);
 
     for(auto& id : strings) {
       this->withObject<ObjT>(id, func);
@@ -283,9 +284,9 @@ namespace cms { namespace cfg {
   }
 
   template<typename ObjT>
-  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, std::string delimiter) {
+  Cfg& Cfg::withObjects(const std::string& ids, std::function<void(ObjT&, const std::string& objectId)> func, char delimiter) {
     std::vector<std::string> strings;
-    boost::split(strings, ids, boost::is_any_of(delimiter));
+    split(strings, ids, delimiter);
 
     for(auto& id : strings) {
       this->withObject<ObjT>(id, [func, id](ObjT& obj) {
