@@ -44,8 +44,7 @@ ModelBase* ModelBase::set(const map<string, string> &attrs, bool notify){
 }
 
 const string ModelBase::get(const string &attr, const string& _default) const {
-    string tmp = has(attr) ? _attributes.at(attr) : _default;
-    return tmp;
+    return has(attr) ? _attributes.at(attr) : _default;
 }
 
 bool ModelBase::has(const string& attr) const {
@@ -110,37 +109,31 @@ ModelBase* ModelBase::set(const string &attr, const ci::vec3& val, bool notify) 
 
 
 int ModelBase::getInt(const string& attr, int defaultValue){
-  std::string tmp = this->get(attr);
-  return cms::deserialiseInt(tmp, defaultValue);
+  return cms::deserialiseInt(this->get(attr), defaultValue);
 }
 
 float ModelBase::getFloat(const string& attr, float defaultValue){
-  std::string tmp = this->get(attr);
-  return cms::deserialiseFloat(tmp, defaultValue);
+  return cms::deserialiseFloat(this->get(attr), defaultValue);
 }
 
 bool ModelBase::getBool(const string& attr, bool defaultValue){
-  std::string tmp = this->get(attr);
-  return cms::deserialiseBool(tmp, defaultValue);
+  return cms::deserialiseBool(this->get(attr), defaultValue);
 }
 
 glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
-  const std::string tmp = this->get(attr);
   glm::vec2 target;
-  cms::serde::vec2(target, tmp, defaultValue);
+  cms::serde::vec2(target, this->get(attr), defaultValue);
   return target;
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
-const std::string tmp = this->get(attr);
   glm::vec3 target;
-  cms::serde::vec3(target, tmp, defaultValue);
+  cms::serde::vec3(target, this->get(attr), defaultValue);
   return target;
 }
 
 ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
-  std::string tmp = this->get(attr);
-  return cms::deserialiseColor(tmp, defaultValue);
+  return cms::deserialiseColor(this->get(attr), defaultValue);
 }
 
 bool ModelBase::with(const string& attr, function<void(const string&)> func){
