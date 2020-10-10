@@ -15,18 +15,15 @@ namespace cms { namespace cfg {
     const std::string & separator =",",  // see 1.
     const std::string & concluder ="")    // see 1.
   {
-    std::cout << " -- JOIN! delimiter: " << separator << " concluder: " << concluder << std::endl;
     std::ostringstream ss;
 
     if(begin != end)
     {
-      std::cout << " -- JOIN! -- piece: " << *begin << std::endl;
       ss << *begin++; // see 3.
     }    
 
     while(begin != end) // see 3.
     {
-      std::cout << " -- JOIN! -- piece: " << *begin << std::endl;
       ss << separator;
       ss << *begin++;
     }

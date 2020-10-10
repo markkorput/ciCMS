@@ -132,8 +132,10 @@ glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
-  std::string tmp = this->get(attr);
-  return cms::deserialiseVec3(tmp, defaultValue);
+const std::string tmp = this->get(attr);
+  glm::vec3 target;
+  cms::serde::vec3(target, tmp, defaultValue);
+  return target;
 }
 
 ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){

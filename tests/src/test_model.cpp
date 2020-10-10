@@ -180,8 +180,7 @@ TEST_CASE("cms::Model", ""){
 
     SECTION("getVec2"){
         Model m;
-        std::cout<< " --------- here: " << std::endl;
-        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
+        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f));
         m.set("someColor", "255,0,0");
         REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 0.0f));
         m.set("someColor", "23");
@@ -190,30 +189,30 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 100.0f));
     }
 
-    // SECTION("getVec3"){
-    //     Model m;
-    //     REQUIRE(m.getVec3("attr") == glm::vec3(0.0f, 0.0f, 0.0f));
-    //     m.set("someColor", "255,0,0");
-    //     REQUIRE(m.getVec3("someColor") == glm::vec3(255.0f, 0.0f, 0.0f));
-    //     m.set("someColor", "23");
-    //     REQUIRE(m.getVec3("someColor") == glm::vec3(23.0f,23.0f,23.0f));
-    //     m.set("someColor", "0,100");
-    //     REQUIRE(m.getVec3("someColor") == glm::vec3(0.0f, 0.0f, 0.0f));
-    //     m.set("someColor", "0,100");
-    //     REQUIRE(m.getVec3("someColor", glm::vec3(0.0f, 0.0f, 1.0f)) == glm::vec3(0.0f, 0.0f, 1.0f));
-    // }
+    SECTION("getVec3"){
+        Model m;
+        REQUIRE(m.getVec3("attr") == glm::vec3(0.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(255.0f, 0.0f, 0.0f));
+        m.set("someColor", "23");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(23.0f,23.0f,23.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec3("someColor") == glm::vec3(0.0f, 0.0f, 0.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec3("someColor", glm::vec3(0.0f, 0.0f, 1.0f)) == glm::vec3(0.0f, 0.0f, 1.0f));
+    }
 
-    // SECTION("with(vec3)"){
-    //     Model model;
-    //     glm::vec3 target = glm::vec3(0.0f);
+    SECTION("with(vec3)"){
+        Model model;
+        glm::vec3 target = glm::vec3(0.0f);
 
-    //     model.with("foo", [&target](const glm::vec3& val){ target = val; });
-    //     REQUIRE(target == glm::vec3(0.0f));
+        model.with("foo", [&target](const glm::vec3& val){ target = val; });
+        REQUIRE(target == glm::vec3(0.0f));
 
-    //     model.set("foo", "10,20,30");
-    //     model.with("foo", [&target](const glm::vec3& val){ target = val; });
-    //     REQUIRE(target == glm::vec3(10.0f,20.0f,30.0f));
-    // }
+        model.set("foo", "10,20,30");
+        model.with("foo", [&target](const glm::vec3& val){ target = val; });
+        REQUIRE(target == glm::vec3(10.0f,20.0f,30.0f));
+    }
 
     SECTION("getColor"){
         Model m;
