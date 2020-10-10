@@ -5,7 +5,6 @@
 using namespace cms;
 
 ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
-
     if(isLocked()){
         CI_LOG_V("model locked; queueing .set operation for attribute: " << attr);
         modQueueRefs.push_back(make_shared<Mod>(attr, value, notify));
@@ -44,7 +43,7 @@ ModelBase* ModelBase::set(const map<string, string> &attrs, bool notify){
 	return this;
 }
 
-string ModelBase::get(const string &attr, string _default) const {
+const string ModelBase::get(const string &attr, const string& _default) const {
     return has(attr) ? _attributes.at(attr) : _default;
 }
 
@@ -95,6 +94,20 @@ void ModelBase::lock(LockFunctor func){
     modQueueRefs.clear();
 }
 
+
+ModelBase* ModelBase::setBool(const string &attr, bool val, bool notify) {
+    return this->set(attr, (string)(val ? "true" : "false"), notify);
+}
+
+ModelBase* ModelBase::set(const string &attr, const ci::vec2& val, bool notify) {
+    return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y), notify);
+}
+
+ModelBase* ModelBase::set(const string &attr, const ci::vec3& val, bool notify) {
+    return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y) +","+std::to_string(val.z), notify);
+}
+
+
 int ModelBase::getInt(const string& attr, int defaultValue){
   return cms::deserialiseInt(this->get(attr), defaultValue);
 }
@@ -108,11 +121,15 @@ bool ModelBase::getBool(const string& attr, bool defaultValue){
 }
 
 glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
-  return cms::deserialiseVec2(this->get(attr), defaultValue);
+  glm::vec2 target;
+  cms::serde::vec2(target, this->get(attr), defaultValue);
+  return target;
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
-  return cms::deserialiseVec3(this->get(attr), defaultValue);
+  glm::vec3 target;
+  cms::serde::vec3(target, this->get(attr), defaultValue);
+  return target;
 }
 
 ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){

@@ -39,15 +39,15 @@ namespace cms {
         ModelBase* set(const string &attr, const string &value, bool notify = true);
         ModelBase* set(const map<string, string> &attrs, bool notify=true);
 
-        string get(const string &attr, string _default = "") const;
+        const string get(const string &attr, const string& _default = "") const;
 
-        string getId() const { return get("id", get("_id")); }
-        CidType cid() const { return (CidType)this; }
+        inline string getId() const { return get("id", get("_id")); }
+        inline CidType cid() const { return (CidType)this; }
 
         const map<string, string> &attributes() const { return _attributes; }
 
         bool has(const string& attr) const;
-        bool equals(shared_ptr<ModelBase> other){ return other->cid() == cid(); }
+        inline bool equals(shared_ptr<ModelBase> other){ return other->cid() == cid(); }
         size_t size() const { return _attributes.size(); }
 
         void each(AttrIterateFunc func);
@@ -68,17 +68,9 @@ namespace cms {
 
     public: // attribute conversions
 
-        ModelBase* setBool(const string &attr, bool val, bool notify = true) {
-            return this->set(attr, (string)(val ? "true" : "false"), notify);
-        }
-
-        ModelBase* set(const string &attr, const ci::vec2& val, bool notify = true) {
-            return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y), notify);
-        }
-
-        ModelBase* set(const string &attr, const ci::vec3& val, bool notify = true) {
-            return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y) +","+std::to_string(val.z), notify);
-        }
+        ModelBase* setBool(const string &attr, bool val, bool notify = true);
+        ModelBase* set(const string &attr, const ci::vec2& val, bool notify = true);
+        ModelBase* set(const string &attr, const ci::vec3& val, bool notify = true);
 
         int getInt(const string& attr, int defaultValue = 0);
         float getFloat(const string& attr, float defaultValue = 0.0f);
@@ -91,11 +83,11 @@ namespace cms {
         bool withInt(const string& attr, function<void(const int&)> func);
         // bool with(const string& attr, function<void(float)> func){ return this->withFloat(attr, func); }
         bool withFloat(const string& attr, function<void(float)> func);
-        bool with(const string& attr, function<void(const bool&)> func){ return this->withBool(attr, func); }
+        inline bool with(const string& attr, function<void(const bool&)> func){ return this->withBool(attr, func); }
         bool withBool(const string& attr, function<void(const bool&)> func);
-        bool with(const string& attr, function<void(const glm::vec2&)> func){ return this->withVec2(attr, func); }
+        inline bool with(const string& attr, function<void(const glm::vec2&)> func){ return this->withVec2(attr, func); }
         bool withVec2(const string& attr, function<void(const glm::vec2&)> func);
-        bool with(const string& attr, function<void(const glm::vec3&)> func){ return this->withVec3(attr, func); }
+        inline bool with(const string& attr, function<void(const glm::vec3&)> func){ return this->withVec3(attr, func); }
         bool withVec3(const string& attr, function<void(const glm::vec3&)> func);
 
     public: // events

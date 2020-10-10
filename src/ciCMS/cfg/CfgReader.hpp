@@ -50,20 +50,32 @@ namespace cms { namespace cfg {
     // }
 
     const CfgReader& withVec2(const string& attr, function<void(const glm::vec2&)> func) const {
-      if(this->has(attr))
-        func(cms::deserialiseVec2(attrs->at(attr), glm::vec2(0.0f)));
+      if(this->has(attr)) {
+        glm::vec2 target;
+        cms::serde::vec2(target, attrs->at(attr), glm::vec2(0,0));
+        func(target);
+      }
+
       return *this;
     }
 
     const CfgReader& withVec3(const string& attr, function<void(const glm::vec3&)> func) const {
-      if(this->has(attr))
-        func(cms::deserialiseVec3(attrs->at(attr), glm::vec3(0.0f)));
+      if(this->has(attr)) {
+        glm::vec3 target;
+        cms::serde::vec3(target, attrs->at(attr), glm::vec3(0));
+        func(target);
+      }
+
       return *this;
     }
 
     const CfgReader& withVec4(const string& attr, function<void(const glm::vec4&)> func) const {
-      if(this->has(attr))
-        func(cms::deserialiseVec4(attrs->at(attr), glm::vec4(0.0f)));
+      if(this->has(attr)) {
+        glm::vec4 target;
+        cms::serde::vec4(target, attrs->at(attr), glm::vec4(0));
+        func(target);
+      }
+
       return *this;
     }
 
@@ -106,7 +118,12 @@ namespace cms { namespace cfg {
     }
 
     glm::vec2 getVec2(const string& attr, const glm::vec2& defaultValue) const {
-      return has(attr) ? cms::deserialiseVec2(attrs->at(attr), defaultValue) : defaultValue;
+      if (!has(attr))
+        return defaultValue;
+
+      glm::vec2 target;
+      cms::serde::vec2(target, attrs->at(attr), defaultValue);
+      return target;
     }
 
     glm::ivec2 get_ivec2(const string& attr, const glm::ivec2& defaultValue) const {
@@ -114,11 +131,21 @@ namespace cms { namespace cfg {
     }
 
     glm::vec3 getVec3(const string& attr, const glm::vec3& defaultValue) const {
-      return has(attr) ? cms::deserialiseVec3(attrs->at(attr), defaultValue) : defaultValue;
+      if (!has(attr))
+        return defaultValue;
+
+      glm::vec3 target;
+      cms::serde::vec3(target, attrs->at(attr), defaultValue);
+      return target;
     }
 
     glm::vec4 getVec4(const string& attr, const glm::vec4& defaultValue) const {
-      return has(attr) ? cms::deserialiseVec4(attrs->at(attr), defaultValue) : defaultValue;
+      if (!has(attr))
+        return defaultValue;
+
+      glm::vec4 target;
+      cms::serde::vec4(target, attrs->at(attr), defaultValue);
+      return target;
     }
 
     ci::ColorAf getColor(const string& attr, const ci::ColorAf& defaultValue) const {

@@ -139,17 +139,25 @@ TEST_CASE("cms::Model", ""){
 
     SECTION("setBool getBool"){
         Model model;
+        // unset attribute
         REQUIRE(model.getBool("x") == false);
         REQUIRE(model.getBool("x", true) == true);
+        
         model.set("x", "true");
         REQUIRE(model.getBool("x") == true);
         REQUIRE(model.getBool("x", false) == true);
-        model.set("x", "Not-A-Bool");
+        
+        model.set("x", "false");
         REQUIRE(model.getBool("x") == false);
-        REQUIRE(model.getBool("x", true) == true);
+        REQUIRE(model.getBool("x", true) == false);
+
         model.setBool("x", true);
         REQUIRE(model.getBool("x") == true);
         REQUIRE(model.getBool("x", false) == true);
+
+        model.set("x", "Not-A-Bool");
+        REQUIRE(model.getBool("x") == false);
+        REQUIRE(model.getBool("x", true) == false);
     }
 
     SECTION("with(bool)"){
@@ -172,7 +180,7 @@ TEST_CASE("cms::Model", ""){
 
     SECTION("getVec2"){
         Model m;
-        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
+        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f));
         m.set("someColor", "255,0,0");
         REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 0.0f));
         m.set("someColor", "23");
@@ -183,7 +191,7 @@ TEST_CASE("cms::Model", ""){
 
     SECTION("getVec3"){
         Model m;
-        REQUIRE(m.getVec3("attr") == glm::vec3(0.0f, 0.0f, 0.0f));
+        REQUIRE(m.getVec3("attr") == glm::vec3(0.0f));
         m.set("someColor", "255,0,0");
         REQUIRE(m.getVec3("someColor") == glm::vec3(255.0f, 0.0f, 0.0f));
         m.set("someColor", "23");
