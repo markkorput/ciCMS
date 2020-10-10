@@ -51,7 +51,7 @@ namespace cms { namespace cfg {
 
     const CfgReader& withVec2(const string& attr, function<void(const glm::vec2&)> func) const {
       if(this->has(attr))
-        func(cms::deserialiseVec2(attrs->at(attr), glm::vec2(0.0f)));
+        func(cms::deserialiseVec2(attrs->at(attr), glm::vec2(0,0)));
       return *this;
     }
 

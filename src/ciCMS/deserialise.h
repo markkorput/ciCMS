@@ -1,3 +1,5 @@
+#pragma once 
+
 #include <string>
 #include "glm/glm.hpp"
 #include "cinder/Color.h"
@@ -15,4 +17,10 @@ namespace cms {
   cinder::ColorAf deserialiseColor(const std::string& str, const cinder::ColorAf& defaultValue);
 
   glm::ivec2 deserialise_ivec2(const std::string& str, const glm::ivec2& defaultValue);
+
+  namespace serde {
+    void vec2(glm::vec2& target, const std::string& str, const glm::vec2& defaultValue);
+    void vec3(glm::vec3& target, const std::string& str, const glm::vec3& defaultValue);
+    void vec4(glm::vec4& target, const std::string& str, const glm::vec4& defaultValue);
+  }
 }

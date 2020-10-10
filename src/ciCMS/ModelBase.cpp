@@ -5,7 +5,6 @@
 using namespace cms;
 
 ModelBase* ModelBase::set(const string &attr, const string &value, bool notify){
-
     if(isLocked()){
         CI_LOG_V("model locked; queueing .set operation for attribute: " << attr);
         modQueueRefs.push_back(make_shared<Mod>(attr, value, notify));
@@ -44,8 +43,9 @@ ModelBase* ModelBase::set(const map<string, string> &attrs, bool notify){
 	return this;
 }
 
-string ModelBase::get(const string &attr, string _default) const {
-    return has(attr) ? _attributes.at(attr) : _default;
+const string ModelBase::get(const string &attr, const string& _default) const {
+    string tmp = has(attr) ? _attributes.at(attr) : _default;
+    return tmp;
 }
 
 bool ModelBase::has(const string& attr) const {
@@ -95,28 +95,51 @@ void ModelBase::lock(LockFunctor func){
     modQueueRefs.clear();
 }
 
+
+ModelBase* ModelBase::setBool(const string &attr, bool val, bool notify) {
+    return this->set(attr, (string)(val ? "true" : "false"), notify);
+}
+
+ModelBase* ModelBase::set(const string &attr, const ci::vec2& val, bool notify) {
+    return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y), notify);
+}
+
+ModelBase* ModelBase::set(const string &attr, const ci::vec3& val, bool notify) {
+    return this->set(attr, std::to_string(val.x) +","+std::to_string(val.y) +","+std::to_string(val.z), notify);
+}
+
+
 int ModelBase::getInt(const string& attr, int defaultValue){
-  return cms::deserialiseInt(this->get(attr), defaultValue);
+  std::string tmp = this->get(attr);
+  return cms::deserialiseInt(tmp, defaultValue);
 }
 
 float ModelBase::getFloat(const string& attr, float defaultValue){
-  return cms::deserialiseFloat(this->get(attr), defaultValue);
+  std::string tmp = this->get(attr);
+  return cms::deserialiseFloat(tmp, defaultValue);
 }
 
 bool ModelBase::getBool(const string& attr, bool defaultValue){
-  return cms::deserialiseBool(this->get(attr), defaultValue);
+  std::string tmp = this->get(attr);
+  return cms::deserialiseBool(tmp, defaultValue);
 }
 
 glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
-  return cms::deserialiseVec2(this->get(attr), defaultValue);
+  const std::string tmp = this->get(attr);
+  std::cout << "tmp: " << tmp << "(length: "<<tmp.length()<<")" << std::endl;
+  auto v = cms::deserialiseVec2(tmp, defaultValue);
+  std::cout << "tmp: " << tmp << "(length: "<<tmp.length()<<")" << std::endl;
+  return v;
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){
-  return cms::deserialiseVec3(this->get(attr), defaultValue);
+  std::string tmp = this->get(attr);
+  return cms::deserialiseVec3(tmp, defaultValue);
 }
 
 ci::ColorAf ModelBase::getColor(const string& attr, const ci::ColorAf& defaultValue){
-  return cms::deserialiseColor(this->get(attr), defaultValue);
+  std::string tmp = this->get(attr);
+  return cms::deserialiseColor(tmp, defaultValue);
 }
 
 bool ModelBase::with(const string& attr, function<void(const string&)> func){

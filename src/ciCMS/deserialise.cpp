@@ -175,3 +175,92 @@ namespace cms {
     return defaultValue;
   }
 }
+
+namespace cms::serde {
+
+  float flt(const std::string& str, float defaultValue){
+    try {
+      return std::stof(str);
+    } catch(std::invalid_argument exc){
+      // std::cerr << exc.what();
+    }
+
+    return defaultValue;
+  }
+
+  void vec2(glm::vec2& target, const std::string& str, const glm::vec2& defaultValue){
+    std::vector<std::string> strings;
+
+    split(strings, str, ',');
+
+    try {
+      if(strings.size() == 2) {
+        target = glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
+        return;
+      }
+
+      if(strings.size() == 1 && strings[0] != ""){
+        float val = std::stof(strings[0]);
+        target = glm::vec2(val, val);
+        return;
+      }
+    } catch(std::invalid_argument exc){
+      // std::cerr << exc.what();
+    }
+
+    target = defaultValue;
+  }
+
+  void vec3(glm::vec3& target, const std::string& str, const glm::vec3& defaultValue){
+    std::vector<std::string> strings;
+    split(strings, str, ',');
+
+    try{
+        if(strings.size() == 3) {
+            target = glm::vec3(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]));
+            return;
+        }
+
+        if(strings.size() == 1 && strings[0] != ""){
+            float val = std::stof(strings[0]);
+            target = glm::vec3(val, val, val);
+            return;
+        }
+    } catch(std::invalid_argument exc){
+        // std::cerr << exc.what();
+    }
+
+    target = defaultValue;
+  }
+
+  void vec4(glm::vec2& target, const std::string& str, const glm::vec2& defaultValue){
+    std::vector<std::string> strings;
+    split(strings, str, ',');
+
+    try{
+      if(strings.size() == 4) {
+        target = glm::vec4(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]), std::stof(strings[3]));
+        return;
+      }
+
+      if(strings.size() == 3) {
+        target =  glm::vec4(std::stof(strings[0]), std::stof(strings[1]), std::stof(strings[2]), 0.0f);
+        return;
+      }
+
+      if(strings.size() == 1 && strings[0] != ""){
+        float val = std::stof(strings[0]);
+        target = glm::vec4(val, val, val, val);
+        return;
+      }
+    } catch(std::invalid_argument exc){
+        // std::cerr << exc.what();
+    }
+
+    target = defaultValue;
+  }
+
+}
+
+
+

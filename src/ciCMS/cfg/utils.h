@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 namespace cms { namespace cfg {
   void split(std::vector<std::string>& tokens, const std::string& s, char delimiter);
@@ -14,21 +15,24 @@ namespace cms { namespace cfg {
     const std::string & separator =",",  // see 1.
     const std::string & concluder ="")    // see 1.
   {
-      std::ostringstream ss;
+    std::cout << " -- JOIN! delimiter: " << separator << " concluder: " << concluder << std::endl;
+    std::ostringstream ss;
 
-      if(begin != end)
-      {
-          ss << *begin++; // see 3.
-      }    
+    if(begin != end)
+    {
+      std::cout << " -- JOIN! -- piece: " << *begin << std::endl;
+      ss << *begin++; // see 3.
+    }    
 
-      while(begin != end) // see 3.
-      {
-          ss << separator;
-          ss << *begin++;
-      }
+    while(begin != end) // see 3.
+    {
+      std::cout << " -- JOIN! -- piece: " << *begin << std::endl;
+      ss << separator;
+      ss << *begin++;
+    }
 
-      ss << concluder;
-      return ss.str();
+    ss << concluder;
+    return ss.str();
   }
 
   
