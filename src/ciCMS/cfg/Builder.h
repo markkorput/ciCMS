@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include "utils.h"
+#include "../utils.h"
 #include "cinder/app/App.h"
 #include "ciCMS/ModelCollection.h"
 

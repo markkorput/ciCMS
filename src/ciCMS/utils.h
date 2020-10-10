@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace cms { namespace cfg {
+namespace cms {
   void split(std::vector<std::string>& tokens, const std::string& s, char delimiter);
 
   template<typename InputIt>
@@ -40,4 +40,4 @@ namespace cms { namespace cfg {
     const std::string& concluder ="") {
       return _join(v.begin(), v.end(), separator, concluder);
   }
-}}
+}

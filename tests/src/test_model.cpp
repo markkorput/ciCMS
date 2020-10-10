@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "ciCMS/cfg/utils.h"
+#include "ciCMS/utils.h"
 #include "ciCMS/Model.h"
 
 using namespace cms;
@@ -12,12 +12,12 @@ TEST_CASE("cms::Model", ""){
         model.set("age", "32");
 
 
-        REQUIRE(cfg::join(result, ",") == "");
+        REQUIRE(join(result, ",") == "");
         model.each([&result](const string& attr, const string& val){
             result.push_back(attr+"="+val);
         });
 
-        REQUIRE(cfg::join(result, ",") == "age=32,name=John");
+        REQUIRE(join(result, ",") == "age=32,name=John");
     }
 
     SECTION("each lock; modifying operations during i"){
@@ -30,7 +30,7 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(model.get("age_copy") == "");
 
         std::vector<string> result;
-        REQUIRE(cfg::join(result, ",") == "");
+        REQUIRE(join(result, ",") == "");
 
         model.each([&model, &result](const string& attr, const string& val){
             // add copy attribute
@@ -41,7 +41,7 @@ TEST_CASE("cms::Model", ""){
         });
 
         // during the iterations, the model didn't change
-        REQUIRE(cfg::join(result, ",") == "age=32(size:2),name=John(size:2)");
+        REQUIRE(join(result, ",") == "age=32(size:2),name=John(size:2)");
         // immediately after the iterations finished, all changes were effected
         REQUIRE(model.size() == 4);
         REQUIRE(model.get("name") == "John_updated");
@@ -93,7 +93,7 @@ TEST_CASE("cms::Model", ""){
         int result=0;
 
         vector<string> strs;
-        cfg::split(strs, "attrA,attrC", ',');
+        split(strs, "attrA,attrC", ',');
 
         // register transformer that counts two-out-of-three attributes
         auto signalConnection = model.transformAttributes(strs, [&result](const string& value){

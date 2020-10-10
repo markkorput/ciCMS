@@ -2,9 +2,7 @@
 #include <sstream>
 #include "deserialise.h"
 // #include "boost/lexical_cast.hpp"
-#include "cfg/utils.h"
-
-using namespace cms::cfg;
+#include "utils.h"
 
 namespace cms {
 

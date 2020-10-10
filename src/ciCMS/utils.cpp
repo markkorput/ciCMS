@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-namespace cms { namespace cfg {
+namespace cms {
   void split(std::vector<std::string>& tokens, const std::string& s, char delimiter)
   {
     if (s.length() == 0) return;
@@ -16,4 +16,4 @@ namespace cms { namespace cfg {
       tokens.push_back(token);
     }
   }
-}}
+}

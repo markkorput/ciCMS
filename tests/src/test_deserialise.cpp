@@ -1,5 +1,4 @@
 #include "catch.hpp"
-#include "ciCMS/cfg/utils.h"
 #include "ciCMS/Model.h"
 #include "ciCMS/deserialise.h"
 

@@ -1,10 +1,9 @@
 #include "catch.hpp"
 
-#include "ciCMS/cfg/utils.h"
+#include "ciCMS/utils.h"
 
 using namespace std;
 using namespace cms;
-using namespace cms::cfg;
 
 TEST_CASE("cms::cfg::split"){
   SECTION("empty string"){

@@ -2,7 +2,7 @@
 
 #include <map>
 #include <regex>
-#include "ciCMS/deserialise.h"
+#include "../deserialise.h"
 
 namespace cms { namespace cfg {
   class CfgReader : public std::map<std::string, std::string> {
