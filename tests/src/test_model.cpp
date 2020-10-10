@@ -178,17 +178,17 @@ TEST_CASE("cms::Model", ""){
         REQUIRE(target == true);
     }
 
-    // SECTION("getVec2"){
-    //     Model m;
-    //     std::cout<< " --------- here: " << std::endl;
-    //     REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
-    //     m.set("someColor", "255,0,0");
-    //     REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 0.0f));
-    //     m.set("someColor", "23");
-    //     REQUIRE(m.getVec2("someColor") == glm::vec2(23.0f,23.0f));
-    //     m.set("someColor", "0,100");
-    //     REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 100.0f));
-    // }
+    SECTION("getVec2"){
+        Model m;
+        std::cout<< " --------- here: " << std::endl;
+        REQUIRE(m.getVec2("attr") == glm::vec2(0.0f, 0.0f));
+        m.set("someColor", "255,0,0");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 0.0f));
+        m.set("someColor", "23");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(23.0f,23.0f));
+        m.set("someColor", "0,100");
+        REQUIRE(m.getVec2("someColor") == glm::vec2(0.0f, 100.0f));
+    }
 
     // SECTION("getVec3"){
     //     Model m;

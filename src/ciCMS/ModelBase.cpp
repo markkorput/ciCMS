@@ -126,10 +126,9 @@ bool ModelBase::getBool(const string& attr, bool defaultValue){
 
 glm::vec2 ModelBase::getVec2(const string& attr, const glm::vec2& defaultValue){
   const std::string tmp = this->get(attr);
-  std::cout << "tmp: " << tmp << "(length: "<<tmp.length()<<")" << std::endl;
-  auto v = cms::deserialiseVec2(tmp, defaultValue);
-  std::cout << "tmp: " << tmp << "(length: "<<tmp.length()<<")" << std::endl;
-  return v;
+  glm::vec2 target;
+  cms::serde::vec2(target, tmp, defaultValue);
+  return target;
 }
 
 glm::vec3 ModelBase::getVec3(const string& attr, const glm::vec3& defaultValue){

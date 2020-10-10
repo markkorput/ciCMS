@@ -21,7 +21,11 @@ namespace cms {
   bool deserialise<bool>(const std::string& str){ return cms::deserialiseBool(str, false); }
 
   template<>
-  glm::vec2 deserialise<glm::vec2>(const std::string& str){ return cms::deserialiseVec2(str, glm::vec2(0.0f, 0.0f)); }
+  glm::vec2 deserialise<glm::vec2>(const std::string& str){
+    glm::vec2 target;
+    serde::vec2(target, str, glm::vec2(0.0f, 0.0f));
+    return target;
+  }
 
   template<>
   glm::vec3 deserialise<glm::vec3>(const std::string& str){ return cms::deserialiseVec3(str, glm::vec3(0.0f, 0.0f, 0.0f)); }
@@ -67,27 +71,6 @@ namespace cms {
     // } catch(boost::bad_lexical_cast exc){
     //   // std::cerr << exc.what();
     // }
-
-    return defaultValue;
-  }
-
-
-  glm::vec2 deserialiseVec2(const std::string& str, const glm::vec2& defaultValue){
-    std::vector<std::string> strings;
-
-    split(strings, str, ',');
-
-    try {
-      if(strings.size() == 2)
-        return glm::vec2(std::stof(strings[0]), std::stof(strings[1]));
-
-      if(strings.size() == 1 && strings[0] != ""){
-        float val = std::stof(strings[0]);
-        return glm::vec2(val, val);
-      }
-    } catch(std::invalid_argument exc){
-      // std::cerr << exc.what();
-    }
 
     return defaultValue;
   }

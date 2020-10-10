@@ -50,8 +50,12 @@ namespace cms { namespace cfg {
     // }
 
     const CfgReader& withVec2(const string& attr, function<void(const glm::vec2&)> func) const {
-      if(this->has(attr))
-        func(cms::deserialiseVec2(attrs->at(attr), glm::vec2(0,0)));
+      if(this->has(attr)) {
+        glm::vec2 target;
+        cms::serde::vec2(target, attrs->at(attr), glm::vec2(0,0));
+        func(target);
+      }
+
       return *this;
     }
 
@@ -106,7 +110,12 @@ namespace cms { namespace cfg {
     }
 
     glm::vec2 getVec2(const string& attr, const glm::vec2& defaultValue) const {
-      return has(attr) ? cms::deserialiseVec2(attrs->at(attr), defaultValue) : defaultValue;
+      if (!has(attr))
+        return defaultValue;
+
+      glm::vec2 target;
+      cms::serde::vec2(target, attrs->at(attr), defaultValue);
+      return target;
     }
 
     glm::ivec2 get_ivec2(const string& attr, const glm::ivec2& defaultValue) const {
