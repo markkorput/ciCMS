@@ -160,13 +160,8 @@ namespace cms { namespace cfg {
     auto readr = reader();
 
     if (readr->has(attr)) {
-      // this->getSignal<Signature>(readr->get(attr))->connect(func);
       std::string value = readr->get(attr);
-      std::vector<std::string> ids;  
-      split(ids, value, ',');
-
-      for(auto& id : ids)
-        this->getSignal<Signature>(id)->connect(func);
+      this->connect(value, func);
     }
 
     return *this;
