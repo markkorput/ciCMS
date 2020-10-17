@@ -293,7 +293,7 @@ namespace cms { namespace cfg {
   template<typename Typ>
   Cfg& Cfg::withState(const std::string& stateId, std::function<void(cms::State<Typ>&)> func) {
     auto p = this->getState<Typ>(stateId);
-    func(p);
+    func(*p);
     return *this;
   }
 
