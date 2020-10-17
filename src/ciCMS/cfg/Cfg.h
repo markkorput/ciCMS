@@ -102,7 +102,7 @@ namespace cms { namespace cfg {
      * Push state value changes to method
      */
     template <typename Typ>
-    Cfg& pushRef(const string& attr, std::function<void(Typ&)> func);
+    Cfg& pushRef(const string& attr, std::function<void(const Typ&)> func);
 
     /**
      * Push state value changes from sourceState to
@@ -234,21 +234,21 @@ namespace cms { namespace cfg {
   template <typename Typ>
   Cfg& Cfg::pushRef(const string& attr, Typ& var) {
     auto readr = reader();
-    if (readr->has(attr)) this->push(readr->get(attr), var);
+    if (readr->has(attr)) this->push<Typ>(readr->get(attr), var);
     return *this;
   }
 
   template <typename Typ>
   Cfg& Cfg::pushRef(const string& attr, State<Typ>& targetState) {
     auto readr = reader();
-    if (readr->has(attr)) this->push(readr->get(attr), targetState);
+    if (readr->has(attr)) this->push<Typ>(readr->get(attr), targetState);
     return *this;
   }
 
   template <typename Typ>
-  Cfg& Cfg::pushRef(const string& attr, std::function<void(Typ&)> func) {
+  Cfg& Cfg::pushRef(const string& attr, std::function<void(const Typ&)> func) {
     auto readr = reader();
-    if (readr->has(attr)) this->push(readr->get(attr), func);
+    if (readr->has(attr)) this->push<Typ>(readr->get(attr), func);
     return *this;
   }
 
