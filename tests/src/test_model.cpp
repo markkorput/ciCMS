@@ -157,7 +157,7 @@ TEST_CASE("cms::Model", ""){
 
         model.set("x", "Not-A-Bool");
         REQUIRE(model.getBool("x") == false);
-        REQUIRE(model.getBool("x", true) == false);
+        REQUIRE(model.getBool("x", false) == false);
     }
 
     SECTION("with(bool)"){

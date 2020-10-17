@@ -5,6 +5,31 @@
 using namespace std;
 using namespace cms;
 
+TEST_CASE("cms::deserialise", ""){
+    SECTION("deserialiseBool"){
+        // true values
+        REQUIRE(deserialiseBool("true", true) == true);
+        REQUIRE(deserialiseBool("true", false) == true);
+        REQUIRE(deserialiseBool("TrUe", false) == true);
+        REQUIRE(deserialiseBool("tRUe", false) == true);
+        REQUIRE(deserialiseBool("1", true) == true);
+        REQUIRE(deserialiseBool("1", false) == true);
+
+        // false values
+        REQUIRE(deserialiseBool("false", true) == false);
+        REQUIRE(deserialiseBool("false", false) == false);
+        REQUIRE(deserialiseBool("FALSE", true) == false);
+        REQUIRE(deserialiseBool("faLSe", false) == false);
+
+        REQUIRE(deserialiseBool("0", true) == false);
+        REQUIRE(deserialiseBool("0", false) == false);
+
+        // invalid values
+        REQUIRE(deserialiseBool("abc", true) == true);
+        REQUIRE(deserialiseBool("abc", false) == false);
+    }
+}
+
 TEST_CASE("cms::serde", ""){
     SECTION("vec2"){
         auto assertValues = [](const std::string& val, const glm::vec2& fallback, const glm::vec2& expectedResult){

@@ -66,8 +66,11 @@ namespace cms {
   bool deserialiseBool(const std::string& str, bool defaultValue){
     std::string s = str;
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    std::istringstream is(str);
-    is >> std::boolalpha >> defaultValue;
+    if (s == "true" || s == "1") return true;
+    if (s == "false" || s == "0") return false;
+    return defaultValue;
+    // std::istringstream is(str);
+    // is >> std::boolalpha >> defaultValue;
 
     // if(s == "true")
     //   return true;
@@ -77,8 +80,7 @@ namespace cms {
     // } catch(boost::bad_lexical_cast exc){
     //   // std::cerr << exc.what();
     // }
-
-    return defaultValue;
+    // return defaultValue;
   }
 
   glm::ivec2 deserialise_ivec2(const std::string& str, const glm::ivec2& defaultValue){
