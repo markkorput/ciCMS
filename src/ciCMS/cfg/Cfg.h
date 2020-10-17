@@ -63,13 +63,28 @@ namespace cms { namespace cfg {
     // STATES
 
     template <typename Typ>
-    Cfg& push(const string& attr, Typ& var);
+    cms::State<Typ>* getState(const string& id, const Typ* initialValue = NULL);
+
+    template<typename Typ>
+    inline Cfg& withState(const std::string& stateId, std::function<void(cms::State<Typ>&)> func);
+
+    template<typename Typ>
+    inline Cfg& withStates(const std::string& stateIds, std::function<void(cms::State<Typ>&)> func, char delimiter=',');
+
+    template<typename Typ>
+    inline Cfg& withStateByAttr(const std::string& attr, std::function<void(cms::State<Typ>&)> func);
+
+    template<typename Typ>
+    inline Cfg& withStatesByAttr(const std::string& attr, std::function<void(cms::State<Typ>&)> func, char delimiter=',');
 
     template <typename Typ>
-    Cfg& push(const string& attr, State<Typ>& targetState);
+    inline Cfg& push(const string& attr, Typ& var);
 
     template <typename Typ>
-    Cfg& push(const string& attr, std::function<void(const Typ&)> func);
+    inline Cfg& push(const string& attr, State<Typ>& targetState);
+
+    template <typename Typ>
+    inline Cfg& push(const string& attr, std::function<void(const Typ&)> func);
 
     /**
      * Push state value changes to var
@@ -89,8 +104,12 @@ namespace cms { namespace cfg {
     template <typename Typ>
     Cfg& pushRef(const string& attr, std::function<void(Typ&)> func);
 
-    template<typename Typ>
-    Cfg& withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func);
+    /**
+     * Push state value changes from sourceState to
+     * signal(s) specified by attr value.
+     */
+    template <typename Typ>
+    Cfg& pushRef(State<Typ>& sourceState, const string& attr);
 
     // SIGNALS
 
@@ -116,9 +135,6 @@ namespace cms { namespace cfg {
     Cfg& connectAttr(const string& attr, std::function<Signature> func);
 
     // OBJECTS
-
-    template <typename Typ>
-    cms::State<Typ>* getState(const string& id, const Typ* initialValue = NULL);
 
     void* getObjectPointer(const string& id);
 
@@ -236,6 +252,14 @@ namespace cms { namespace cfg {
     return *this;
   }
 
+  template <typename Typ>
+  Cfg& Cfg::pushRef(State<Typ>& sourceState, const string& attr) {
+    this->withStatesByAttr(attr, [this, &sourceState](State<Typ>& state){
+      sourceState.push(state);
+    });
+    return *this;
+  }
+
   template <typename Signature>
   ::ctree::Signal<Signature>* Cfg::getSignal(const std::string& id) {
     auto p = (*this->signals)[id];
@@ -265,6 +289,47 @@ namespace cms { namespace cfg {
     // return new state
     return pp;
   }
+
+  template<typename Typ>
+  Cfg& Cfg::withState(const std::string& stateId, std::function<void(cms::State<Typ>&)> func) {
+    auto p = this->getState<Typ>(stateId);
+    func(p);
+    return *this;
+  }
+
+  template<typename Typ>
+  Cfg& Cfg::withStates(const std::string& stateIds, std::function<void(cms::State<Typ>&)> func, char delimiter) {
+    std::vector<std::string> ids;
+    split(ids, stateIds, delimiter);
+
+    for(auto& id : ids)
+      withState<Typ>(id, func);
+
+    return *this;
+  }
+
+  template<typename Typ>
+  Cfg& Cfg::withStateByAttr(const std::string& attr, std::function<void(cms::State<Typ>&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+
+    reader->with(attr, [this, func](const std::string& stateId){
+      this->withState<Typ>(stateId, func);
+    });
+
+    return *this;
+  }
+
+  template<typename Typ>
+  Cfg& Cfg::withStatesByAttr(const std::string& attr, std::function<void(cms::State<Typ>&)> func, char delimiter) {
+    auto reader = CfgReader::read(*this->attributes);
+
+    reader->with(attr, [this, func, delimiter](const std::string& stateIds){
+      this->withStates<Typ>(stateIds, func, delimiter);
+    });
+
+    return *this;
+  }
+
 
   template<typename ObjT>
   size_t Cfg::getObjects(std::vector<ObjT*>& target, const std::string& ids, char delimiter) {
@@ -389,6 +454,7 @@ namespace cms { namespace cfg {
     return *this;
   }
 
+
   /**
    * Finds or creates signal for every signal id in the attr value and invokes func
    * for each signal with the signal as argument.
@@ -405,15 +471,4 @@ namespace cms { namespace cfg {
     return *this;
   }
 
-  template<typename Typ>
-  Cfg& Cfg::withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func) {
-    auto reader = CfgReader::read(*this->attributes);
-
-    reader->with(id, [this, func](const std::string& stateId){
-      auto pState = this->getState<Typ>(stateId);
-      func(*pState);
-    });
-
-    return *this;
-  }
 }}
