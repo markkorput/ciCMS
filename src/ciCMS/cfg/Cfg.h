@@ -39,6 +39,11 @@ namespace cms { namespace cfg {
       return CfgReader::read(*this->attributes);
     }
 
+    inline Cfg& with(const string& attr, function<void(const string&)> func) {
+      reader()->with(attr, func);
+      return *this;
+    }
+
     Cfg& set(const string& attr, string& var);
     Cfg& setInt(const string& attr, int& var);
     Cfg& setBool(const string& attr, bool& var);
@@ -55,11 +60,7 @@ namespace cms { namespace cfg {
     Cfg& setAttributes(const map<string, string> &data) { this->attributes = &data; return *this; }
     Cfg& withData(const map<string, string> &data) { this->attributes = &data; return *this; }
 
-    template <typename Signature>
-    Cfg& connect(const string& signalIds, std::function<Signature> func);
-
-    template <typename Signature>
-    Cfg& connectAttr(const string& attr, std::function<Signature> func);
+    // STATES
 
     template <typename Typ>
     Cfg& push(const string& attr, Typ& var);
@@ -73,18 +74,33 @@ namespace cms { namespace cfg {
     template <typename Typ>
     Cfg& pushRef(const string& attr, State<Typ>& targetState);
 
-    // template <typename Signature>
-    // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
-    //   getSignal<Signature>(attr).connect(&sig.emit);
-    //   return *this;
-    // }
+    template<typename Typ>
+    Cfg& withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func);
 
-    //
-    // get* (signal/state/object) methods
-    //
+    // SIGNALS
 
     template <typename Signature>
     ::ctree::Signal<Signature>* getSignal(const std::string& id);
+
+    template<typename Signature>
+    Cfg& withSignal(const std::string& signalId, std::function<void(::ctree::Signal<Signature>&)> func);
+
+    template<typename Signature>
+    Cfg& withSignals(const std::string& signalIds, std::function<void(::ctree::Signal<Signature>&)> func, char delimiter=',');
+
+    template<typename Signature>
+    Cfg& withSignalByAttr(const std::string& attr, std::function<void(::ctree::Signal<Signature>&)> func);
+
+    template<typename Signature>
+    Cfg& withSignalsByAttr(const std::string& attr, std::function<void(::ctree::Signal<Signature>&)> func);
+
+    template <typename Signature>
+    Cfg& connect(const string& signalIds, std::function<Signature> func);
+
+    template <typename Signature>
+    Cfg& connectAttr(const string& attr, std::function<Signature> func);
+
+    // OBJECTS
 
     template <typename Typ>
     cms::State<Typ>* getState(const string& id, const Typ* initialValue = NULL);
@@ -98,10 +114,6 @@ namespace cms { namespace cfg {
 
     template<typename ObjT>
     size_t getObjects(std::vector<ObjT*>& target, const std::string& ids, char delimiter=',');
-
-    //
-    // with* (signal/state/object) methods
-    //
 
     template<typename ObjT>
     Cfg& withObject(const std::string& id, std::function<void(ObjT&)> func);
@@ -118,16 +130,9 @@ namespace cms { namespace cfg {
     template<typename ObjT>
     Cfg& withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func);
 
-    template<typename Signature>
-    Cfg& withSignalByAttr(const std::string& id, std::function<void(::ctree::Signal<Signature>&)> func);
-
-    template<typename Typ>
-    Cfg& withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func);
-
+    void notifyNewObject(const string& id, void* obj);
 
     CompiledScriptFunc compileScript(const std::string& script);
-
-    void notifyNewObject(const string& id, void* obj);
 
   private:
     const map<string, string>* attributes = NULL;
@@ -305,6 +310,7 @@ namespace cms { namespace cfg {
   template<typename ObjT>
   Cfg& Cfg::withObjectsByAttr(const std::string& id, std::function<void(ObjT&)> func) {
     auto reader = CfgReader::read(*this->attributes);
+
     reader->with(id, [this, func](const std::string& val){
       this->withObjects<ObjT>(val, func);
     });
@@ -312,13 +318,59 @@ namespace cms { namespace cfg {
     return *this;
   }
 
+  /**
+   * Finds or creates signal by signalId and invokes func with the signal as argument
+   */
   template<typename Signature>
-  Cfg& Cfg::withSignalByAttr(const std::string& id, std::function<void(::ctree::Signal<Signature>&)> func) {
+  Cfg& Cfg::withSignal(const std::string& signalId, std::function<void(::ctree::Signal<Signature>&)> func) {
+    auto p = this->getSignal<Signature>(signalId);
+    func(*p);
+    return *this;
+  }
+
+  /**
+   * Finds or creates signal for every signal id in signalIds and invokes func
+   * for each signal with the signal as argument.
+   */
+  template<typename Signature>
+  Cfg& Cfg::withSignals(const std::string& signalIds, std::function<void(::ctree::Signal<Signature>&)> func, char delimiter) {
+    // split signalIds into separate ids
+    std::vector<std::string> ids;
+    split(ids, signalIds, delimiter);
+
+    for(auto& id : ids)
+      this->withSignal<Signature>(id, func);
+
+    return *this;
+  }
+
+
+  /**
+   * Finds or creates a single signal using the value of the given `attr` for signalId
+   * and invokes func with the signal as argument
+   */
+  template<typename Signature>
+  Cfg& Cfg::withSignalByAttr(const std::string& attr, std::function<void(::ctree::Signal<Signature>&)> func) {
     auto reader = CfgReader::read(*this->attributes);
 
-    reader->with(id, [this, func](const std::string& signalId){
-      auto pSignal = this->getSignal<Signature>(signalId);
-      func(*pSignal);
+    reader->with(attr, [this, func](const std::string& signalId){
+      this->withSignal(signalId, func);
+    });
+
+    return *this;
+  }
+
+  /**
+   * Finds or creates signal for every signal id in the attr value and invokes func
+   * for each signal with the signal as argument.
+   */
+  template<typename Signature>
+  Cfg& Cfg::withSignalsByAttr(const std::string& attr, std::function<void(::ctree::Signal<Signature>&)> func) {
+    auto reader = CfgReader::read(*this->attributes);
+
+    // fetch value of attr
+    reader->with(attr, [this, func](const std::string& signalIds){
+      this->withSignals(signalIds, func);
     });
 
     return *this;
