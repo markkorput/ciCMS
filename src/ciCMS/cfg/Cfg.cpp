@@ -131,6 +131,7 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
   std::smatch match;
 
   for(auto& src : scripts) {
+    // "emit:<signalId>"
     { std::regex expr("^emit:(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         auto pSignal = this->getSignal<void()>(match[1]);
@@ -138,6 +139,7 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
       }
     }
 
+    // "toggle:<boolStateId>"
     { std::regex expr("^toggle:(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         auto pState = this->getState<bool>(match[1]);
@@ -147,6 +149,27 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
       }
     }
 
+    // "<boolStateId>=true"
+    { std::regex expr("^(\\w+)=true$");
+      if( std::regex_match(src, match, expr) ) {
+        auto pState = this->getState<bool>(match[1]);
+        funcRefs->push_back( [pState](){
+          pState->operator=(true);
+        } );
+      }
+    }
+
+    // "<boolStateId>=false"
+    { std::regex expr("^(\\w+)=false$");
+      if( std::regex_match(src, match, expr) ) {
+        auto pState = this->getState<bool>(match[1]);
+        funcRefs->push_back( [pState](){
+          pState->operator=(false);
+        } );
+      }
+    }
+
+    // "<addIntValue>:<intStateId>"
     { std::regex expr("^\\+(\\d+):(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         int delta = cms::deserialiseInt(match[1], 0);
@@ -158,6 +181,7 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
       }
     }
 
+    // "<subtractValue>:<intStateId>"
     { std::regex expr("^\\-(\\d+):(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         int delta = cms::deserialiseInt(match[1], 0);
@@ -169,6 +193,7 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
       }
     }
 
+    // "<addFloatValue>:<intStateId>"
     { std::regex expr("^\\+(\\d+\\.\\d)+:(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         auto delta = cms::deserialiseFloat(match[1], 0.0f);
@@ -180,6 +205,7 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
       }
     }
 
+    // "<subtractFloatValue>:<intStateId>"
     { std::regex expr("^\\-(\\d+\\.\\d)+:(\\w+)$");
       if( std::regex_match(src, match, expr) ) {
         auto delta = cms::deserialiseFloat(match[1], 0.0f);
@@ -190,8 +216,6 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
         } );
       }
     }
-
-    // return [](){};
   }
 
   return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {

@@ -266,6 +266,25 @@ TEST_CASE("cms::cfg::Cfg", ""){
     REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
   }
 
+  SECTION("compileScript:set state true or false"){
+    Cfg cfg;
+
+    auto func = cfg.compileScript("turnedOn=true");
+    cfg.getState<bool>("turnedOn")->set(false);
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    func();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+    func();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+    
+    func = cfg.compileScript("turnedOn=false");
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == true);
+    func();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+    func();
+    REQUIRE(cfg.getState<bool>("turnedOn")->val() == false);
+  }
+
   SECTION("compileScript:+1") {
     Cfg cfg;
     auto func = cfg.compileScript("+1:someInt");
