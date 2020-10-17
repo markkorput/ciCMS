@@ -11,7 +11,7 @@ namespace cms { namespace cfg { namespace components {
         cfg.setBool("verbose", this->bVerbose);
       }
 
-      inline void verbose(const std::string& msg) {
+      inline void verbose(const std::string& msg) const {
         if (bVerbose) CI_LOG_I(msg);
       }
 
