@@ -254,9 +254,9 @@ namespace cms { namespace cfg {
 
   template <typename Typ>
   Cfg& Cfg::pushRef(State<Typ>& sourceState, const string& attr) {
-    this->withStatesByAttr(attr, [this, &sourceState](State<Typ>& state){
+    this->withStatesByAttr<Typ>(attr, [this, &sourceState](cms::State<Typ>& state){
       sourceState.push(state);
-    });
+    }, ',');
     return *this;
   }
 
