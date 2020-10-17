@@ -69,10 +69,25 @@ namespace cms { namespace cfg {
     Cfg& push(const string& attr, State<Typ>& targetState);
 
     template <typename Typ>
+    Cfg& push(const string& attr, std::function<void(Typ&)> func);
+
+    /**
+     * Push state value changes to var
+     */
+    template <typename Typ>
     Cfg& pushRef(const string& attr, Typ& var);
 
+    /**
+     * Push state value changes to state
+     */
     template <typename Typ>
     Cfg& pushRef(const string& attr, State<Typ>& targetState);
+
+    /**
+     * Push state value changes to method
+     */
+    template <typename Typ>
+    Cfg& pushRef(const string& attr, std::function<void(Typ&)> func);
 
     template<typename Typ>
     Cfg& withStateByAttr(const std::string& id, std::function<void(cms::State<Typ>&)> func);
@@ -194,6 +209,13 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
+  Cfg& Cfg::push(const string& attr, std::function<void(Typ&)> func) {
+    auto state = this->getState<Typ>(attr);
+    state->push(func);
+    return *this;
+  }
+
+  template <typename Typ>
   Cfg& Cfg::pushRef(const string& attr, Typ& var) {
     auto readr = reader();
     if (readr->has(attr)) this->push(readr->get(attr), var);
@@ -204,6 +226,13 @@ namespace cms { namespace cfg {
   Cfg& Cfg::pushRef(const string& attr, State<Typ>& targetState) {
     auto readr = reader();
     if (readr->has(attr)) this->push(readr->get(attr), targetState);
+    return *this;
+  }
+
+  template <typename Typ>
+  Cfg& Cfg::pushRef(const string& attr, std::function<void(Typ&)> func) {
+    auto readr = reader();
+    if (readr->has(attr)) this->push(readr->get(attr), func);
     return *this;
   }
 
