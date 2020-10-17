@@ -10,9 +10,6 @@ namespace cms { namespace cfg { namespace components {
       void cfg(cms::cfg::Cfg& cfg);
 
     private:
-      void run();
-
-    private:
       std::function<void()> func = nullptr;
   };
 
