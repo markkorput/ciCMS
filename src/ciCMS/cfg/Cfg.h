@@ -69,7 +69,7 @@ namespace cms { namespace cfg {
     Cfg& push(const string& attr, State<Typ>& targetState);
 
     template <typename Typ>
-    Cfg& push(const string& attr, std::function<void(Typ&)> func);
+    Cfg& push(const string& attr, std::function<void(const Typ&)> func);
 
     /**
      * Push state value changes to var
@@ -209,7 +209,7 @@ namespace cms { namespace cfg {
   }
 
   template <typename Typ>
-  Cfg& Cfg::push(const string& attr, std::function<void(Typ&)> func) {
+  Cfg& Cfg::push(const string& attr, std::function<void(const Typ&)> func) {
     auto state = this->getState<Typ>(attr);
     state->push(func);
     return *this;
