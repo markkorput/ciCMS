@@ -119,9 +119,43 @@ Cfg& Cfg::setColor(const string& attr, ci::ColorA& var) {
   return *this;
 }
 
+// SIGNALS
+
+Cfg& Cfg::connectAttr(::ctree::Signal<void()>& sig, const string& attr) {
+  this->withSignalsByAttr<void()>(attr, [&sig](::ctree::Signal<void()>& toSig){
+    sig.connect([&toSig]() {
+      toSig.emit();
+    });
+  });
+
+  return *this;
+}
+
+Cfg& Cfg::connectAttr(const string& attr, ::ctree::Signal<void()>& sig) {
+  this->connectAttr<void()>(attr, [&sig](){
+    sig.emit();
+  });
+
+  return *this;
+}
+
+// OBJECTS
+
 void* Cfg::getObjectPointer(const string& id) {
   return this->objectFetcher ? this->objectFetcher(id) : NULL;
 }
+
+void Cfg::notifyNewObject(const string& id, void* obj) {
+  for(int i=this->objCallbacks.size()-1; i>=0; i--) {
+    auto oc = this->objCallbacks[i];
+    if(oc.id == id) {
+      oc.func(obj);
+      this->objCallbacks.erase(objCallbacks.begin()+i);
+    }
+  }
+}
+
+// SCRIPT
 
 Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
   std::vector<std::string> scripts;
@@ -221,14 +255,4 @@ Cfg::CompiledScriptFunc Cfg::compileScript(const std::string& script) {
   return funcRefs->size() == 1 ? funcRefs->at(0) : [funcRefs]() {
     for(auto func : (*funcRefs)) { func(); }
   };
-}
-
-void Cfg::notifyNewObject(const string& id, void* obj) {
-  for(int i=this->objCallbacks.size()-1; i>=0; i--) {
-    auto oc = this->objCallbacks[i];
-    if(oc.id == id) {
-      oc.func(obj);
-      this->objCallbacks.erase(objCallbacks.begin()+i);
-    }
-  }
 }

@@ -207,30 +207,6 @@ namespace cms { namespace cfg {
     return *this;
   }
 
-  Cfg& Cfg::connectAttr(::ctree::Signal<void()>& sig, const string& attr) {
-    this->withSignalsByAttr<void()>(attr, [&sig](::ctree::Signal<void()>& toSig){
-      sig.connect([&toSig]() {
-        toSig.emit();
-      });
-    });
-
-    return *this;
-  }
-
-  Cfg& Cfg::connectAttr(const string& attr, ::ctree::Signal<void()>& sig) {
-    this->connectAttr<void()>(attr, [&sig](){
-      sig.emit();
-    });
-
-    return *this;
-  }
-
-  // template <typename Signature>
-  // Cfg& connect(const string& attr, const ctree::Signal<Signature> &sig) {
-  //   getSignal<Signature>(attr).connect(&sig.emit);
-  //   return *this;
-  // }
-
   template <typename Typ>
   Cfg& Cfg::push(const string& attr, Typ& var) {
     auto state = this->getState<Typ>(attr, &var);
