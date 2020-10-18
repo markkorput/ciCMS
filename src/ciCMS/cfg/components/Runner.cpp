@@ -45,6 +45,6 @@ void Runner::cfg(cfg::Cfg& cfg) {
   .connectAttr(this->exitSignal, "exitEmit")
   .connectAttr(this->drawSignal, "drawEmit")
   .connectAttr(this->updateSignal, "updateEmit")
-  .connectAttr(this->configSignal, "cofigEmit")
+  .connectAttr(this->configSignal, "configEmit")
   ;
 }
