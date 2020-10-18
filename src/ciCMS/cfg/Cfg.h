@@ -134,6 +134,10 @@ namespace cms { namespace cfg {
     template <typename Signature>
     Cfg& connectAttr(const string& attr, std::function<Signature> func);
 
+
+    Cfg& connectAttr(::ctree::Signal<void()>& sig, const string& attr);
+    Cfg& connectAttr(const string& attr, ::ctree::Signal<void()>& sig);
+
     // OBJECTS
 
     void* getObjectPointer(const string& id);
@@ -199,6 +203,24 @@ namespace cms { namespace cfg {
       std::string value = readr->get(attr);
       this->connect(value, func);
     }
+
+    return *this;
+  }
+
+  Cfg& Cfg::connectAttr(::ctree::Signal<void()>& sig, const string& attr) {
+    this->withSignalsByAttr<void()>(attr, [&sig](::ctree::Signal<void()>& toSig){
+      sig.connect([&toSig]() {
+        toSig.emit();
+      });
+    });
+
+    return *this;
+  }
+
+  Cfg& Cfg::connectAttr(const string& attr, ::ctree::Signal<void()>& sig) {
+    this->connectAttr<void()>(attr, [&sig](){
+      sig.emit();
+    });
 
     return *this;
   }

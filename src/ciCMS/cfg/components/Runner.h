@@ -16,6 +16,7 @@ namespace cms { namespace cfg { namespace components {
       void exit();
       void draw();
       void update();
+      void notifyAboutConfig();
 
       void cfg(cfg::Cfg& cfg);
 
@@ -24,7 +25,8 @@ namespace cms { namespace cfg { namespace components {
         setupSignal,
         exitSignal,
         drawSignal,
-        updateSignal;
+        updateSignal,
+        configSignal;
 
     private:
       ci::vec3 mScale=ci::vec3(1.0);

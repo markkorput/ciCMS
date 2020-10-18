@@ -28,6 +28,10 @@ void Runner::update() {
   updateSignal.emit();
 }
 
+void Runner::notifyAboutConfig() {
+  configSignal.emit();
+}
+
 void Runner::cfg(cfg::Cfg& cfg) {
   cms::cfg::components::Base::cfg(cfg);
 
@@ -37,17 +41,10 @@ void Runner::cfg(cfg::Cfg& cfg) {
 
   .connectAttr<void()>("drawOn", [this](){ this->draw(); })
 
-  .withSignalByAttr<void()>("setupEmit", [this](::ctree::Signal<void()> &sig) {
-    this->setupSignal.connect([&sig](){ sig.emit(); });
-  })
-
-  .withSignalByAttr<void()>("exitEmit", [this](::ctree::Signal<void()> &sig) {
-    this->exitSignal.connect([&sig](){ sig.emit(); });
-  })
-  .withSignalByAttr<void()>("drawEmit", [this](::ctree::Signal<void()> &sig) {
-    this->drawSignal.connect([&sig](){ sig.emit(); });
-  })
-  .withSignalByAttr<void()>("updateEmit", [this](::ctree::Signal<void()> &sig) {
-    this->updateSignal.connect([&sig](){ sig.emit(); });
-  });
+  .connectAttr(this->setupSignal, "setupEmit")
+  .connectAttr(this->exitSignal, "setupEmit")
+  .connectAttr(this->drawSignal, "setupEmit")
+  .connectAttr(this->updateSignal, "updateEmit")
+  .connectAttr(this->configSignal, "cofigEmit")
+  ;
 }
