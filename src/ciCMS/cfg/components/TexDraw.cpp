@@ -40,15 +40,15 @@ void TexDraw::cfg(cms::cfg::Cfg& cfg) {
     })
 
     .withVec4("winPercentageBounds", [this](const ci::vec4& bounds){
-      ci::vec2 winsize = (ci::vec2)ci::app::getWindowSize();
+      
+      if (!this->winSizeListenerRef) {
+        winSizeListenerRef = std::make_shared<utils::WinSizeListener>();
+        winSizeListenerRef->setWinSizeCallback([this](const ci::ivec2& size){ this->updateWindowSize(size); });
+      }
 
-      this->rectRef = std::make_shared<Rectf>(
-        bounds.x * winsize.x, 
-        bounds.y * winsize.y,
-        bounds.z * winsize.x,
-        bounds.w * winsize.y);
-      this->fillCenteredAreaRef = nullptr;
-      this->fitCenteredAreaRef = nullptr;
+      this->winPercentagebounds = std::make_shared<ci::vec4>(bounds.x, bounds.y, bounds.z, bounds.w);
+      auto winSize = winSizeListenerRef->getWindowSize();
+      this->updateWindowSize(winSize);
     });
 }
 
@@ -85,4 +85,14 @@ void TexDraw::draw() {
   }
 
   gl::draw(mTex);
+}
+
+void TexDraw::updateWindowSize(const ci::ivec2& size) {
+  if (winPercentagebounds) {
+    this->rectRef = std::make_shared<Rectf>(
+      winPercentagebounds->x * size.x, 
+      winPercentagebounds->y * size.y,
+      winPercentagebounds->z * size.x,
+      winPercentagebounds->w * size.y);
+  }
 }
