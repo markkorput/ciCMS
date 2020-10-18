@@ -10,6 +10,8 @@ namespace cms { namespace cfg { namespace components {
       inline void cfg(cms::cfg::Cfg& cfg) {
         cfg
         .setBool("verbose", this->bVerbose)
+        .setBool("enabled", this->bEnabled)
+        .pushRef<bool>("enabledState", this->bEnabled)
         .set("name", this->name);
       }
 
@@ -17,8 +19,11 @@ namespace cms { namespace cfg { namespace components {
         if (bVerbose) CI_LOG_I("["+name+"] "+msg);
       }
 
+      inline bool isEnabled() const { return bEnabled; }
+
     private:
       bool bVerbose = false;
+      bool bEnabled = true;
       std::string name = "NoName";
   };
 }}}

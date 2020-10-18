@@ -15,7 +15,10 @@ void TexDraw::cfg(cms::cfg::Cfg& cfg) {
     this->mTex = texref;
   })
 
-  .connectAttr<void()>("drawOn", [this](){ this->draw(); })
+  .connectAttr<void()>("drawOn", [this](){
+      if (this->isEnabled())
+        this->draw(); })
+
   .connectAttr<void(const Area&)>("fillBoundsOn", [this](const Area& area){
     verbose("TexDraw.fillBoundsOn");
     this->rectRef = std::make_shared<Rectf>(area);
