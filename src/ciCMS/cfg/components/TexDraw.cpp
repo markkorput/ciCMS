@@ -6,6 +6,8 @@ using namespace cinder;
 void TexDraw::cfg(cms::cfg::Cfg& cfg) {
   Base::cfg(cfg);
 
+  verbose("TexDraw::cfg");
+
   cfg
   .setBool("fillViewport", this->bFillViewport)
   .connectAttr<void(ci::gl::TextureRef)>("textureOn", [this](ci::gl::TextureRef texref){
