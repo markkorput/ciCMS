@@ -25,16 +25,26 @@ void TexDraw::cfg(cms::cfg::Cfg& cfg) {
     this->fitCenteredAreaRef = std::make_shared<Area>(area);
     this->fillCenteredAreaRef = nullptr;
     this->rectRef = nullptr;
-  });
+  })
 
-  if (cfg.reader()->has("bounds")) {
-    vec4 bounds;
-    cfg.setVec4("bounds", bounds);
-    // Area area=this->fixedAreaRef = std::make_shared<Area>(bounds.x, bounds.y, bounds.z, bounds.w);
-    this->rectRef = std::make_shared<Rectf>(bounds.x, bounds.y, bounds.z, bounds.w);
-    this->fillCenteredAreaRef = nullptr;
-    this->fitCenteredAreaRef = nullptr;
-  }
+  .reader()
+    ->withVec4("bounds", [this](const ci::vec4& bounds){
+      this->rectRef = std::make_shared<Rectf>(bounds.x, bounds.y, bounds.z, bounds.w);
+      this->fillCenteredAreaRef = nullptr;
+      this->fitCenteredAreaRef = nullptr;
+    })
+
+    .withVec4("winPercentageBounds", [this](const ci::vec4& bounds){
+      ci::vec2 winsize = (ci::vec2)ci::app::getWindowSize();
+
+      this->rectRef = std::make_shared<Rectf>(
+        bounds.x * winsize.x, 
+        bounds.y * winsize.y,
+        bounds.z * winsize.x,
+        bounds.w * winsize.y);
+      this->fillCenteredAreaRef = nullptr;
+      this->fitCenteredAreaRef = nullptr;
+    });
 }
 
 void TexDraw::draw() {
